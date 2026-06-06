@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  AlertCircle, X, Shield, Check, ArrowRight, Lock, 
-  PenTool, MessageSquare, Clock, Users, Calendar, HelpCircle 
+  AlertCircle, X, Shield, ArrowRight, Lock, 
+  PenTool, MessageSquare, Clock, Users, HelpCircle 
 } from "lucide-react";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
