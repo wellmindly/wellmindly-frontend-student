@@ -39,6 +39,7 @@ export function Dashboard() {
             greeting={db.greeting}
             firstName={db.firstName}
             dailyMood={db.dailyMood}
+            historicalCheckins={db.historicalCheckins}
             resultsData={db.resultsData}
             onDailyCheckin={db.handleDailyCheckin}
             onExploreDiscover={() => db.setActiveTab("discover")}

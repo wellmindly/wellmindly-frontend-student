@@ -39,6 +39,7 @@ export function useDashboard() {
 
   // ── Daily check-in ───────────────────────────────────────
   const [dailyMood, setDailyMood] = useState<number | null>(null);
+  const [historicalCheckins, setHistoricalCheckins] = useState<any[]>([]);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [checkinMessage, setCheckinMessage] = useState("");
   const [checkinEmoji, setCheckinEmoji] = useState("");
@@ -66,6 +67,17 @@ export function useDashboard() {
       setResultsData(response.data);
     } catch (err) {
       console.error("Failed to fetch quiz results:", err);
+    }
+  };
+
+  const fetchCheckins = async () => {
+    try {
+      const response = await api.get("/students/me/daily-checkins");
+      if (response.data && response.data.checkins) {
+        setHistoricalCheckins(response.data.checkins);
+      }
+    } catch (err) {
+      console.error("Failed to fetch historical daily check-ins:", err);
     }
   };
 
@@ -103,6 +115,7 @@ export function useDashboard() {
       }
     };
     fetchCheckin();
+    fetchCheckins();
     fetchResults();
   }, []);
 
@@ -229,7 +242,12 @@ export function useDashboard() {
   const doSaveCard = useCallback(async () => {
     if (!cardRef.current) return;
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
       const a = document.createElement("a");
       a.download = "my-wellmindly-card.png";
       a.href = canvas.toDataURL("image/png");
@@ -244,6 +262,7 @@ export function useDashboard() {
     try {
       setDailyMood(rating);
       await api.post("/students/me/daily-checkin", { rating });
+      fetchCheckins();
 
       const checkinConfigs: Record<number, { emoji: string; title: string; msg: string }> = {
         1: {
@@ -314,6 +333,8 @@ export function useDashboard() {
     checkinEmoji,
     checkinTitle,
     checkinMessage,
+    historicalCheckins,
+    fetchCheckins,
 
     // quiz results
     resultsData,

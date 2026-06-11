@@ -143,7 +143,12 @@ export function DiscoverPage() {
   const doSaveCard = useCallback(async () => {
     if (!cardRef.current) return;
     try {
-      const canvas = await html2canvas(cardRef.current, { backgroundColor: null, scale: 2 });
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
       const a = document.createElement('a');
       a.download = 'my-wellmindly-card.png';
       a.href = canvas.toDataURL('image/png');

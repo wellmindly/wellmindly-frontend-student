@@ -14,13 +14,28 @@ function DiscoverRoute() {
   return <DiscoverPage />;
 }
 
+function LoginRoute() {
+  const { user, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F7F9F7]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-plum"></div>
+      </div>
+    );
+  }
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <LoginPage />;
+}
+
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginRoute />} />
           <Route path="/discover" element={<DiscoverRoute />} />
           <Route 
             path="/dashboard" 

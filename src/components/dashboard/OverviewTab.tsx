@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -13,6 +14,7 @@ interface OverviewTabProps {
   greeting: string;
   firstName: string;
   dailyMood: number | null;
+  historicalCheckins?: any[];
   resultsData: any;
   onDailyCheckin: (rating: number) => void;
   onExploreDiscover: () => void;
@@ -24,12 +26,63 @@ export function OverviewTab({
   greeting,
   firstName,
   dailyMood,
+  historicalCheckins = [],
   resultsData,
   onDailyCheckin,
   onExploreDiscover,
   onViewAssessments,
   onStartScreening,
 }: OverviewTabProps) {
+  const [selectedTile, setSelectedTile] = useState<any>(null);
+
+  const moodConfig: Record<number, { color: string; emoji: string; text: string; msg: string }> = {
+    1: {
+      color: "var(--rose)",
+      emoji: "💜",
+      text: "Gentle Reminder",
+      msg: "It's okay to have tough days. Remember to take gentle breaths and reach out to campus resources or someone you trust.",
+    },
+    2: {
+      color: "var(--sage-brand)",
+      emoji: "🌿",
+      text: "Self-Care Moment",
+      msg: "Be gentle with yourself today. Taking a short break, walking in nature, or listening to a favorite song might help ease things.",
+    },
+    3: {
+      color: "var(--sky)",
+      emoji: "🌱",
+      text: "Steady & Balanced",
+      msg: "A steady, balanced day. Keep taking it one step at a time!",
+    },
+    4: {
+      color: "var(--gold)",
+      emoji: "☀️",
+      text: "Bright Energy",
+      msg: "Keep riding this positive wave. Try sharing some of your good energy with a friend or colleague today.",
+    },
+    5: {
+      color: "var(--coral)",
+      emoji: "🎉",
+      text: "Thriving & Strong",
+      msg: "Your light is shining bright today. Celebrate this moment and keep doing what makes you thrive!",
+    },
+  };
+
+  const tiles: Date[] = [];
+  const today = new Date();
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    tiles.push(d);
+  }
+
+  const todayStr = new Date().toDateString();
+  const todayCheckin = (historicalCheckins || []).find(
+    (c: any) => new Date(c.createdAt).toDateString() === todayStr
+  );
+  
+  const activeSelection = selectedTile || (todayCheckin ? { date: new Date(todayCheckin.createdAt), checkin: todayCheckin } : null);
+
   return (
     <div className="space-y-8">
       {/* Vibrant Hero Welcome Banner */}
@@ -151,6 +204,127 @@ export function OverviewTab({
 
       {/* Historical Scores Line Chart */}
       <WellbeingChart timeline={resultsData?.timeline} onViewDetails={onViewAssessments} />
+
+      {/* Mood Board Widget */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-200/60"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <h3 className="text-2xl font-black text-slate-900 font-serif">Your Mood Mosaic</h3>
+            <p className="text-slate-500 font-medium text-sm mt-1">
+              A visual board of your daily check-in history. Click a tile to view details.
+            </p>
+          </div>
+          
+          {/* Simple legend */}
+          <div className="flex gap-2 items-center flex-wrap">
+            <span className="text-xs font-bold text-slate-400 mr-1">Legend:</span>
+            {[1, 2, 3, 4, 5].map(rating => {
+              const config = moodConfig[rating];
+              return (
+                <span key={rating} className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border border-line" style={{ backgroundColor: `${config.color}15` }}>
+                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: config.color }} />
+                  <span>{config.emoji}</span>
+                </span>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          {/* Left: The Grid */}
+          <div className="md:col-span-6 lg:col-span-5 flex flex-col items-center md:items-start">
+            <div className="grid grid-cols-7 gap-2.5 p-4 bg-slate-50/80 rounded-3xl border border-slate-100 max-w-xs w-full">
+              {tiles.map((d, index) => {
+                const checkin = (historicalCheckins || []).find((c: any) => {
+                  const cDate = new Date(c.createdAt);
+                  return cDate.toDateString() === d.toDateString();
+                });
+                const isToday = d.toDateString() === new Date().toDateString();
+                const isSelected = activeSelection && activeSelection.date.toDateString() === d.toDateString();
+                
+                let style: React.CSSProperties = {};
+                let className = "aspect-square rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer relative flex items-center justify-center border-none ";
+                
+                if (checkin) {
+                  style = { backgroundColor: moodConfig[checkin.rating].color };
+                  className += isSelected ? "ring-4 ring-offset-2 ring-plum/50 shadow-md" : "shadow-sm";
+                } else if (isToday) {
+                  className += "border-2 border-dashed border-plum hover:bg-plum/5 bg-white shadow-sm";
+                } else {
+                  className += "bg-slate-200/60 opacity-60 hover:bg-slate-300/80";
+                }
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => {
+                      if (checkin) {
+                        setSelectedTile({ date: d, checkin });
+                      } else if (isToday) {
+                        onDailyCheckin(3); // default steady checkin
+                      }
+                    }}
+                    className={className}
+                    style={style}
+                    title={d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + (checkin ? `: ${moodConfig[checkin.rating].text}` : '')}
+                  >
+                    {isToday && !checkin && (
+                      <span className="text-[10px] font-black text-plum font-sans">+</span>
+                    )}
+                    {checkin && (
+                      <span className="text-[10px] select-none opacity-90">{moodConfig[checkin.rating].emoji}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            
+            <div className="flex justify-between w-full max-w-xs mt-2.5 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              <span>28 days ago</span>
+              <span>Today</span>
+            </div>
+          </div>
+
+          {/* Right: The Info Panel */}
+          <div className="md:col-span-6 lg:col-span-7 bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col justify-center min-h-[160px]">
+            {activeSelection ? (
+              <motion.div
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="space-y-3"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    {activeSelection.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className="text-2xl">{moodConfig[activeSelection.checkin.rating].emoji}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-lg font-black text-slate-900">
+                    {moodConfig[activeSelection.checkin.rating].text}
+                  </h4>
+                  <span className="text-xs font-bold px-2 py-0.5 rounded bg-white text-slate-500 border border-line">
+                    Rating {activeSelection.checkin.rating}/5
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                  {moodConfig[activeSelection.checkin.rating].msg}
+                </p>
+              </motion.div>
+            ) : (
+              <div className="text-center text-slate-400 py-6">
+                <Smile className="h-10 w-10 mx-auto text-slate-300 mb-2" />
+                <p className="text-sm font-bold">Select a tile from your mood board to view details.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
 
       {/* Features Grid */}
       <div className="w-full">

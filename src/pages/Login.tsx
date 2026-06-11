@@ -9,8 +9,15 @@ import { useNavigate } from 'react-router-dom';
 import studentLoginPortrait from '../assets/student_login_portrait.png';
 
 export function LoginPage() {
-  const { loginSuccess } = useAuth();
+  const { loginSuccess, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to dashboard if user is already authenticated
+  useEffect(() => {
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
   
   const [mode, setMode] = useState<'login' | 'register'>('login');
 

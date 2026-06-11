@@ -14,6 +14,14 @@ export function CollectionView({ startTest, goTo, showToast }: CollectionViewPro
   const [, forceUpdate] = useState(0);
   const all = loadAll();
   const ids = Object.keys(all).filter(id => all[id]?.length && TESTS[id]);
+  const attempts = ids.flatMap(id => 
+    all[id].map((attempt, index) => ({
+      id,
+      attempt,
+      index,
+      totalAttempts: all[id].length
+    }))
+  ).sort((a, b) => b.attempt.t - a.attempt.t);
 
   useEffect(() => { 
     const handle = setTimeout(() => {
@@ -49,33 +57,37 @@ export function CollectionView({ startTest, goTo, showToast }: CollectionViewPro
         </button>
       </div>
 
-      {ids.length === 0 ? (
+      {attempts.length === 0 ? (
         <div className="text-center text-ink-soft py-16 text-[15px] font-semibold">
           Nothing saved yet. Take a test and your results will appear here.
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {ids.map(id => {
+          {attempts.map(({ id, attempt, index, totalAttempts }) => {
             const t = TESTS[id]; 
-            const last = all[id][all[id].length - 1];
-            const d = new Date(last.t);
+            const d = new Date(attempt.t);
             return (
               <motion.button 
-                key={id} 
+                key={`${id}-${index}`} 
                 onClick={() => startTest(id)}
-                className="text-left bg-white border border-line rounded-3xl p-6 transition hover:shadow-lg cursor-pointer"
+                className="text-left bg-white border border-line rounded-3xl p-6 transition hover:shadow-lg cursor-pointer relative"
                 whileHover={{ y: -3 }}
               >
-                <div className="flex items-center gap-2.5 mb-3">
+                {totalAttempts > 1 && (
+                  <span className="absolute top-3.5 right-3.5 text-[10px] font-bold px-2 py-0.5 bg-paper-2 rounded-full text-ink-soft border border-line select-none">
+                    Attempt #{index + 1}
+                  </span>
+                )}
+                <div className="flex items-center gap-2.5 mb-3 pr-20">
                   <div 
-                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shadow-sm"
+                    className="w-9 h-9 rounded-[10px] flex items-center justify-center shadow-sm shrink-0"
                     style={{ background: `linear-gradient(135deg, ${t.accent}, ${shade(t.accent)})` }}
                   >
                     <SvgIcon name={t.icon} className="w-[18px] h-[18px] stroke-white fill-none" />
                   </div>
-                  <span className="font-serif text-base font-extrabold text-ink">{t.title}</span>
+                  <span className="font-serif text-base font-extrabold text-ink truncate">{t.title}</span>
                 </div>
-                <p className="text-sm text-ink-soft mb-2 font-medium">{last.summary}</p>
+                <p className="text-sm text-ink-soft mb-2 font-medium">{attempt.summary}</p>
                 <p className="text-[11px] text-ink-soft opacity-70 font-semibold">
                   {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
                 </p>

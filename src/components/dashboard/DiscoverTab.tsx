@@ -63,42 +63,39 @@ export function DiscoverTab({
       <div className="max-w-4xl mx-auto">
         {discoverView === "hub" && <HubView startTest={startDiscoverTest} goTo={goTo} />}
 
-        {discoverView === "test" && curDiscoverId && TESTS[curDiscoverId] && (
-          <TestView
-            cur={TESTS[curDiscoverId]}
-            curId={curDiscoverId}
-            qi={discoverQi}
-            resp={discoverResp}
-            total={
-              TESTS[curDiscoverId].kind === "pairs"
-                ? TESTS[curDiscoverId].pairs!.length
-                : TESTS[curDiscoverId].items!.length
-            }
-            progress={
-              (discoverQi /
-                (TESTS[curDiscoverId].kind === "pairs"
-                  ? TESTS[curDiscoverId].pairs!.length
-                  : TESTS[curDiscoverId].items!.length)) *
-              100
-            }
-            onBackClick={() => setDiscoverView("hub")}
-            onPrevQuestion={() => {
-              if (discoverQi > 0) setDiscoverQi(discoverQi - 1);
-            }}
-            onNextQuestion={() => {
-              const cur = TESTS[curDiscoverId];
-              const len = cur.kind === "pairs" ? cur.pairs!.length : cur.items!.length;
-              if (discoverQi < len - 1) {
-                setDiscoverQi(discoverQi + 1);
-              } else {
-                finishDiscoverTest(curDiscoverId, cur, discoverResp);
-              }
-            }}
-            onPickPicture={answerDiscoverPicture}
-            onPickPair={answerDiscoverPair}
-            onPickLikert={answerDiscoverLikert}
-          />
-        )}
+        {discoverView === "test" && curDiscoverId && TESTS[curDiscoverId] && (() => {
+          const cur = TESTS[curDiscoverId];
+          const total = cur.kind === "pairs"
+            ? cur.pairs!.length
+            : cur.kind === "picture"
+            ? 1
+            : cur.items!.length;
+          const progress = total > 1 ? (discoverQi / (total - 1)) * 100 : 100;
+          return (
+            <TestView
+              cur={cur}
+              curId={curDiscoverId}
+              qi={discoverQi}
+              resp={discoverResp}
+              total={total}
+              progress={progress}
+              onBackClick={() => setDiscoverView("hub")}
+              onPrevQuestion={() => {
+                if (discoverQi > 0) setDiscoverQi(discoverQi - 1);
+              }}
+              onNextQuestion={() => {
+                if (discoverQi < total - 1) {
+                  setDiscoverQi(discoverQi + 1);
+                } else {
+                  finishDiscoverTest(curDiscoverId, cur, discoverResp);
+                }
+              }}
+              onPickPicture={answerDiscoverPicture}
+              onPickPair={answerDiscoverPair}
+              onPickLikert={answerDiscoverLikert}
+            />
+          );
+        })()}
 
         {discoverView === "result" && discoverResultData && curDiscoverId && TESTS[curDiscoverId] && (
           <div className="max-w-xl mx-auto">
