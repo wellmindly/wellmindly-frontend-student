@@ -19,11 +19,16 @@ export function LoginPage() {
     }
   }, [user, navigate]);
   
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>('login');
+  const [resetOtpSent, setResetOtpSent] = useState(false);
 
   // Dynamic page title for SEO
   useEffect(() => {
-    document.title = mode === 'login' ? "Sign In — WellMindly" : "Sign Up — WellMindly";
+    document.title = mode === 'login' 
+      ? "Sign In — WellMindly" 
+      : mode === 'register' 
+        ? "Sign Up — WellMindly" 
+        : "Reset Password — WellMindly";
   }, [mode]);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -149,10 +154,73 @@ export function LoginPage() {
     return Object.keys(next).length === 0;
   };
 
+  const handleSendResetOtp = async () => {
+    setGlobalError(null);
+    const next: { email?: string } = {};
+    const e = email.trim();
+    if (!e) next.email = "Email is required.";
+    else if (!EMAIL_RE.test(e)) next.email = "Enter a valid email address.";
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      await api.post("/auth/forgot-password", { email });
+      setResetOtpSent(true);
+    } catch (err) {
+      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to send reset code. Please try again.";
+      setGlobalError(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    setGlobalError(null);
+    const next: { email?: string; password?: string; otp?: string } = {};
+    const e = email.trim();
+    if (!e) next.email = "Email is required.";
+    else if (!EMAIL_RE.test(e)) next.email = "Enter a valid email address.";
+    
+    if (!password) next.password = "New password is required.";
+    else if (password.length < 8) next.password = "Password must be at least 8 characters.";
+    
+    if (!otp.trim()) next.otp = "Verification code is required.";
+
+    setErrors(next);
+    if (Object.keys(next).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      await api.post("/auth/reset-password", { email, otp, newPassword: password, role: 'STUDENT' });
+      setGlobalError(null);
+      alert("Password has been reset successfully! Please sign in with your new password.");
+      setMode('login');
+      setResetOtpSent(false);
+      setOtp("");
+      setPassword("");
+    } catch (err) {
+      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to reset password. Please try again.";
+      setGlobalError(errorMsg);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
     setGlobalError(null);
     
+    if (mode === 'forgot-password') {
+      if (!resetOtpSent) {
+        await handleSendResetOtp();
+      } else {
+        await handleResetPassword();
+      }
+      return;
+    }
+
     if (mode === 'register' && !otpSent) {
       await handleSendOtp();
       return;
@@ -309,12 +377,18 @@ export function LoginPage() {
 
           <div className="mb-8 text-center lg:text-left mt-8 lg:mt-0">
             <h2 className="text-3xl font-black tracking-tight text-slate-900 mb-3">
-              {mode === 'login' ? "Welcome back" : "Create your account"}
+              {mode === 'login' 
+                ? "Welcome back" 
+                : mode === 'register' 
+                  ? "Create your account" 
+                  : "Reset your password"}
             </h2>
             <p className="text-base text-slate-500 font-medium">
               {mode === 'login' 
                 ? "Access your Wellmindly wellness dashboard." 
-                : "Start tracking your mental well-being."}
+                : mode === 'register'
+                  ? "Start tracking your mental well-being."
+                  : "We'll help you secure your account."}
             </p>
           </div>
 
@@ -322,26 +396,30 @@ export function LoginPage() {
           <div className="bg-slate-50 lg:bg-[#F8FAFC] p-8 rounded-3xl border border-slate-100/80">
             
             {/* Google Authentication */}
-            <div className="flex justify-center w-full">
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={() => setGlobalError("Google login widget failed to load.")}
-                theme="outline"
-                size="large"
-                shape="pill"
-                text={mode === 'login' ? "signin_with" : "signup_with"}
-                width="320"
-              />
-            </div>
+            {mode !== 'forgot-password' && (
+              <div className="flex justify-center w-full">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setGlobalError("Google login widget failed to load.")}
+                  theme="outline"
+                  size="large"
+                  shape="pill"
+                  text={mode === 'login' ? "signin_with" : "signup_with"}
+                  width="320"
+                />
+              </div>
+            )}
 
             {/* Divider */}
-            <div className="my-6 flex items-center gap-3">
-              <span className="h-px flex-1 bg-slate-200" />
-              <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                Or connect with
-              </span>
-              <span className="h-px flex-1 bg-slate-200" />
-            </div>
+            {mode !== 'forgot-password' && (
+              <div className="my-6 flex items-center gap-3">
+                <span className="h-px flex-1 bg-slate-200" />
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                  Or connect with
+                </span>
+                <span className="h-px flex-1 bg-slate-200" />
+              </div>
+            )}
 
             {/* Email & Password Form */}
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -417,39 +495,41 @@ export function LoginPage() {
               </Field>
 
               {/* Password Input */}
-              <Field
-                id="password"
-                label="Password"
-                icon={<Lock className="h-4.5 w-4.5" />}
-                error={errors.password}
-                trailing={
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((s) => !s)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                  >
-                    {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-                  </button>
-                }
-              >
-                <input
+              {(mode !== 'forgot-password' || resetOtpSent) && (
+                <Field
                   id="password"
-                  type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  required
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
-                    clearGlobal();
-                  }}
-                  className="w-full bg-transparent py-3 pl-11 pr-11 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
-                />
-              </Field>
+                  label={mode === 'forgot-password' ? "New Password" : "Password"}
+                  icon={<Lock className="h-4.5 w-4.5" />}
+                  error={errors.password}
+                  trailing={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((s) => !s)}
+                      className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+                    </button>
+                  }
+                >
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete={mode === 'forgot-password' ? "new-password" : "current-password"}
+                    required
+                    placeholder={mode === 'forgot-password' ? "Enter new password" : "Enter your password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
+                      clearGlobal();
+                    }}
+                    className="w-full bg-transparent py-3 pl-11 pr-11 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                  />
+                </Field>
+              )}
 
-              {/* OTP Input (Shown only when registering and code has been sent) */}
-              {mode === 'register' && otpSent && (
+              {/* OTP Input (Shown only when registering/resetting and code has been sent) */}
+              {((mode === 'register' && otpSent) || (mode === 'forgot-password' && resetOtpSent)) && (
                 <Field
                   id="otp"
                   label="Verification Code (6-digit OTP)"
@@ -484,27 +564,43 @@ export function LoginPage() {
                 {submitting ? (
                   <>
                     <Loader2 className="h-4.5 w-4.5 animate-spin" />
-                    Authenticating…
+                    Processing…
                   </>
                 ) : (
                   mode === 'login' 
                     ? "Sign In" 
-                    : otpSent 
-                      ? "Verify & Sign Up" 
-                      : "Send Verification Code"
+                    : mode === 'register'
+                      ? (otpSent ? "Verify & Sign Up" : "Send Verification Code")
+                      : (resetOtpSent ? "Reset Password" : "Send Reset Code")
                 )}
               </motion.button>
             </form>
 
             {/* Mode Switcher Link */}
             <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-400">
-              <button
-                type="button"
-                onClick={toggleMode}
-                className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent"
-              >
-                {mode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-              </button>
+              {mode === 'forgot-password' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setResetOtpSent(false);
+                    setOtp("");
+                    setErrors({});
+                    setGlobalError(null);
+                  }}
+                  className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent"
+                >
+                  Back to Sign In
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={toggleMode}
+                  className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent"
+                >
+                  {mode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+                </button>
+              )}
               
               {mode === 'register' && otpSent && (
                 <button
@@ -516,11 +612,33 @@ export function LoginPage() {
                   Resend Code
                 </button>
               )}
+
+              {mode === 'forgot-password' && resetOtpSent && (
+                <button
+                  type="button"
+                  onClick={handleSendResetOtp}
+                  disabled={submitting}
+                  className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent disabled:opacity-50"
+                >
+                  Resend Code
+                </button>
+              )}
               
               {mode === 'login' && (
-                <a href="#" className="transition-colors hover:text-slate-600">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('forgot-password');
+                    setResetOtpSent(false);
+                    setOtp("");
+                    setPassword("");
+                    setErrors({});
+                    setGlobalError(null);
+                  }}
+                  className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent text-xs font-semibold text-slate-400"
+                >
                   Forgot password?
-                </a>
+                </button>
               )}
             </div>
           </div>
