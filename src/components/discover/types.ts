@@ -28,7 +28,7 @@ export interface TestDef {
   pairs?: PairOption[][];
   options?: PictureOption[];
 }
-export interface SavedResult { t: number; summary: string; scores?: Record<string, number>; top?: string[]; tone?: number; label?: string }
+export interface SavedResult { t: number; summary: string; scores?: Record<string, number>; top?: string[]; tone?: number; label?: string; aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } }
 
 // ─── Test Data ──────────────────────────────────────────────────
 export const TESTS: Record<string, TestDef> = {

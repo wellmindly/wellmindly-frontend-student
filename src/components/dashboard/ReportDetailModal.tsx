@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ClipboardList, Clock, Info, Download, Sparkles, AlertCircle } from "lucide-react";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 
 interface ReportDetailModalProps {
   report: any | null;

@@ -5,6 +5,7 @@ import { TESTS } from "../discover/types";
 import type { PictureOption } from "../discover/types";
 import type { DiscoverResultData } from "../../hooks/useDashboard";
 import type { RefObject } from "react";
+import { Heart } from "lucide-react";
 
 interface DiscoverTabProps {
   discoverView: "hub" | "test" | "result" | "results";
@@ -20,8 +21,12 @@ interface DiscoverTabProps {
   answerDiscoverPair: (val: string) => void;
   answerDiscoverPicture: (opt: PictureOption) => void;
   cardRef: RefObject<HTMLDivElement | null>;
+  reportRef: RefObject<HTMLDivElement | null>;
+  discoverLoading: boolean;
   doSaveCard: () => void;
-  onSwitchToAssessments: () => void;
+  onSaveReportPdf: () => void;
+  resultsData: any;
+  onComingSoonClick: (feature: "writemindly" | "talkmindly" | "sessionbooking") => void;
 }
 
 export function DiscoverTab({
@@ -38,8 +43,13 @@ export function DiscoverTab({
   answerDiscoverPair,
   answerDiscoverPicture,
   cardRef,
+  reportRef,
+  discoverLoading,
   doSaveCard,
+  onSaveReportPdf,
   onSwitchToAssessments,
+  resultsData,
+  onComingSoonClick,
 }: DiscoverTabProps) {
   const goTo = (v: string) => {
     if (v === "results") {
@@ -48,6 +58,24 @@ export function DiscoverTab({
       setDiscoverView(v as "hub" | "test" | "result" | "results");
     }
   };
+
+  if (discoverLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 space-y-6 animate-pulse select-none bg-white/50 border border-white/20 rounded-[32px] shadow-sm backdrop-blur-md">
+        <div className="relative w-24 h-24 rounded-full bg-plum/20 flex items-center justify-center shadow-lg shadow-plum/10 border border-plum/30 animate-spin" style={{ animationDuration: '8s' }}>
+          <div className="absolute w-12 h-12 rounded-full bg-plum/40 animate-ping" />
+          <Heart className="w-8 h-8 text-plum fill-current" />
+        </div>
+        
+        <div className="space-y-2.5">
+          <h3 className="text-xl font-extrabold text-slate-800 font-serif">Gathering your self-reflection insights...</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto font-medium">
+            Formulating personalized patterns and observations. This will take just a few seconds.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
@@ -98,16 +126,20 @@ export function DiscoverTab({
         })()}
 
         {discoverView === "result" && discoverResultData && curDiscoverId && TESTS[curDiscoverId] && (
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-xl mx-auto animate-fade-in">
             <ResultView
               cur={TESTS[curDiscoverId]}
               curId={curDiscoverId}
               data={discoverResultData}
               accent={TESTS[curDiscoverId].accent}
               cardRef={cardRef}
+              reportRef={reportRef}
               onSaveCard={doSaveCard}
+              onSaveReportPdf={onSaveReportPdf}
               onRetake={() => startDiscoverTest(curDiscoverId)}
               goTo={goTo}
+              resultsData={resultsData}
+              onComingSoonClick={onComingSoonClick}
             />
           </div>
         )}

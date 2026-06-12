@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import html2canvas from "html2canvas";
+import html2canvas from "html2canvas-pro";
 import {
   TESTS,
   saveResult,
@@ -18,6 +18,7 @@ export interface DiscoverResultData {
   top?: string[];
   archetype?: { name: string; desc: string };
   pictureOption?: PictureOption;
+  aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] };
 }
 
 export function useDashboard() {
@@ -26,10 +27,21 @@ export function useDashboard() {
 
   // ── UI state ──────────────────────────────────────────────
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>(() => {
+  const [activeTab, _setActiveTab] = useState<string>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get("tab") || "overview";
   });
+
+  const setActiveTab = useCallback((tab: string) => {
+    _setActiveTab(tab);
+    if (tab === "discover") {
+      setDiscoverView("hub");
+      setCurDiscoverId(null);
+      setDiscoverQi(0);
+      setDiscoverResp([]);
+      setDiscoverResultData(null);
+    }
+  }, []);
   const [greeting] = useState(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -59,6 +71,8 @@ export function useDashboard() {
   const [discoverResultData, setDiscoverResultData] = useState<DiscoverResultData | null>(null);
 
   const cardRef = useRef<HTMLDivElement>(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+  const [discoverLoading, setDiscoverLoading] = useState(false);
 
   // ── API helpers ──────────────────────────────────────────
   const fetchResults = async () => {
@@ -88,8 +102,9 @@ export function useDashboard() {
     maxScore: number,
     classification: string
   ) => {
+    setDiscoverLoading(true);
     try {
-      await api.post("/quizzes/submit", {
+      const response = await api.post("/quizzes/submit", {
         quizTitle: title,
         quizCategory: category,
         overallScore,
@@ -97,8 +112,12 @@ export function useDashboard() {
         classification,
       });
       fetchResults();
+      return response.data?.aiFeedback || null;
     } catch (err) {
       console.error("Failed to submit Discover result to backend:", err);
+      return null;
+    } finally {
+      setDiscoverLoading(false);
     }
   };
 
@@ -149,10 +168,12 @@ export function useDashboard() {
       const ranked = Object.entries(tally).sort((a, b) => b[1] - a[1]);
       const top = ranked.slice(0, 2).map((x) => x[0]);
       const summary = top.join(" + ");
-      saveResult(id, { t: Date.now(), summary, top });
-      setDiscoverResultData({ kind: "values", top });
+      
+      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, summary);
+      
+      saveResult(id, { t: Date.now(), summary, top, aiFeedback });
+      setDiscoverResultData({ kind: "values", top, aiFeedback });
       setDiscoverView("result");
-      await submitDiscoverToBackend(test.title, category, 100, 100, summary);
       return;
     }
 
@@ -162,41 +183,50 @@ export function useDashboard() {
     if (test.kind === "rank") {
       const top = ranked.slice(0, test.topN).map((x) => x[0]);
       const summary = top.join(", ");
-      saveResult(id, { t: Date.now(), summary, scores, top });
-      setDiscoverResultData({ kind: "strengths", scores, top });
+      
+      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, summary);
+
+      saveResult(id, { t: Date.now(), summary, scores, top, aiFeedback });
+      setDiscoverResultData({ kind: "strengths", scores, top, aiFeedback });
       setDiscoverView("result");
-      await submitDiscoverToBackend(test.title, category, 100, 100, summary);
       return;
     }
 
     if (test.kind === "type") {
       const top = ranked[0][0];
-      saveResult(id, { t: Date.now(), summary: top, scores, top: [top] });
-      setDiscoverResultData({ kind: "type", scores, top: [top] });
+      
+      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, top);
+
+      saveResult(id, { t: Date.now(), summary: top, scores, top: [top], aiFeedback });
+      setDiscoverResultData({ kind: "type", scores, top: [top], aiFeedback });
       setDiscoverView("result");
-      await submitDiscoverToBackend(test.title, category, 100, 100, top);
       return;
     }
 
     // profile
     const summary = ranked[0][0] + " strongest";
-    saveResult(id, { t: Date.now(), summary, scores });
     if (test.archetype) {
       const arch = pickArchetype(scores);
-      setDiscoverResultData({ kind: "bigfive", scores, archetype: arch });
+      
+      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, arch.name);
+
+      saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
+      setDiscoverResultData({ kind: "bigfive", scores, archetype: arch, aiFeedback });
       setDiscoverView("result");
-      await submitDiscoverToBackend(test.title, category, 100, 100, arch.name);
     } else {
-      setDiscoverResultData({ kind: "checkin", scores });
-      setDiscoverView("result");
       const sum = (responses as number[]).reduce((a, b) => a + b, 0);
-      await submitDiscoverToBackend(
+      
+      const aiFeedback = await submitDiscoverToBackend(
         test.title,
         category,
         sum,
         test.items!.length * 5,
         "Strongest: " + ranked[0][0]
       );
+
+      saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
+      setDiscoverResultData({ kind: "checkin", scores, aiFeedback });
+      setDiscoverView("result");
     }
   };
 
@@ -232,17 +262,20 @@ export function useDashboard() {
     if (!curDiscoverId) return;
     const test = TESTS[curDiscoverId];
     const category = test.tag?.split(" · ")[0] || "General";
-    saveResult(curDiscoverId, { t: Date.now(), summary: opt.label, tone: opt.tone, label: opt.label });
-    setDiscoverResultData({ kind: "picture", pictureOption: opt });
+    
+    const aiFeedback = await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
+
+    saveResult(curDiscoverId, { t: Date.now(), summary: opt.label, tone: opt.tone, label: opt.label, aiFeedback });
+    setDiscoverResultData({ kind: "picture", pictureOption: opt, aiFeedback });
     setDiscoverView("result");
-    await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
   };
 
   // ── Card save ────────────────────────────────────────────
   const doSaveCard = useCallback(async () => {
-    if (!cardRef.current) return;
+    const target = cardRef.current || reportRef.current;
+    if (!target) return;
     try {
-      const canvas = await html2canvas(cardRef.current, {
+      const canvas = await html2canvas(target, {
         backgroundColor: null,
         scale: 2,
         useCORS: true,
@@ -254,6 +287,38 @@ export function useDashboard() {
       a.click();
     } catch (err) {
       console.error("Failed to generate card image:", err);
+    }
+  }, []);
+
+  const doSaveReportPdf = useCallback(async () => {
+    if (!reportRef.current) return;
+    try {
+      const { jsPDF } = await import("jspdf");
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      pdf.save("my-wellmindly-report.pdf");
+    } catch (err) {
+      console.error("Failed to generate report PDF:", err);
     }
   }, []);
 
@@ -360,7 +425,10 @@ export function useDashboard() {
     answerDiscoverPair,
     answerDiscoverPicture,
     cardRef,
+    reportRef,
+    discoverLoading,
     doSaveCard,
+    doSaveReportPdf,
   };
 }
 

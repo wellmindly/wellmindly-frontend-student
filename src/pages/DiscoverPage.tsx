@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 
