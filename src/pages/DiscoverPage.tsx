@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas-pro';
 import { useNavigate } from 'react-router-dom';
@@ -59,6 +59,17 @@ export function DiscoverPage() {
     setResultData(null);
     goTo('test');
   }, [goTo]);
+
+  // Handle auto-starting a test from the URL query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get('start');
+    if (startParam && TESTS[startParam]) {
+      startTest(startParam);
+      // Clean query parameter
+      navigate('/discover', { replace: true });
+    }
+  }, [startTest, navigate]);
 
   // ─── Finish ──────────────────────────────────────────────────
   const finishTest = useCallback((id: string, test: TestDef, responses: (number | string)[]) => {

@@ -28,6 +28,8 @@ interface DiscoverTabProps {
   resultsData: any;
   onComingSoonClick: (feature: "writemindly" | "talkmindly" | "sessionbooking") => void;
   onSwitchToAssessments: () => void;
+  isCheckinMode?: boolean;
+  onBackToOverview?: () => void;
 }
 
 export function DiscoverTab({
@@ -51,6 +53,8 @@ export function DiscoverTab({
   onSwitchToAssessments,
   resultsData,
   onComingSoonClick,
+  isCheckinMode = false,
+  onBackToOverview,
 }: DiscoverTabProps) {
   const goTo = (v: string) => {
     if (v === "results") {
@@ -82,9 +86,13 @@ export function DiscoverTab({
     <div className="space-y-8 animate-fade-in pb-12">
       <div className="flex items-center justify-between border-b border-slate-200/50 pb-5">
         <div>
-          <h2 className="text-3xl font-black text-slate-900 font-serif">Explore Tests</h2>
+          <h2 className="text-3xl font-black text-slate-900 font-serif">
+            {isCheckinMode ? "Emotional Check-in" : "Explore Tests"}
+          </h2>
           <p className="text-slate-500 font-medium mt-1">
-            Discover insights about your strengths, personality, and values
+            {isCheckinMode
+              ? "A two-minute wellbeing snapshot — see how you're really doing"
+              : "Discover insights about your strengths, personality, and values"}
           </p>
         </div>
       </div>
@@ -108,7 +116,7 @@ export function DiscoverTab({
               resp={discoverResp}
               total={total}
               progress={progress}
-              onBackClick={() => setDiscoverView("hub")}
+              onBackClick={() => isCheckinMode && onBackToOverview ? onBackToOverview() : setDiscoverView("hub")}
               onPrevQuestion={() => {
                 if (discoverQi > 0) setDiscoverQi(discoverQi - 1);
               }}

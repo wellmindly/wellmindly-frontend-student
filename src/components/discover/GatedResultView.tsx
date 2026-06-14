@@ -124,7 +124,7 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
       {/* Redirection CTAs */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 max-w-md mx-auto">
         <button 
-          onClick={() => navigate("/login")}
+          onClick={() => navigate(`/login?redirect=/discover&testId=${curId}`)}
           className="cursor-pointer flex-1 bg-plum hover:bg-plum/90 text-white font-extrabold text-[14.5px] py-4 rounded-full transition-all active:scale-[.97] shadow-lg shadow-plum/20 border-none"
         >
           Sign Up / Sign In

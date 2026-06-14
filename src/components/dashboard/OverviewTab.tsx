@@ -6,7 +6,6 @@ import {
   Activity,
   ClipboardList,
   ChevronRight,
-  Heart,
 } from "lucide-react";
 import { WellbeingChart } from "./WellbeingChart";
 
@@ -34,6 +33,7 @@ export function OverviewTab({
   onStartScreening,
 }: OverviewTabProps) {
   const [selectedTile, setSelectedTile] = useState<any>(null);
+  const [hoveredTile, setHoveredTile] = useState<number | null>(null);
 
   const moodConfig: Record<number, { color: string; emoji: string; text: string; msg: string }> = {
     1: {
@@ -184,7 +184,7 @@ export function OverviewTab({
                 </span>
                 {resultsData?.latestResult && (
                   <span className="text-sm font-bold text-slate-400">
-                    / {resultsData.latestResult.quizTitle.includes("PHQ-9") ? 15 : 27}
+                    / {resultsData.latestResult.maxScore ?? (resultsData.latestResult.quizTitle.includes("PHQ-9") ? 15 : 27)}
                   </span>
                 )}
               </div>
@@ -235,10 +235,10 @@ export function OverviewTab({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center font-sans">
           {/* Left: The Grid */}
           <div className="md:col-span-6 lg:col-span-5 flex flex-col items-center md:items-start">
-            <div className="grid grid-cols-7 gap-2.5 p-4 bg-slate-50/80 rounded-3xl border border-slate-100 max-w-xs w-full">
+            <div className="grid grid-cols-7 gap-3.5 p-5 bg-slate-50/80 rounded-[2rem] border border-slate-100 max-w-sm w-full relative overflow-visible">
               {tiles.map((d, index) => {
                 const checkin = (historicalCheckins || []).find((c: any) => {
                   const cDate = new Date(c.createdAt);
@@ -248,13 +248,16 @@ export function OverviewTab({
                 const isSelected = activeSelection && activeSelection.date.toDateString() === d.toDateString();
                 
                 let style: React.CSSProperties = {};
-                let className = "aspect-square rounded-xl transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer relative flex items-center justify-center border-none ";
+                let className = "aspect-square rounded-xl transition-all duration-300 hover:scale-115 active:scale-95 cursor-pointer relative flex items-center justify-center border-none overflow-visible ";
                 
                 if (checkin) {
-                  style = { backgroundColor: moodConfig[checkin.rating].color };
-                  className += isSelected ? "ring-4 ring-offset-2 ring-plum/50 shadow-md" : "shadow-sm";
+                  style = { 
+                    backgroundColor: moodConfig[checkin.rating].color,
+                    boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06), inset 0 -2.5px 0 rgba(0,0,0,0.15)"
+                  };
+                  className += isSelected ? "ring-4 ring-offset-2 ring-plum/50 shadow-md scale-105 z-10" : "shadow-sm hover:shadow-md hover:z-10";
                 } else if (isToday) {
-                  className += "border-2 border-dashed border-plum hover:bg-plum/5 bg-white shadow-sm";
+                  className += "border-2 border-dashed border-plum/80 hover:bg-plum/5 bg-white shadow-sm animate-pulse ring-2 ring-plum/20 ring-offset-2";
                 } else {
                   className += "bg-slate-200/60 opacity-60 hover:bg-slate-300/80";
                 }
@@ -269,9 +272,10 @@ export function OverviewTab({
                         onDailyCheckin(3); // default steady checkin
                       }
                     }}
+                    onMouseEnter={() => setHoveredTile(index)}
+                    onMouseLeave={() => setHoveredTile(null)}
                     className={className}
                     style={style}
-                    title={d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + (checkin ? `: ${moodConfig[checkin.rating].text}` : '')}
                   >
                     {isToday && !checkin && (
                       <span className="text-[10px] font-black text-plum font-sans">+</span>
@@ -279,12 +283,30 @@ export function OverviewTab({
                     {checkin && (
                       <span className="text-[10px] select-none opacity-90">{moodConfig[checkin.rating].emoji}</span>
                     )}
+
+                    {/* Custom hover tooltip */}
+                    {hoveredTile === index && checkin && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2.5 z-30 bg-slate-900/95 text-white text-xs rounded-xl p-3 shadow-xl w-48 text-left pointer-events-none border border-white/10 transition-all font-sans leading-relaxed overflow-visible">
+                        <p className="font-extrabold text-[9px] text-slate-400 uppercase tracking-widest">
+                          {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                        </p>
+                        <p className="font-black mt-1 flex items-center gap-1.5 text-xs text-white">
+                          <span>{moodConfig[checkin.rating].emoji}</span>
+                          <span>{moodConfig[checkin.rating].text}</span>
+                        </p>
+                        <p className="text-[9px] text-slate-300 font-bold mt-1">
+                          Rating: {checkin.rating}/5
+                        </p>
+                        {/* Tiny triangle arrow */}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900/95" />
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
             
-            <div className="flex justify-between w-full max-w-xs mt-2.5 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex justify-between w-full max-w-sm mt-2.5 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               <span>28 days ago</span>
               <span>Today</span>
             </div>
@@ -326,9 +348,8 @@ export function OverviewTab({
         </div>
       </motion.div>
 
-      {/* Features Grid */}
+      {/* Feature 1: Emotional Check-in Link */}
       <div className="w-full">
-        {/* Feature 1: Quiz Link */}
         <motion.div
           whileHover={{ y: -6, boxShadow: "0 25px 45px -15px rgba(122,91,147,0.08)" }}
           className="bg-white rounded-[2rem] p-8 sm:p-10 shadow-sm border border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-6 group cursor-pointer transition-all duration-300"
@@ -339,48 +360,18 @@ export function OverviewTab({
               <ClipboardList className="h-8 w-8" />
             </div>
             <div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Take Baseline Screening</h3>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Emotional Check-in</h3>
               <p className="text-slate-500 font-medium leading-relaxed max-w-xl">
-                Complete our clinical-grade PHQ-9 well-being quiz to receive personalized care
-                recommendations.
+                A two-minute wellbeing snapshot. See how you're really doing — and watch it shift over the weeks.
               </p>
             </div>
           </div>
           <div className="shrink-0 bg-plum text-white font-extrabold text-sm px-8 py-4 rounded-full transition-all group-hover:bg-plum/95 flex items-center gap-2 shadow-lg shadow-plum/15">
-            Start Quiz{" "}
+            Start Check-in{" "}
             <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
           </div>
         </motion.div>
       </div>
-
-      {/* Resources & Safety Banner */}
-      <motion.div 
-        whileHover={{ y: -4 }}
-        className="bg-amber-50 border border-amber-200/60 rounded-3xl p-8 flex flex-col sm:flex-row items-center justify-between gap-6 transition-all duration-300"
-      >
-        <div className="flex items-center gap-5">
-          <div className="h-14 w-14 bg-amber-100 rounded-2xl flex items-center justify-center text-amber-600 shrink-0">
-            <Heart className="h-7 w-7 fill-current animate-pulse" />
-          </div>
-          <div>
-            <h4 className="text-lg font-black text-amber-950 mb-1">
-              Immediate Support & Resources
-            </h4>
-            <p className="text-amber-800/80 font-medium max-w-2xl leading-relaxed text-sm">
-              WellMindly provides wellness coaching. If you are experiencing a clinical crisis,
-              please reach out to emergency resources or campus mental health services immediately.
-            </p>
-          </div>
-        </div>
-        <a
-          href="https://www.betterhelp.com/gethelpnow/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm hover:shadow"
-        >
-          View Hotlines
-        </a>
-      </motion.div>
     </div>
   );
 }

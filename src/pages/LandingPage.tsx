@@ -21,12 +21,12 @@ const FEELING_CHIPS = [
 ];
 
 const LAUNCH_TESTS = [
-  { name: "Emotional check-in", desc: "A two-minute wellbeing snapshot. See how you're really doing — and watch it shift over the weeks.", tag: "Wellbeing · 2 min", color: "from-teal to-teal/80" },
-  { name: "Signature strengths", desc: "Your top five character strengths — the qualities you lead with, on a card made to share.", tag: "Strengths · 2 min", color: "from-gold to-gold/80" },
-  { name: "Personality profile", desc: "Five core traits that add up to an archetype that's unmistakably you.", tag: "Identity · 2 min", color: "from-sky to-sky/80" },
-  { name: "Strength & shadow", desc: "Your greatest strength and its flip side — usually the same trait, turned up or down.", tag: "Insight · 2 min", color: "from-plum to-plum/80" },
-  { name: "Mood snapshot", desc: "A one-tap picture check. Fast and honest — and it adds a tile to your moodboard.", tag: "Quick · 15 sec", color: "from-rose to-rose/80" },
-  { name: "What matters most", desc: "A quick this-or-that that reveals the values you quietly lead with.", tag: "Values · 90 sec", color: "from-coral to-coral/80" }
+  { id: "checkin", name: "Emotional check-in", desc: "A two-minute wellbeing snapshot. See how you're really doing — and watch it shift over the weeks.", tag: "Wellbeing · 2 min", color: "from-teal to-teal/80" },
+  { id: "strengths", name: "Signature strengths", desc: "Your top five character strengths — the qualities you lead with, on a card made to share.", tag: "Strengths · 2 min", color: "from-gold to-gold/80" },
+  { id: "bigfive", name: "Personality profile", desc: "Five core traits that add up to an archetype that's unmistakably you.", tag: "Identity · 2 min", color: "from-sky to-sky/80" },
+  { id: "strengthshadow", name: "Strength & shadow", desc: "Your greatest strength and its flip side — usually the same trait, turned up or down.", tag: "Insight · 2 min", color: "from-plum to-plum/80" },
+  { id: "mood", name: "Mood snapshot", desc: "A one-tap picture check. Fast and honest — and it adds a tile to your moodboard.", tag: "Quick · 15 sec", color: "from-rose to-rose/80" },
+  { id: "values", name: "What matters most", desc: "A quick this-or-that that reveals the values you quietly lead with.", tag: "Values · 90 sec", color: "from-coral to-coral/80" }
 ];
 
 const COACHES = [
@@ -47,7 +47,6 @@ const FOCUS_AREAS = [
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const [showCrisisModal, setShowCrisisModal] = useState(false);
   const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | "talkmindly" | "sessionbooking" | null>(null);
   
   // Update document title for SEO
@@ -62,8 +61,8 @@ export function LandingPage() {
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState("");
  
-  const handleCrisisClick = () => setShowCrisisModal(true);
-  const handleCheckInClick = () => navigate("/login");
+  const handleCrisisClick = () => navigate("/crisis");
+  const handleCheckInClick = () => navigate("/discover?start=checkin");
   const handleExploreClick = () => navigate("/discover");
  
   const selectFeelingChip = (chip: typeof FEELING_CHIPS[0]) => {
@@ -257,7 +256,7 @@ export function LandingPage() {
                   <div className="border-t border-line/45 pt-4 flex items-center justify-between">
                     <span className="text-[11px] font-bold text-ink-soft/80 bg-paper px-3 py-1 rounded-full">{test.tag}</span>
                     <button 
-                      onClick={handleCheckInClick} 
+                      onClick={() => navigate(`/discover?start=${test.id}`)} 
                       className="text-xs font-bold text-teal hover:underline flex items-center gap-1 cursor-pointer border-none bg-transparent"
                     >
                       Start
@@ -702,62 +701,7 @@ export function LandingPage() {
         feature={comingSoonFeature}
       />
 
-      {/* Crisis Pathway Modal */}
-      <AnimatePresence>
-        {showCrisisModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-950/60 backdrop-blur-sm">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-paper border border-line rounded-3xl max-w-md w-full p-8 shadow-2xl relative"
-            >
-              <button 
-                onClick={() => setShowCrisisModal(false)}
-                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-paper-2/40 hover:bg-paper-2/80 transition-colors flex items-center justify-center text-ink-soft hover:text-ink cursor-pointer border-none"
-              >
-                <X className="w-4 h-4" />
-              </button>
 
-              <h3 className="font-serif text-2xl font-medium mb-3 text-ember flex items-center gap-2">
-                <AlertCircle className="w-6 h-6 shrink-0" />
-                Need help right now?
-              </h3>
-
-              <p className="text-ink-soft text-sm leading-relaxed mb-6">
-                If things feel like too much this second, you don't have to handle it here or alone. These are real people, available now. Reaching out is the brave part.
-              </p>
-
-              <div className="flex flex-col gap-3">
-                <div className="bg-white border border-line rounded-2xl p-4.5">
-                  <div className="text-xs text-ink-soft font-bold uppercase select-none">National Crisis Hotline</div>
-                  <div className="text-lg font-serif font-bold text-ink mt-0.5 animate-pulse">Call or Text 988</div>
-                  <div className="text-[11px] text-ink-soft mt-1 leading-normal select-none">
-                    Free, confidential, and always available.
-                  </div>
-                </div>
-
-                <div className="bg-white border border-line rounded-2xl p-4.5">
-                  <div className="text-xs text-ink-soft font-bold uppercase select-none">Crisis Text Line</div>
-                  <div className="text-lg font-serif font-bold text-ink mt-0.5">Text HOME to 741741</div>
-                  <div className="text-[11px] text-ink-soft mt-1 leading-normal select-none">
-                    Connect to a crisis counselor via text immediately.
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-2.5">
-                <button
-                  onClick={() => setShowCrisisModal(false)}
-                  className="w-full bg-[#121a30] text-white font-bold text-xs py-3.5 rounded-xl hover:bg-[#1d2843] transition-colors cursor-pointer border-none"
-                >
-                  Close panel
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

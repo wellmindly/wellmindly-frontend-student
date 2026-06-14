@@ -33,13 +33,23 @@ export function useDashboard() {
   });
 
   const setActiveTab = useCallback((tab: string) => {
-    _setActiveTab(tab);
-    if (tab === "discover") {
+    if (tab === "checkin") {
+      // Navigate to discover tab but auto-start the emotional check-in test
+      _setActiveTab("checkin");
+      setCurDiscoverId("checkin");
+      setDiscoverQi(0);
+      setDiscoverResp([]);
+      setDiscoverResultData(null);
+      setDiscoverView("test");
+    } else if (tab === "discover") {
+      _setActiveTab(tab);
       setDiscoverView("hub");
       setCurDiscoverId(null);
       setDiscoverQi(0);
       setDiscoverResp([]);
       setDiscoverResultData(null);
+    } else {
+      _setActiveTab(tab);
     }
   }, []);
   const [greeting] = useState(() => {
@@ -53,6 +63,7 @@ export function useDashboard() {
   const [dailyMood, setDailyMood] = useState<number | null>(null);
   const [historicalCheckins, setHistoricalCheckins] = useState<any[]>([]);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
+  const [showCheckinPopup, setShowCheckinPopup] = useState(false);
   const [checkinMessage, setCheckinMessage] = useState("");
   const [checkinEmoji, setCheckinEmoji] = useState("");
   const [checkinTitle, setCheckinTitle] = useState("");
@@ -100,7 +111,8 @@ export function useDashboard() {
     category: string,
     overallScore: number,
     maxScore: number,
-    classification: string
+    classification: string,
+    answers?: any
   ) => {
     setDiscoverLoading(true);
     try {
@@ -110,12 +122,16 @@ export function useDashboard() {
         overallScore,
         maxScore,
         classification,
+        answers,
       });
       fetchResults();
-      return response.data?.aiFeedback || null;
+      return {
+        resultId: response.data?.id || null,
+        aiFeedback: response.data?.aiFeedback || null,
+      };
     } catch (err) {
       console.error("Failed to submit Discover result to backend:", err);
-      return null;
+      return { resultId: null, aiFeedback: null };
     } finally {
       setDiscoverLoading(false);
     }
@@ -128,6 +144,9 @@ export function useDashboard() {
         const response = await api.get("/students/me/daily-checkin");
         if (response.data && response.data.checkin !== null) {
           setDailyMood(response.data.checkin);
+          setShowCheckinPopup(false);
+        } else {
+          setShowCheckinPopup(true);
         }
       } catch (err) {
         console.error("Failed to fetch daily check-in:", err);
@@ -137,6 +156,55 @@ export function useDashboard() {
     fetchCheckins();
     fetchResults();
   }, []);
+
+  // Redirect to a specific quiz result page if showResult is set in the URL (e.g. after login/signup)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const showResult = params.get("showResult");
+    if (showResult && resultsData?.timeline) {
+      const testDef = TESTS[showResult];
+      if (testDef) {
+        // Find latest matching result in timeline
+        const matches = resultsData.timeline.filter((r: any) => r.quizTitle === testDef.title);
+        if (matches.length > 0) {
+          const latest = matches[matches.length - 1];
+          
+          // Reconstruct discoverResultData
+          const data: DiscoverResultData = {
+            resultId: latest.id,
+            kind: showResult === "checkin"
+              ? "checkin"
+              : showResult === "mood"
+                ? "picture"
+                : showResult === "strengths"
+                  ? "strengths"
+                  : showResult === "bigfive"
+                    ? "bigfive"
+                    : showResult === "values"
+                      ? "values"
+                      : "type",
+            scores: latest.answers?.scores || latest.scores,
+            top: latest.answers?.top || latest.top,
+            archetype: showResult === "bigfive" && (latest.answers?.scores || latest.scores)
+              ? pickArchetype(latest.answers?.scores || latest.scores)
+              : undefined,
+            pictureOption: showResult === "mood" && (latest.answers?.label || latest.label || latest.classification)
+              ? TESTS.mood.options?.find((o: any) => o.label === (latest.answers?.label || latest.label || latest.classification))
+              : undefined,
+            aiFeedback: latest.aiFeedback,
+          };
+          
+          setCurDiscoverId(showResult);
+          setDiscoverResultData(data);
+          setDiscoverView("result");
+          _setActiveTab("discover");
+          
+          // Clean the query parameters
+          navigate("/dashboard?tab=discover", { replace: true });
+        }
+      }
+    }
+  }, [resultsData, navigate]);
 
   // ── Screening ────────────────────────────────────────────
   const handleScreeningComplete = async (_score: number, answers?: Record<number, number>) => {
@@ -169,10 +237,10 @@ export function useDashboard() {
       const top = ranked.slice(0, 2).map((x) => x[0]);
       const summary = top.join(" + ");
       
-      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, summary);
+      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { top, summary, responses });
       
       saveResult(id, { t: Date.now(), summary, top, aiFeedback });
-      setDiscoverResultData({ kind: "values", top, aiFeedback });
+      setDiscoverResultData({ resultId, kind: "values", top, aiFeedback });
       setDiscoverView("result");
       return;
     }
@@ -184,10 +252,10 @@ export function useDashboard() {
       const top = ranked.slice(0, test.topN).map((x) => x[0]);
       const summary = top.join(", ");
       
-      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, summary);
+      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { scores, top, summary, responses });
 
       saveResult(id, { t: Date.now(), summary, scores, top, aiFeedback });
-      setDiscoverResultData({ kind: "strengths", scores, top, aiFeedback });
+      setDiscoverResultData({ resultId, kind: "strengths", scores, top, aiFeedback });
       setDiscoverView("result");
       return;
     }
@@ -195,10 +263,10 @@ export function useDashboard() {
     if (test.kind === "type") {
       const top = ranked[0][0];
       
-      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, top);
+      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, top, { scores, top: [top], summary: top, responses });
 
       saveResult(id, { t: Date.now(), summary: top, scores, top: [top], aiFeedback });
-      setDiscoverResultData({ kind: "type", scores, top: [top], aiFeedback });
+      setDiscoverResultData({ resultId, kind: "type", scores, top: [top], aiFeedback });
       setDiscoverView("result");
       return;
     }
@@ -208,24 +276,25 @@ export function useDashboard() {
     if (test.archetype) {
       const arch = pickArchetype(scores);
       
-      const aiFeedback = await submitDiscoverToBackend(test.title, category, 100, 100, arch.name);
+      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, arch.name, { scores, archetype: arch, responses });
 
       saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
-      setDiscoverResultData({ kind: "bigfive", scores, archetype: arch, aiFeedback });
+      setDiscoverResultData({ resultId, kind: "bigfive", scores, archetype: arch, aiFeedback });
       setDiscoverView("result");
     } else {
       const sum = (responses as number[]).reduce((a, b) => a + b, 0);
       
-      const aiFeedback = await submitDiscoverToBackend(
+      const { resultId, aiFeedback } = await submitDiscoverToBackend(
         test.title,
         category,
         sum,
         test.items!.length * 5,
-        "Strongest: " + ranked[0][0]
+        "Strongest: " + ranked[0][0],
+        { scores, summary, responses }
       );
 
       saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
-      setDiscoverResultData({ kind: "checkin", scores, aiFeedback });
+      setDiscoverResultData({ resultId, kind: "checkin", scores, aiFeedback });
       setDiscoverView("result");
     }
   };
@@ -395,6 +464,8 @@ export function useDashboard() {
     handleDailyCheckin,
     showCheckinModal,
     setShowCheckinModal,
+    showCheckinPopup,
+    setShowCheckinPopup,
     checkinEmoji,
     checkinTitle,
     checkinMessage,

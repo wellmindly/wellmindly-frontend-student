@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { SvgIcon } from "./SvgIcon";
-import { TESTS, TEST_ORDER, loadAll, shade } from "./types";
+import { TESTS, DISCOVER_TEST_ORDER, loadAll, shade } from "./types";
 
 interface HubViewProps {
   startTest: (id: string) => void;
@@ -11,12 +11,12 @@ export function HubView({ startTest, goTo }: HubViewProps) {
   const all = loadAll();
   return (
     <div className="pt-12 sm:pt-14 select-none">
-      <p className="text-xs font-bold tracking-[.13em] uppercase text-ember mb-3">Start here</p>
+      <p className="text-xs font-bold tracking-[.13em] uppercase text-ember mb-3">Self-Discovery</p>
       <h1 className="font-serif font-semibold text-[clamp(32px,6vw,52px)] leading-[1.02] tracking-tight text-ink">
         Get to know <em className="text-plum font-semibold italic font-serif">yourself.</em>
       </h1>
       <p className="text-ink-soft text-base max-w-[54ch] mt-4 leading-relaxed font-medium">
-        Six quick ways to meet yourself. Each takes about two minutes and hands back something worth keeping. Start with a check-in, or follow your curiosity — there's no wrong place to begin.
+        Five quick self-discovery tests. Each takes about two minutes and hands back something worth keeping. Follow your curiosity — there's no wrong place to begin.
       </p>
       
       <div className="flex gap-4 flex-wrap mt-5 text-[13px] text-ink-soft">
@@ -45,7 +45,7 @@ export function HubView({ startTest, goTo }: HubViewProps) {
 
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
-        {TEST_ORDER.map((id, i) => {
+        {DISCOVER_TEST_ORDER.map((id, i) => {
           const t = TESTS[id]; 
           if (!t) return null;
           const done = all[id]?.length;

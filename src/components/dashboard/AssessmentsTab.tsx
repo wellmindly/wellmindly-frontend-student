@@ -27,6 +27,14 @@ export function AssessmentsTab({
   setHistoryPage,
   onExploreDiscover,
 }: AssessmentsTabProps) {
+  const latestResult = resultsData?.latestResult;
+  const latestMaxScore = latestResult?.maxScore ?? (latestResult?.quizTitle?.includes("PHQ-9") ? 15 : 27);
+  const latestScore = latestResult?.score ?? 0;
+
+  const pct = latestMaxScore > 0 ? latestScore / latestMaxScore : 0;
+  const sleepNeedsFocus = pct > 0.33;
+  const studyStatus = pct > 0.44 ? "High Stress (Scattered)" : pct > 0.18 ? "Moderate" : "Focused";
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -108,11 +116,10 @@ export function AssessmentsTab({
                       </h4>
                       <div className="flex items-baseline gap-2">
                         <span className="text-6xl font-black text-slate-900 tracking-tighter">
-                          {resultsData.latestResult.score}
+                          {latestScore}
                         </span>
                         <span className="text-xl font-bold text-slate-400">
-                          /{" "}
-                          {resultsData.latestResult.quizTitle.includes("PHQ-9") ? 15 : 27}
+                          / {latestMaxScore}
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 font-medium mt-4 leading-relaxed">
@@ -132,11 +139,7 @@ export function AssessmentsTab({
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{
-                            width: `${
-                              resultsData.latestResult.quizTitle.includes("PHQ-9")
-                                ? (resultsData.latestResult.score / 15) * 100
-                                : (resultsData.latestResult.score / 27) * 100
-                            }%`,
+                            width: `${pct * 100}%`,
                           }}
                           transition={{ duration: 1, delay: 0.2 }}
                           className="bg-plum h-full rounded-full"
@@ -156,12 +159,12 @@ export function AssessmentsTab({
                       <span className="text-slate-700">Sleep Quality</span>
                       <span
                         className={
-                          resultsData.latestResult.score > 9
+                          sleepNeedsFocus
                             ? "text-amber-600"
                             : "text-emerald-600"
                         }
                       >
-                        {resultsData.latestResult.score > 9
+                        {sleepNeedsFocus
                           ? "Needs Focus (Restless)"
                           : "Healthy (Deep)"}
                       </span>
@@ -169,10 +172,10 @@ export function AssessmentsTab({
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${
-                          resultsData.latestResult.score > 9 ? "bg-amber-500" : "bg-emerald-500"
+                          sleepNeedsFocus ? "bg-amber-500" : "bg-emerald-500"
                         }`}
                         style={{
-                          width: `${resultsData.latestResult.score > 9 ? 45 : 82}%`,
+                          width: `${sleepNeedsFocus ? 45 : 82}%`,
                         }}
                       />
                     </div>
@@ -191,32 +194,30 @@ export function AssessmentsTab({
                       <span className="text-slate-700">Study Focus</span>
                       <span
                         className={
-                          resultsData.latestResult.score > 5
-                            ? "text-blue-600"
-                            : "text-emerald-600"
+                          pct > 0.44
+                            ? "text-rose-600"
+                            : pct > 0.18
+                              ? "text-blue-600"
+                              : "text-emerald-600"
                         }
                       >
-                        {resultsData.latestResult.score > 12
-                          ? "High Stress (Scattered)"
-                          : resultsData.latestResult.score > 5
-                            ? "Moderate"
-                            : "Focused"}
+                        {studyStatus}
                       </span>
                     </div>
                     <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                       <div
                         className={`h-full ${
-                          resultsData.latestResult.score > 12
+                          pct > 0.44
                             ? "bg-rose-500"
-                            : resultsData.latestResult.score > 5
+                            : pct > 0.18
                               ? "bg-blue-500"
                               : "bg-emerald-500"
                         }`}
                         style={{
                           width: `${
-                            resultsData.latestResult.score > 12
+                            pct > 0.44
                               ? 35
-                              : resultsData.latestResult.score > 5
+                              : pct > 0.18
                                 ? 60
                                 : 88
                           }%`,

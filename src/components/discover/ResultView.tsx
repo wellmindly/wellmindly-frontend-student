@@ -1,7 +1,8 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { rankDims, shade, toneWord, VALUE_DESC } from "./types";
 import type { TestDef, PictureOption } from "./types";
+import { FeedbackForm } from "./FeedbackForm";
 
 interface ResultViewProps {
   cur: TestDef;
@@ -38,6 +39,7 @@ export function ResultView({
   resultsData,
   onComingSoonClick,
 }: ResultViewProps) {
+  const [showFeedback, setShowFeedback] = useState(true);
   const ranked = data.scores ? rankDims(data.scores) : [];
 
   // Filter and sort historical attempts for this test
@@ -317,6 +319,14 @@ export function ResultView({
             {historyAttempts.map((att: any, idx: number) => {
               const d = new Date(att.date);
               const isLatest = idx === historyAttempts.length - 1;
+              const prevAtt = idx > 0 ? historyAttempts[idx - 1] : null;
+              const diff = prevAtt && att.score !== undefined && prevAtt.score !== undefined
+                ? att.score - prevAtt.score
+                : null;
+              
+              const isPhq9 = cur.title.toLowerCase().includes("phq");
+              const isImprovement = diff !== null && (isPhq9 ? diff < 0 : diff > 0);
+              const isWorse = diff !== null && (isPhq9 ? diff > 0 : diff < 0);
               return (
                 <div key={att.id || idx} className="relative">
                   {/* Timeline Dot */}
@@ -333,8 +343,17 @@ export function ResultView({
                       </p>
                     </div>
                     {att.score !== undefined && (
-                      <span className="text-[13px] font-bold text-ink-soft bg-paper-2 px-2.5 py-0.5 rounded-lg border border-line">
+                      <span className="text-[13px] font-bold text-ink-soft bg-paper-2 px-2.5 py-0.5 rounded-lg border border-line flex items-center gap-1.5">
                         Score: {att.score} / {att.maxScore}
+                        {diff !== null && diff !== 0 && (
+                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
+                            isImprovement ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                            isWorse ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                            'bg-slate-50 text-slate-600 border border-slate-200'
+                          }`}>
+                            {diff > 0 ? `+${diff}` : diff}
+                          </span>
+                        )}
                       </span>
                     )}
                   </div>
@@ -342,6 +361,13 @@ export function ResultView({
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Post-Assessment Feedback Questionnaire */}
+      {data.resultId && showFeedback && (
+        <div className="no-print mb-6">
+          <FeedbackForm resultId={data.resultId} onComplete={() => setShowFeedback(false)} />
         </div>
       )}
 

@@ -12,10 +12,18 @@ export function LoginPage() {
   const { loginSuccess, user } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect to dashboard if user is already authenticated
+  // Redirect to dashboard (or custom redirect path) if user is already authenticated
   useEffect(() => {
     if (user) {
-      navigate('/dashboard', { replace: true });
+      const params = new URLSearchParams(window.location.search);
+      const redirectParam = params.get("redirect");
+      const testIdParam = params.get("testId");
+      if (redirectParam) {
+        const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
+        navigate(target, { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
   }, [user, navigate]);
   
@@ -72,12 +80,20 @@ export function LoginPage() {
           
           const classification = res.summary || res.label || 'Completed';
           
+          const answers: any = {};
+          if (res.scores) answers.scores = res.scores;
+          if (res.top) answers.top = res.top;
+          if (res.tone !== undefined) answers.tone = res.tone;
+          if (res.label) answers.label = res.label;
+          answers.summary = classification;
+          
           await api.post("/quizzes/submit", {
             quizTitle: test.title,
             quizCategory: category,
             overallScore,
             maxScore,
-            classification
+            classification,
+            answers
           }, {
             headers: {
               Authorization: `Bearer ${authToken}`
@@ -99,7 +115,16 @@ export function LoginPage() {
       const { token, user } = res.data;
       loginSuccess(token, user);
       await syncGuestResults(token);
-      navigate('/dashboard');
+      
+      const params = new URLSearchParams(window.location.search);
+      const redirectParam = params.get("redirect");
+      const testIdParam = params.get("testId");
+      if (redirectParam) {
+        const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
+        navigate(target);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Google Authentication failed.";
       setGlobalError(errorMsg);
@@ -239,7 +264,16 @@ export function LoginPage() {
       const { token, user } = response.data;
       loginSuccess(token, user);
       await syncGuestResults(token);
-      navigate('/dashboard');
+      
+      const params = new URLSearchParams(window.location.search);
+      const redirectParam = params.get("redirect");
+      const testIdParam = params.get("testId");
+      if (redirectParam) {
+        const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
+        navigate(target);
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Authentication failed. Please verify credentials.";
       setGlobalError(errorMsg);

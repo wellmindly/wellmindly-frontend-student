@@ -226,6 +226,41 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!reportRef.current) return;
+    try {
+      const { jsPDF } = await import("jspdf");
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false
+      });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      const filename = report ? report.quizTitle.toLowerCase().replace(/\s+/g, "-") : "report";
+      pdf.save(`wellmindly-${filename}.pdf`);
+    } catch (err) {
+      console.error("Failed to download report PDF:", err);
+    }
+  };
+
   return (
     <AnimatePresence>
       {report && (
@@ -314,14 +349,37 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2 flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-plum" /> Detailed Dimension Analysis
                   </h4>
-                  {renderBreakdownForTitle(report.quizTitle || "", report.score)}
+                  {report.aiFeedback?.insights && report.aiFeedback.insights.length > 0 ? (
+                    <ul className="space-y-2.5">
+                      {report.aiFeedback.insights.map((insight: string, idx: number) => (
+                        <li key={idx} className="flex gap-2.5 items-start text-xs sm:text-sm font-medium text-slate-700 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                          <span className="h-5 w-5 rounded-full bg-plum/10 text-plum flex items-center justify-center text-[10px] shrink-0 font-bold mt-0.5">{idx + 1}</span>
+                          <span className="leading-relaxed">{insight}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    renderBreakdownForTitle(report.quizTitle || "", report.score)
+                  )}
                 </div>
 
                 <div className="bg-slate-50 border border-slate-150 rounded-2xl p-5 mt-6">
                   <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <Info className="h-4 w-4 text-plum" /> Recommended Action Narrative
                   </h4>
-                  {renderNarrative(report.quizTitle || "", report.classification, report.score)}
+                  {report.aiFeedback?.narrative ? (
+                    <div className="space-y-2.5">
+                      <p className="text-xs sm:text-sm font-bold text-slate-800">{report.aiFeedback.headline}</p>
+                      <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">{report.aiFeedback.narrative}</p>
+                      {report.aiFeedback.tip && (
+                        <p className="text-xs text-plum font-semibold mt-2 bg-plum/5 p-3 rounded-lg border border-plum/10 leading-relaxed">
+                          💡 <b>Tip</b>: {report.aiFeedback.tip}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    renderNarrative(report.quizTitle || "", report.classification, report.score)
+                  )}
                 </div>
               </div>
             </div>
@@ -334,6 +392,13 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
               >
                 <Download className="h-4 w-4 text-slate-500" />
                 Save Report Card
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                className="inline-flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl px-6 py-3.5 font-bold text-sm transition-colors cursor-pointer border-none outline-none font-sans"
+              >
+                <Download className="h-4 w-4 text-indigo-500" />
+                Save PDF
               </button>
               <button
                 onClick={onClose}

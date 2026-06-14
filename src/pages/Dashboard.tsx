@@ -6,6 +6,7 @@ import { AssessmentsTab } from "../components/dashboard/AssessmentsTab";
 import { DiscoverTab } from "../components/dashboard/DiscoverTab";
 import { ScreeningModal } from "../components/dashboard/ScreeningModal";
 import { CheckinModal } from "../components/dashboard/CheckinModal";
+import { DailyCheckinPopup } from "../components/dashboard/DailyCheckinPopup";
 import { ReportDetailModal } from "../components/dashboard/ReportDetailModal";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 
@@ -44,10 +45,7 @@ export function Dashboard() {
             onDailyCheckin={db.handleDailyCheckin}
             onExploreDiscover={() => db.setActiveTab("discover")}
             onViewAssessments={() => db.setActiveTab("assessments")}
-            onStartScreening={() => {
-              db.setActiveTab("assessments");
-              db.setShowScreening(true);
-            }}
+            onStartScreening={() => db.setActiveTab("checkin")}
           />
         )}
 
@@ -65,8 +63,8 @@ export function Dashboard() {
           />
         )}
 
-        {/* ---------- DISCOVER VIEWS ---------- */}
-        {db.activeTab === "discover" && (
+        {/* ---------- DISCOVER / CHECKIN VIEWS ---------- */}
+        {(db.activeTab === "discover" || db.activeTab === "checkin") && (
           <DiscoverTab
             discoverView={db.discoverView}
             setDiscoverView={db.setDiscoverView}
@@ -88,6 +86,8 @@ export function Dashboard() {
             onSwitchToAssessments={() => db.setActiveTab("assessments")}
             resultsData={db.resultsData}
             onComingSoonClick={(feature) => setComingSoonFeature(feature)}
+            isCheckinMode={db.activeTab === "checkin"}
+            onBackToOverview={() => db.setActiveTab("overview")}
           />
         )}
       </DashboardLayout>
@@ -97,6 +97,12 @@ export function Dashboard() {
         show={db.showScreening}
         onClose={() => db.setShowScreening(false)}
         onComplete={db.handleScreeningComplete}
+      />
+
+      <DailyCheckinPopup
+        show={db.showCheckinPopup}
+        onClose={() => db.setShowCheckinPopup(false)}
+        onSelect={db.handleDailyCheckin}
       />
 
       <CheckinModal
