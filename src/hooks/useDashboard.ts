@@ -13,12 +13,13 @@ import {
 import type { PictureOption, TestDef } from "../components/discover/types";
 
 export interface DiscoverResultData {
+  resultId?: string | null;
   kind: string;
   scores?: Record<string, number>;
   top?: string[];
   archetype?: { name: string; desc: string };
   pictureOption?: PictureOption;
-  aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] };
+  aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } | null;
 }
 
 export function useDashboard() {
@@ -332,10 +333,10 @@ export function useDashboard() {
     const test = TESTS[curDiscoverId];
     const category = test.tag?.split(" · ")[0] || "General";
     
-    const aiFeedback = await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
+    const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
 
     saveResult(curDiscoverId, { t: Date.now(), summary: opt.label, tone: opt.tone, label: opt.label, aiFeedback });
-    setDiscoverResultData({ kind: "picture", pictureOption: opt, aiFeedback });
+    setDiscoverResultData({ resultId, kind: "picture", pictureOption: opt, aiFeedback });
     setDiscoverView("result");
   };
 

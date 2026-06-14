@@ -8,12 +8,13 @@ interface ResultViewProps {
   cur: TestDef;
   curId?: string;
   data: {
+    resultId?: string | null;
     kind: string;
     scores?: Record<string, number>;
     top?: string[];
     archetype?: { name: string; desc: string };
     pictureOption?: PictureOption;
-    aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] };
+    aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } | null;
   };
   accent: string;
   cardRef: React.RefObject<HTMLDivElement | null>;
