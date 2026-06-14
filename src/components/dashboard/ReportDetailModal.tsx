@@ -36,8 +36,48 @@ function DimensionBar({
 }
 
 /* ── Breakdown configs per quiz type ────────────────────── */
-function renderBreakdownForTitle(title: string, score: number) {
+function renderBreakdownForTitle(report: any) {
+  const title = report?.quizTitle || "";
   const t = title.toLowerCase();
+  const score = report?.score || 0;
+  const scores = report?.answers?.scores || report?.scores;
+
+  if (scores) {
+    const isPhq9 = t.includes("phq") || t.includes("screening");
+    const isCheckin = t.includes("check-in") || t.includes("checkin");
+    
+    return (
+      <div className="space-y-4">
+        {Object.entries(scores).map(([label, val]: [string, any]) => {
+          const value = Number(val);
+          const status = isPhq9
+            ? (value >= 75 ? 'Nearly every day' : value >= 55 ? 'More than half the days' : value >= 35 ? 'Several days' : 'Not at all')
+            : isCheckin
+              ? (value >= 70 ? 'Stable' : value >= 45 ? 'Moderate' : 'Needs Focus')
+              : (value >= 75 ? 'Dominant Strength' : value >= 55 ? 'Strong' : value >= 35 ? 'Developing' : 'Room to grow');
+              
+          const statusColor = isPhq9
+            ? (value >= 75 ? 'text-rose-600' : value >= 55 ? 'text-orange-600' : value >= 35 ? 'text-amber-600' : 'text-emerald-600')
+            : (value >= 70 ? 'text-emerald-600' : value >= 45 ? 'text-plum' : 'text-amber-600');
+            
+          const barColor = isPhq9
+            ? (value >= 75 ? 'bg-rose-500' : value >= 55 ? 'bg-orange-500' : value >= 35 ? 'bg-amber-500' : 'bg-emerald-500')
+            : (value >= 70 ? 'bg-emerald-500' : value >= 45 ? 'bg-plum' : 'bg-amber-500');
+
+          return (
+            <DimensionBar
+              key={label}
+              label={label}
+              status={`${status} (${value}%)`}
+              statusColor={statusColor}
+              barColor={barColor}
+              width={`${value}%`}
+            />
+          );
+        })}
+      </div>
+    );
+  }
 
   if (t.includes("strengths") && !t.includes("shadow")) {
     return (
@@ -359,7 +399,7 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
                       ))}
                     </ul>
                   ) : (
-                    renderBreakdownForTitle(report.quizTitle || "", report.score)
+                    renderBreakdownForTitle(report)
                   )}
                 </div>
 

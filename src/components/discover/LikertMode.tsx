@@ -14,15 +14,17 @@ interface LikertModeProps {
   selected?: number;
   onPick: (v: number) => void;
   accent: string;
+  scale?: [string, number][];
 }
 
-export function LikertMode({ intro, question, selected, onPick, accent }: LikertModeProps) {
+export function LikertMode({ intro, question, selected, onPick, accent, scale }: LikertModeProps) {
+  const options = scale || L5;
   return (
     <div>
       <p className="text-ink-soft text-sm mb-4">{intro}</p>
       <h3 className="font-serif font-medium text-[clamp(20px,4.4vw,28px)] leading-snug mb-5 text-ink">{question}</h3>
       <div className="flex flex-col gap-2.5">
-        {L5.map(([label, val]) => (
+        {options.map(([label, val]) => (
           <button 
             key={val} 
             onClick={() => onPick(val)}

@@ -71,8 +71,20 @@ export function LoginPage() {
           let maxScore = 100;
           
           if (test.kind === 'profile' && !test.archetype && res.scores) {
-            overallScore = Object.values(res.scores).reduce((a: any, b: any) => a + Number(b), 0) as number;
-            maxScore = test.items ? test.items.length * 5 : 30;
+            let minPoints = 1;
+            let maxPoints = 5;
+            if (test.scale && test.scale.length > 0) {
+              const vals = test.scale.map((x: any) => x[1]);
+              minPoints = Math.min(...vals);
+              maxPoints = Math.max(...vals);
+            }
+            const range = maxPoints - minPoints || 1;
+
+            overallScore = Object.values(res.scores).reduce((sum: number, p: any) => {
+              const rating = Math.round(Number(p) / 100 * range) + minPoints;
+              return sum + rating;
+            }, 0);
+            maxScore = test.items ? test.items.length * maxPoints : 30;
           } else if (res.tone !== undefined) {
             overallScore = res.tone;
             maxScore = 100;

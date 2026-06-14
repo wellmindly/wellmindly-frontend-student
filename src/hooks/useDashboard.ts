@@ -34,10 +34,10 @@ export function useDashboard() {
   });
 
   const setActiveTab = useCallback((tab: string) => {
-    if (tab === "checkin") {
-      // Navigate to discover tab but auto-start the emotional check-in test
-      _setActiveTab("checkin");
-      setCurDiscoverId("checkin");
+    if (tab === "checkin" || tab === "phq9") {
+      // Navigate to discover tab but auto-start the check-in or phq9 test
+      _setActiveTab(tab === "checkin" ? "checkin" : "discover");
+      setCurDiscoverId(tab);
       setDiscoverQi(0);
       setDiscoverResp([]);
       setDiscoverResultData(null);
@@ -173,17 +173,19 @@ export function useDashboard() {
           // Reconstruct discoverResultData
           const data: DiscoverResultData = {
             resultId: latest.id,
-            kind: showResult === "checkin"
-              ? "checkin"
-              : showResult === "mood"
-                ? "picture"
-                : showResult === "strengths"
-                  ? "strengths"
-                  : showResult === "bigfive"
-                    ? "bigfive"
-                    : showResult === "values"
-                      ? "values"
-                      : "type",
+            kind: showResult === "phq9"
+              ? "phq9"
+              : showResult === "checkin"
+                ? "checkin"
+                : showResult === "mood"
+                  ? "picture"
+                  : showResult === "strengths"
+                    ? "strengths"
+                    : showResult === "bigfive"
+                      ? "bigfive"
+                      : showResult === "values"
+                        ? "values"
+                        : "type",
             scores: latest.answers?.scores || latest.scores,
             top: latest.answers?.top || latest.top,
             archetype: showResult === "bigfive" && (latest.answers?.scores || latest.scores)
@@ -246,7 +248,7 @@ export function useDashboard() {
       return;
     }
 
-    const scores = scoreProfile(test.items!, responses as number[]);
+    const scores = scoreProfile(test.items!, responses as number[], test.scale);
     const ranked = rankDims(scores);
 
     if (test.kind === "rank") {
@@ -284,18 +286,28 @@ export function useDashboard() {
       setDiscoverView("result");
     } else {
       const sum = (responses as number[]).reduce((a, b) => a + b, 0);
+      const maxPoints = test.scale ? Math.max(...test.scale.map((x: any) => x[1])) : 5;
+      const maxScore = test.items!.length * maxPoints;
+
+      let classText = "Strongest: " + ranked[0][0];
+      if (id === "phq9") {
+        if (sum <= 4) classText = "Minimal Stress";
+        else if (sum <= 8) classText = "Mild Stress";
+        else if (sum <= 12) classText = "Moderate Stress";
+        else classText = "Escalated Anxiety / Stress";
+      }
       
       const { resultId, aiFeedback } = await submitDiscoverToBackend(
         test.title,
         category,
         sum,
-        test.items!.length * 5,
-        "Strongest: " + ranked[0][0],
+        maxScore,
+        classText,
         { scores, summary, responses }
       );
 
       saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
-      setDiscoverResultData({ resultId, kind: "checkin", scores, aiFeedback });
+      setDiscoverResultData({ resultId, kind: id === "phq9" ? "phq9" : "checkin", scores, aiFeedback });
       setDiscoverView("result");
     }
   };

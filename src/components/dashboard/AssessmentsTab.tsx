@@ -10,22 +10,21 @@ import {
 
 interface AssessmentsTabProps {
   resultsData: any;
-  showScreening: boolean;
-  setShowScreening: (show: boolean) => void;
   selectedReport: any;
   setSelectedReport: (report: any) => void;
   historyPage: number;
   setHistoryPage: (page: number) => void;
   onExploreDiscover: () => void;
+  onStartScreening: () => void;
 }
 
 export function AssessmentsTab({
   resultsData,
-  setShowScreening,
   setSelectedReport,
   historyPage,
   setHistoryPage,
   onExploreDiscover,
+  onStartScreening,
 }: AssessmentsTabProps) {
   const latestResult = resultsData?.latestResult;
   const latestMaxScore = latestResult?.maxScore ?? (latestResult?.quizTitle?.includes("PHQ-9") ? 15 : 27);
@@ -50,7 +49,7 @@ export function AssessmentsTab({
           </div>
         </div>
         <button
-          onClick={() => setShowScreening(true)}
+          onClick={onStartScreening}
           className="bg-plum hover:bg-plum/90 text-white rounded-2xl px-6 py-3.5 font-bold text-sm transition-all duration-300 shadow-sm hover:shadow flex items-center gap-2 outline-none cursor-pointer border-none"
         >
           <Activity className="h-4 w-4" />
@@ -74,7 +73,7 @@ export function AssessmentsTab({
                 well-being score.
               </p>
               <button
-                onClick={() => setShowScreening(true)}
+                onClick={onStartScreening}
                 className="bg-plum hover:bg-plum/90 text-white font-bold text-sm px-8 py-4 rounded-full transition-all cursor-pointer border-none shadow-md shadow-plum/15"
               >
                 Take Baseline Screening

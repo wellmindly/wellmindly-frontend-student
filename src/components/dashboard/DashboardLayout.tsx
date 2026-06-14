@@ -13,6 +13,7 @@ import {
   Calendar,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { config } from "../../config";
 
 interface MenuItem {
   id: string;
@@ -82,7 +83,10 @@ export function DashboardLayout({
           {menuItems.map((item) => {
             const IconComp = item.icon;
             const isActive = activeTab === item.id;
-            const isComingSoon = item.id === "writemindly" || item.id === "talkmindly" || item.id === "sessionbooking";
+            const isComingSoon =
+              (item.id === "writemindly" && !config.enableWriteMindly) ||
+              item.id === "talkmindly" ||
+              item.id === "sessionbooking";
             return (
               <button
                 key={item.id}
@@ -185,7 +189,10 @@ export function DashboardLayout({
                 {menuItems.map((item) => {
                   const IconComp = item.icon;
                   const isActive = activeTab === item.id;
-                  const isComingSoon = item.id === "writemindly" || item.id === "talkmindly" || item.id === "sessionbooking";
+                  const isComingSoon =
+                    (item.id === "writemindly" && !config.enableWriteMindly) ||
+                    item.id === "talkmindly" ||
+                    item.id === "sessionbooking";
                   return (
                     <button
                       key={item.id}

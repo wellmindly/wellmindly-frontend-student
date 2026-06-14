@@ -8,6 +8,7 @@ const ICONS: Record<string, string> = {
   scale: '<path d="M12 4v16M6 8h12M6 8l-3 6a3 3 0 0 0 6 0ZM18 8l-3 6a3 3 0 0 0 6 0Z"/>',
   shield: '<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6Z"/>',
   check: '<path d="M5 12l4 4L19 7"/>',
+  clipboard: '<rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
 };
 
 export function SvgIcon({ name, className }: { name: string; className?: string }) {

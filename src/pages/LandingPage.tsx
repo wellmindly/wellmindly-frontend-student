@@ -9,6 +9,8 @@ import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { HeroSection } from "../components/landing/HeroSection";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
+import { config } from "../config";
+import { useAuth } from "../context/AuthContext";
 
 // Feeling chip definitions and custom reflections
 const FEELING_CHIPS = [
@@ -47,6 +49,7 @@ const FOCUS_AREAS = [
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | "talkmindly" | "sessionbooking" | null>(null);
   
   // Update document title for SEO
@@ -64,6 +67,18 @@ export function LandingPage() {
   const handleCrisisClick = () => navigate("/crisis");
   const handleCheckInClick = () => navigate("/discover?start=checkin");
   const handleExploreClick = () => navigate("/discover");
+ 
+  const handleWriteMindlyClick = () => {
+    if (!config.enableWriteMindly) {
+      setComingSoonFeature("writemindly");
+      return;
+    }
+    if (isAuthenticated) {
+      navigate("/dashboard?tab=writemindly");
+    } else {
+      navigate("/login?redirect=/dashboard?tab=writemindly");
+    }
+  };
  
   const selectFeelingChip = (chip: typeof FEELING_CHIPS[0]) => {
     setSelectedFeeling(chip);
@@ -368,7 +383,7 @@ export function LandingPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setComingSoonFeature("writemindly")}
+                  onClick={handleWriteMindlyClick}
                   className="rounded-full bg-navy text-white py-3.5 px-6.5 text-xs font-bold w-full text-center hover:bg-navy/90 transition-colors cursor-pointer border-none"
                 >
                   Start writing

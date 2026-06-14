@@ -4,11 +4,11 @@ import { DashboardLayout } from "../components/dashboard/DashboardLayout";
 import { OverviewTab } from "../components/dashboard/OverviewTab";
 import { AssessmentsTab } from "../components/dashboard/AssessmentsTab";
 import { DiscoverTab } from "../components/dashboard/DiscoverTab";
-import { ScreeningModal } from "../components/dashboard/ScreeningModal";
 import { CheckinModal } from "../components/dashboard/CheckinModal";
 import { DailyCheckinPopup } from "../components/dashboard/DailyCheckinPopup";
 import { ReportDetailModal } from "../components/dashboard/ReportDetailModal";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
+import { WriteMindlyTab } from "../components/dashboard/WriteMindlyTab";
 
 export function Dashboard() {
   const db = useDashboard();
@@ -53,13 +53,12 @@ export function Dashboard() {
         {db.activeTab === "assessments" && (
           <AssessmentsTab
             resultsData={db.resultsData}
-            showScreening={db.showScreening}
-            setShowScreening={db.setShowScreening}
             selectedReport={db.selectedReport}
             setSelectedReport={db.setSelectedReport}
             historyPage={db.historyPage}
             setHistoryPage={db.setHistoryPage}
             onExploreDiscover={() => db.setActiveTab("discover")}
+            onStartScreening={() => db.setActiveTab("phq9")}
           />
         )}
 
@@ -90,14 +89,14 @@ export function Dashboard() {
             onBackToOverview={() => db.setActiveTab("overview")}
           />
         )}
+
+        {/* ---------- WRITEMINDLY VIEW ---------- */}
+        {db.activeTab === "writemindly" && (
+          <WriteMindlyTab />
+        )}
       </DashboardLayout>
 
       {/* ── Modals ──────────────────────────────────────── */}
-      <ScreeningModal
-        show={db.showScreening}
-        onClose={() => db.setShowScreening(false)}
-        onComplete={db.handleScreeningComplete}
-      />
 
       <DailyCheckinPopup
         show={db.showCheckinPopup}

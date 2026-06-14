@@ -227,7 +227,49 @@ export function ResultView({
       );
     }
 
-    // 6. Wellness Check-in report layout
+    // 6. PHQ-9 wellness assessment report layout
+    if (data.kind === 'phq9' && data.scores) {
+      const currentAttempt = historyAttempts[historyAttempts.length - 1];
+      const severityLabel = currentAttempt?.classification || "Wellness Assessment Completed";
+      const totalScore = currentAttempt?.score ?? 0;
+      
+      return (
+        <div className="space-y-5">
+          <div className="flex justify-between items-end bg-slate-50 border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+            <div>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
+                Current Status
+              </span>
+              <span className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-xl border text-plum bg-plum/5 border-plum/10">
+                {severityLabel}
+              </span>
+            </div>
+            <div className="text-right">
+              <div className="flex items-baseline gap-1">
+                <span className="text-4xl font-black text-slate-900 tracking-tighter">{totalScore}</span>
+                <span className="text-sm font-bold text-slate-400">/ 15</span>
+              </div>
+            </div>
+          </div>
+
+          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
+            {data.aiFeedback ? data.aiFeedback.headline : "Wellness Assessment"}
+          </h2>
+          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
+            {data.aiFeedback ? data.aiFeedback.narrative : "This screening is a baseline to monitor your emotional well-being. Regular checks help highlight trends and identify when to seek extra care."}
+          </p>
+
+          <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
+            <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">Your dimensions</p>
+            {ranked.map(([label, val], i) => (
+              <DimBar key={label} label={label} value={val} accent={accent} delay={i * 0.08} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 7. Wellness Check-in report layout
     if (data.kind === 'checkin' && data.scores) {
       const avg = Object.values(data.scores).reduce((a, b) => a + b, 0) / Object.values(data.scores).length;
       const tone = avg >= 70 ? "You're doing well." : avg >= 45 ? "Finding your footing." : "A heavier stretch.";
@@ -476,17 +518,25 @@ function ShareCard({ accent, children, cardRef }: { accent: string; children: Re
 }
 
 // ─── Layout Helper: Animated Bar ──────────────────────────────────
-function DimBar({ label, value, accent, delay }: { label: string; value: number; accent: string; delay: number }) {
+function DimBar({ label, value, accent, delay, isPhq9 }: { label: string; value: number; accent: string; delay: number; isPhq9?: boolean }) {
+  const labelText = isPhq9
+    ? (value >= 75 ? 'Nearly every day' : value >= 55 ? 'More than half the days' : value >= 35 ? 'Several days' : 'Not at all')
+    : toneWord(value);
+    
+  const barColor = isPhq9
+    ? (value >= 75 ? 'var(--coral)' : value >= 55 ? 'var(--rose)' : value >= 35 ? 'var(--gold)' : 'var(--sage-brand)')
+    : accent;
+
   return (
     <div className="mb-4">
       <div className="flex justify-between text-sm mb-1.5">
         <b className="font-bold text-ink">{label}</b>
-        <span className="text-ink-soft text-[13px] font-semibold">{toneWord(value)}</span>
+        <span className="text-ink-soft text-[13px] font-semibold">{labelText}</span>
       </div>
       <div className="h-3 bg-paper-2 rounded-full overflow-hidden">
         <motion.div 
           className="h-full rounded-full" 
-          style={{ background: accent }}
+          style={{ background: barColor }}
           initial={{ width: 0 }} 
           animate={{ width: `${value}%` }}
           transition={{ duration: 0.7, delay, ease: [0.3, 0, 0.2, 1] }} 

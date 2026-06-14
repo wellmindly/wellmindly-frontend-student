@@ -86,6 +86,7 @@ export function TestView({
                 selected={resp[qi] as number | undefined} 
                 onPick={onPickLikert} 
                 accent={cur.accent} 
+                scale={cur.scale}
               />
             )}
           </motion.div>

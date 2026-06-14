@@ -27,11 +27,35 @@ export interface TestDef {
   types?: Record<string, TypeInfo>;
   pairs?: PairOption[][];
   options?: PictureOption[];
+  scale?: [string, number][];
 }
 export interface SavedResult { t: number; summary: string; scores?: Record<string, number>; top?: string[]; tone?: number; label?: string; aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } }
 
 // ─── Test Data ──────────────────────────────────────────────────
 export const TESTS: Record<string, TestDef> = {
+  phq9: { 
+    title: "PHQ-9 screening", 
+    accent: "#50718F", 
+    icon: "clipboard", 
+    blurb: "A five-question baseline health questionnaire to screen and monitor your wellness levels.", 
+    kind: "profile", 
+    overall: true, 
+    tag: "Clinical · 2 min", 
+    intro: "Over the last two weeks, how often have you been bothered by any of the following problems?", 
+    items: [
+      { q: "Little interest or pleasure in doing things?", d: "Interest" }, 
+      { q: "Feeling down, depressed, or hopeless?", d: "Mood" }, 
+      { q: "Trouble falling or staying asleep, or sleeping too much?", d: "Sleep" }, 
+      { q: "Feeling tired or having little energy?", d: "Energy" }, 
+      { q: "Poor appetite or overeating?", d: "Appetite" }
+    ],
+    scale: [
+      ["Not at all", 0],
+      ["Several days", 1],
+      ["More than half the days", 2],
+      ["Nearly every day", 3]
+    ]
+  },
   checkin: { 
     title: "Emotional check-in", 
     accent: "#7A5B93", // Styled in plum theme
@@ -202,9 +226,9 @@ export const VALUE_DESC: Record<string, string> = {
   Growth: "You’re here to learn and become more.",
 };
 
-export const TEST_ORDER = ["checkin", "mood", "strengths", "bigfive", "values", "strengthshadow"];
+export const TEST_ORDER = ["checkin", "phq9", "mood", "strengths", "bigfive", "values", "strengthshadow"];
 /** Discovery hub order — excludes 'checkin' which lives on its own dedicated tab */
-export const DISCOVER_TEST_ORDER = ["mood", "strengths", "bigfive", "values", "strengthshadow"];
+export const DISCOVER_TEST_ORDER = ["phq9", "mood", "strengths", "bigfive", "values", "strengthshadow"];
 export const STORAGE_KEY = "wm-discover";
 
 // ─── Storage ─────────────────────────────────────────────────────
@@ -219,11 +243,27 @@ export function saveResult(id: string, res: SavedResult) {
 }
 
 // ─── Scoring ─────────────────────────────────────────────────────
-export function scoreProfile(items: TestItem[], resp: number[]): Record<string, number> {
+export function scoreProfile(items: TestItem[], resp: number[], scale?: [string, number][]): Record<string, number> {
   const s: Record<string, number> = {}, c: Record<string, number> = {};
-  items.forEach((it, i) => { const v = resp[i] || 3; s[it.d] = (s[it.d] || 0) + v; c[it.d] = (c[it.d] || 0) + 1; });
+  let minPoints = 1;
+  let maxPoints = 5;
+  if (scale && scale.length > 0) {
+    const vals = scale.map(x => x[1]);
+    minPoints = Math.min(...vals);
+    maxPoints = Math.max(...vals);
+  }
+  const range = maxPoints - minPoints || 1;
+
+  items.forEach((it, i) => { 
+    const fallback = scale ? minPoints : 3;
+    const v = resp[i] !== undefined ? resp[i] : fallback; 
+    s[it.d] = (s[it.d] || 0) + v; 
+    c[it.d] = (c[it.d] || 0) + 1; 
+  });
   const o: Record<string, number> = {};
-  Object.keys(s).forEach(d => { o[d] = Math.round(((s[d] / c[d]) - 1) / 4 * 100); });
+  Object.keys(s).forEach(d => { 
+    o[d] = Math.round(((s[d] / c[d]) - minPoints) / range * 100); 
+  });
   return o;
 }
 export function rankDims(sc: Record<string, number>): [string, number][] {
