@@ -33,7 +33,7 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
               onClick={onCrisisClick}
               className="text-ember font-bold hover:underline cursor-pointer border-none bg-transparent p-0 text-[inherit]"
             >
-              Need help right now? (988 Crisis Hotline)
+              Need help right now? Get help immediately &rarr;
             </button>
             <span className="text-line">|</span>
             <span className="text-ink-soft select-none">&copy; {new Date().getFullYear()} WellMindly. All rights reserved.</span>
