@@ -19,8 +19,6 @@ interface ResultViewProps {
   accent: string;
   cardRef: React.RefObject<HTMLDivElement | null>;
   reportRef?: React.RefObject<HTMLDivElement | null>;
-  onSaveCard: () => void;
-  onSaveReportPdf?: () => void;
   onRetake: () => void;
   goTo: (v: 'hub' | 'test' | 'result' | 'results') => void;
   resultsData?: any;
@@ -33,8 +31,6 @@ export function ResultView({
   accent,
   cardRef,
   reportRef,
-  onSaveCard,
-  onSaveReportPdf,
   onRetake,
   goTo,
   resultsData,
@@ -440,18 +436,6 @@ export function ResultView({
 
       {/* Card buttons row */}
       <div className="flex gap-3.5 flex-wrap mt-8 pt-4 border-t border-line/40 no-print">
-        <button 
-          onClick={onSaveCard} 
-          className="cursor-pointer inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-white hover:bg-slate-50 text-plum border border-plum/30 font-extrabold text-[14.5px] shadow-sm transition hover:-translate-y-0.5 active:scale-[.97]"
-        >
-          <span>🖼️ Share Card Image</span>
-        </button>
-        <button 
-          onClick={onSaveReportPdf || (() => window.print())} 
-          className="cursor-pointer inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-plum hover:bg-plum/90 text-white font-extrabold text-[14.5px] shadow-lg shadow-plum/20 transition hover:-translate-y-0.5 active:scale-[.97] border-none"
-        >
-          <span>📄 Save Report (PDF)</span>
-        </button>
         <button 
           onClick={onRetake} 
           className="cursor-pointer px-6 py-3.5 rounded-full border-[1.5px] border-line text-ink-soft font-extrabold text-[14.5px] hover:bg-white transition active:scale-[.97] bg-transparent"

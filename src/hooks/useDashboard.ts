@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import html2canvas from "html2canvas-pro";
+
 import {
   TESTS,
   saveResult,
@@ -352,57 +352,7 @@ export function useDashboard() {
     setDiscoverView("result");
   };
 
-  // ── Card save ────────────────────────────────────────────
-  const doSaveCard = useCallback(async () => {
-    const target = cardRef.current || reportRef.current;
-    if (!target) return;
-    try {
-      const canvas = await html2canvas(target, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      });
-      const a = document.createElement("a");
-      a.download = "my-wellmindly-card.png";
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    } catch (err) {
-      console.error("Failed to generate card image:", err);
-    }
-  }, []);
 
-  const doSaveReportPdf = useCallback(async () => {
-    if (!reportRef.current) return;
-    try {
-      const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save("my-wellmindly-report.pdf");
-    } catch (err) {
-      console.error("Failed to generate report PDF:", err);
-    }
-  }, []);
 
   // ── Daily check-in handler ───────────────────────────────
   const handleDailyCheckin = async (rating: number) => {
@@ -511,8 +461,7 @@ export function useDashboard() {
     cardRef,
     reportRef,
     discoverLoading,
-    doSaveCard,
-    doSaveReportPdf,
+
   };
 }
 

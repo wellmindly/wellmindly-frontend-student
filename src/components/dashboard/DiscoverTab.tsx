@@ -23,8 +23,6 @@ interface DiscoverTabProps {
   cardRef: RefObject<HTMLDivElement | null>;
   reportRef: RefObject<HTMLDivElement | null>;
   discoverLoading: boolean;
-  doSaveCard: () => void;
-  onSaveReportPdf: () => void;
   resultsData: any;
   onComingSoonClick: (feature: "writemindly" | "talkmindly" | "sessionbooking") => void;
   onSwitchToAssessments: () => void;
@@ -48,8 +46,6 @@ export function DiscoverTab({
   cardRef,
   reportRef,
   discoverLoading,
-  doSaveCard,
-  onSaveReportPdf,
   onSwitchToAssessments,
   resultsData,
   onComingSoonClick,
@@ -143,8 +139,6 @@ export function DiscoverTab({
               accent={TESTS[curDiscoverId].accent}
               cardRef={cardRef}
               reportRef={reportRef}
-              onSaveCard={doSaveCard}
-              onSaveReportPdf={onSaveReportPdf}
               onRetake={() => startDiscoverTest(curDiscoverId)}
               goTo={goTo}
               resultsData={resultsData}

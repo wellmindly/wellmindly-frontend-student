@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import html2canvas from 'html2canvas-pro';
+
 import { useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
 
@@ -150,25 +150,7 @@ export function DiscoverPage() {
     goTo('result');
   }, [curId, goTo]);
 
-  // ─── Save Card ─────────────────────────────────────────────
-  const doSaveCard = useCallback(async () => {
-    if (!cardRef.current) return;
-    try {
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-      const a = document.createElement('a');
-      a.download = 'my-wellmindly-card.png';
-      a.href = canvas.toDataURL('image/png');
-      a.click();
-      showToast('Card saved ✔');
-    } catch { 
-      showToast('Couldn’t export — try a screenshot.'); 
-    }
-  }, [showToast]);
+
 
   const total = cur?.kind === 'pairs' 
     ? (cur.pairs?.length || 0) 
@@ -286,7 +268,6 @@ export function DiscoverPage() {
                       data={resultData} 
                       accent={cur.accent} 
                       cardRef={cardRef}
-                      onSaveCard={doSaveCard} 
                       onRetake={() => startTest(curId!)} 
                       goTo={goTo} 
                     />

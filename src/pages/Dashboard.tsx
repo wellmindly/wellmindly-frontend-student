@@ -80,8 +80,6 @@ export function Dashboard() {
             cardRef={db.cardRef}
             reportRef={db.reportRef}
             discoverLoading={db.discoverLoading}
-            doSaveCard={db.doSaveCard}
-            onSaveReportPdf={db.doSaveReportPdf}
             onSwitchToAssessments={() => db.setActiveTab("assessments")}
             resultsData={db.resultsData}
             onComingSoonClick={(feature) => setComingSoonFeature(feature)}

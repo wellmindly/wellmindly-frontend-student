@@ -1,7 +1,6 @@
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ClipboardList, Clock, Info, Download, Sparkles, AlertCircle } from "lucide-react";
-import html2canvas from "html2canvas-pro";
+import { X, ClipboardList, Clock, Info, Sparkles, AlertCircle } from "lucide-react";
 
 interface ReportDetailModalProps {
   report: any | null;
@@ -247,60 +246,6 @@ function renderNarrative(title: string, classification: string, score: number) {
 export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const handleDownload = async () => {
-    if (!reportRef.current) return;
-    try {
-      const canvas = await html2canvas(reportRef.current, {
-        backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-      const a = document.createElement("a");
-      const filename = report ? report.quizTitle.toLowerCase().replace(/\s+/g, "-") : "report";
-      a.download = `wellmindly-${filename}.png`;
-      a.href = canvas.toDataURL("image/png");
-      a.click();
-    } catch (err) {
-      console.error("Failed to download report image:", err);
-    }
-  };
-
-  const handleDownloadPdf = async () => {
-    if (!reportRef.current) return;
-    try {
-      const { jsPDF } = await import("jspdf");
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false
-      });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      const filename = report ? report.quizTitle.toLowerCase().replace(/\s+/g, "-") : "report";
-      pdf.save(`wellmindly-${filename}.pdf`);
-    } catch (err) {
-      console.error("Failed to download report PDF:", err);
-    }
-  };
-
   return (
     <AnimatePresence>
       {report && (
@@ -426,20 +371,6 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
 
             {/* Action Buttons Footer */}
             <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row gap-3 sm:justify-end">
-              <button
-                onClick={handleDownload}
-                className="inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl px-6 py-3.5 font-bold text-sm transition-colors cursor-pointer border-none outline-none font-sans"
-              >
-                <Download className="h-4 w-4 text-slate-500" />
-                Save Report Card
-              </button>
-              <button
-                onClick={handleDownloadPdf}
-                className="inline-flex items-center justify-center gap-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-2xl px-6 py-3.5 font-bold text-sm transition-colors cursor-pointer border-none outline-none font-sans"
-              >
-                <Download className="h-4 w-4 text-indigo-500" />
-                Save PDF
-              </button>
               <button
                 onClick={onClose}
                 className="bg-plum hover:bg-plum/90 text-white rounded-2xl px-8 py-3.5 font-bold text-sm transition-colors cursor-pointer border-none outline-none shadow-md shadow-plum/10 font-sans"
