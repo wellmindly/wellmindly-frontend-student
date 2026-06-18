@@ -37,6 +37,7 @@ export function ResultView({
   onComingSoonClick,
 }: ResultViewProps) {
   const [showFeedback, setShowFeedback] = useState(true);
+  const [showAllAttempts, setShowAllAttempts] = useState(false);
   const ranked = data.scores ? rankDims(data.scores) : [];
 
   // Filter and sort historical attempts for this test
@@ -46,6 +47,10 @@ export function ResultView({
       .filter((r: any) => r.quizTitle === cur.title)
       .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [resultsData, cur.title]);
+
+  const displayAttempts = useMemo(() => {
+    return [...historyAttempts].reverse();
+  }, [historyAttempts]);
 
   // Compute trend information
   const trendInfo = useMemo(() => {
@@ -355,10 +360,11 @@ export function ResultView({
           )}
           
           <div className="relative pl-6 border-l-2 border-slate-200/80 space-y-5 py-2">
-            {historyAttempts.map((att: any, idx: number) => {
+            {(showAllAttempts ? displayAttempts : displayAttempts.slice(0, 5)).map((att: any, idx: number) => {
               const d = new Date(att.date);
-              const isLatest = idx === historyAttempts.length - 1;
-              const prevAtt = idx > 0 ? historyAttempts[idx - 1] : null;
+              const isLatest = idx === 0;
+              const originalIdx = historyAttempts.length - 1 - idx;
+              const prevAtt = originalIdx > 0 ? historyAttempts[originalIdx - 1] : null;
               const diff = prevAtt && att.score !== undefined && prevAtt.score !== undefined
                 ? att.score - prevAtt.score
                 : null;
@@ -400,6 +406,17 @@ export function ResultView({
               );
             })}
           </div>
+
+          {displayAttempts.length > 5 && (
+            <div className="pt-2 border-t border-slate-200/50 flex justify-center">
+              <button
+                onClick={() => setShowAllAttempts(!showAllAttempts)}
+                className="text-xs font-extrabold text-plum hover:underline cursor-pointer border-none bg-transparent"
+              >
+                {showAllAttempts ? "Show less" : `Show all attempts (${displayAttempts.length})`}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
