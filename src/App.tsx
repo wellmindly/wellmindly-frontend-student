@@ -30,6 +30,13 @@ function LoginRoute() {
     );
   }
   if (user) {
+    const params = new URLSearchParams(window.location.search);
+    const redirectParam = params.get('redirect');
+    const testIdParam = params.get('testId');
+    if (redirectParam) {
+      const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
+      return <Navigate to={target} replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
   return <LoginPage />;
