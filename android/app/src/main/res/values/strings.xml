@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WellMindly</string>
+    <string name="title_activity_main">WellMindly</string>
+    <string name="package_name">com.wellmindly.app</string>
+    <string name="custom_url_scheme">com.wellmindly.app</string>
+    <string name="shared_client_id">942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com</string>
+    <string name="server_client_id">942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com</string>
+</resources>

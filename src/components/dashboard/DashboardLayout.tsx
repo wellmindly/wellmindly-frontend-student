@@ -162,7 +162,7 @@ export function DashboardLayout({
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed top-0 bottom-0 left-0 w-72 bg-white shadow-2xl z-50 flex flex-col h-full lg:hidden"
             >
-              <div className="h-20 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
+              <div className="h-auto pt-safe pb-4 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
                 <div
                   onClick={() => {
                     onLogoClick();
@@ -225,7 +225,7 @@ export function DashboardLayout({
                 })}
               </nav>
 
-              <div className="p-6 border-t border-slate-100 shrink-0">
+              <div className="px-6 pt-6 pb-safe border-t border-slate-100 shrink-0">
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-full bg-plum/15 flex items-center justify-center font-black text-plum text-base">
                     {initials}
@@ -246,7 +246,7 @@ export function DashboardLayout({
       {/* 3. Primary Main Content Viewport */}
       <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
         {/* Global Crisis Support Banner (Subtle, like homepage) */}
-        <div className="w-full bg-[#fcf8f2] border-b border-amber-200/45 py-2 px-6 text-center text-[11px] sm:text-xs font-semibold text-amber-800 relative z-25 shrink-0 select-none flex items-center justify-center">
+        <div className="w-full bg-[#fcf8f2] border-b border-amber-200/45 pt-safe pb-2 px-6 text-center text-[11px] sm:text-xs font-semibold text-amber-800 relative z-25 shrink-0 select-none flex items-center justify-center">
           <span className="inline-flex items-center gap-1.5">
             <Heart className="w-3.5 h-3.5 text-amber-600 animate-pulse fill-current" />
             Need help right now?

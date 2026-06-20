@@ -40,6 +40,12 @@
 }
 
 :root {
+  /* Safe Area variables for mobile devices */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+
   --radius: 0.625rem;
   --sage: oklch(0.945 0.022 155);
   --sage-foreground: oklch(0.45 0.055 155);
@@ -92,3 +98,32 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
   }
 }
+
+/* Capacitor Mobile Safe Area Utilities */
+.pt-safe {
+  padding-top: calc(var(--safe-area-top) + 0.5rem);
+}
+.pb-safe {
+  padding-bottom: calc(var(--safe-area-bottom) + 0.5rem);
+}
+.mt-safe {
+  margin-top: var(--safe-area-top);
+}
+.mb-safe {
+  margin-bottom: var(--safe-area-bottom);
+}
+
+/* Optimize touch interaction for native mobile */
+button, a, [role="button"] {
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
