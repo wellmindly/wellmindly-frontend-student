@@ -88,7 +88,7 @@ export function DailyCheckinPopup({ show, onClose, onSelect }: DailyCheckinPopup
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4"
+          className="fixed inset-0 bg-paper/60 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4"
         >
           <motion.div
             initial={{ scale: 0.95, opacity: 0, y: 15 }}

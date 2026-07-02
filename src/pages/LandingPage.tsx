@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  AlertCircle, X, Shield, ArrowRight, Lock, 
-  PenTool, MessageSquare, Clock, Users, HelpCircle, Heart 
+  X, Shield, ArrowRight, Lock, 
+  PenTool, MessageSquare, Users, Heart 
 } from "lucide-react";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
@@ -12,24 +12,7 @@ import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 import { config } from "../config";
 import { useAuth } from "../context/AuthContext";
 
-// Feeling chip definitions and custom reflections
-const FEELING_CHIPS = [
-  { name: "Overwhelmed", emoji: "🤯", text: "When everything feels urgent, nothing gets to feel small. You're not weak for struggling to keep up, you're carrying a lot at once. Want to put some of it down for a minute?" },
-  { name: "Flat", emoji: "😐", text: "Some days are just grey. You don't have to force yourself to find the bright side. Sometimes just sitting with the quiet is what you need. No pressure to feel any other way right now." },
-  { name: "Can't switch off", emoji: "🌀", text: "Your brain is running miles ahead of your body, replaying the past and pre-playing the future. It's exhausting. Let's slow things down, even if just for a minute." },
-  { name: "Numb", emoji: "🌫️", text: "When everything gets to be too much, sometimes our brains just turn the volume down on all of it. You're not empty, you're just overloaded. Give yourself permission to just be." },
-  { name: "Just tired", emoji: "🥱", text: "Not the kind of tired sleep fixes. The kind where your head is heavy and the next step feels like too much. It's okay to have nothing left in the tank today." },
-  { name: "Honestly, not sure", emoji: "💭", text: "You don't need to have a label or a clear reason to feel off. It's fine to just feel 'not okay' without knowing why. We can start from there." }
-];
 
-const LAUNCH_TESTS = [
-  { id: "checkin", name: "Emotional check-in", desc: "A two-minute wellbeing snapshot. See how you're really doing, and watch it shift over the weeks.", tag: "Wellbeing · 2 min", color: "from-teal to-teal/80" },
-  { id: "strengths", name: "Signature strengths", desc: "Your top five character strengths: the qualities you lead with, on a card made to share.", tag: "Strengths · 2 min", color: "from-gold to-gold/80" },
-  { id: "bigfive", name: "Personality profile", desc: "Five core traits that add up to an archetype that's unmistakably you.", tag: "Identity · 2 min", color: "from-sky to-sky/80" },
-  { id: "strengthshadow", name: "Strength & shadow", desc: "Your greatest strength and its flip side: usually the same trait, turned up or down.", tag: "Insight · 2 min", color: "from-plum to-plum/80" },
-  { id: "mood", name: "Mood snapshot", desc: "A one-tap picture check. Fast and honest, and it adds a tile to your moodboard.", tag: "Quick · 15 sec", color: "from-rose to-rose/80" },
-  { id: "values", name: "What matters most", desc: "A quick this-or-that that reveals the values you quietly lead with.", tag: "Values · 90 sec", color: "from-coral to-coral/80" }
-];
 
 const COACHES = [
   { name: "Riya Kapoor", role: "Wellbeing Coach", init: "RK", c1: "from-[#d8472f] to-[#a8331f]", specs: ["Stress", "Confidence", "Anxiety"] },
@@ -40,12 +23,6 @@ const COACHES = [
 
 const BOOKING_SLOTS = ["Mon 4:00pm", "Tue 10:00am", "Wed 6:30pm", "Thu 5:00pm", "Sat 9:00am", "Sun 11:00am"];
 
-const FOCUS_AREAS = [
-  { name: "Academic Stress", text: "Deadlines, exams, and the constant feeling that you're falling behind. We help you unpack the pressure so you can focus on one small step at a time." },
-  { name: "Social Anxiety", text: "Feeling lonely in a room full of people, or replaying a conversation from three days ago. Speak anonymously to other students who get it." },
-  { name: "Mindful Focus", text: "Can't switch off or concentrate. Learn how to settle your mind, pause, and ground yourself when everything starts to feel urgent." },
-  { name: "Just feeling off / not sure", text: "No diagnosis, no clinical labels. A simple, safe space to sit with whatever's loud in your head right now without needing to explain it." }
-];
 
 export function LandingPage() {
   const navigate = useNavigate();
@@ -76,15 +53,17 @@ export function LandingPage() {
   }, []);
   
   // Interactive Section States
-  const [selectedFeeling, setSelectedFeeling] = useState<typeof FEELING_CHIPS[0] | null>(null);
-  const [activeFocusIndex, setActiveFocusIndex] = useState(0);
+  const [activeOfferTab, setActiveOfferTab] = useState<'blueprints' | 'writemindly' | 'talkmindly'>('blueprints');
+  const [activeAudience, setActiveAudience] = useState<'students' | 'universities'>('students');
+  const [mockWritePrompt, setMockWritePrompt] = useState(0);
+  const [mockTalkTopic, setMockTalkTopic] = useState<'exam-stress' | 'social'>('exam-stress');
   const [selectedCoach, setSelectedCoach] = useState<typeof COACHES[0] | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState("");
  
   const handleCrisisClick = () => navigate("/crisis");
   const handleCheckInClick = () => navigate("/discover?start=checkin");
-  const handleExploreClick = () => navigate("/discover");
+  const handleStartDiscovery = () => navigate("/discover");
  
   const handleWriteMindlyClick = () => {
     if (!config.enableWriteMindly) {
@@ -97,10 +76,7 @@ export function LandingPage() {
       navigate("/login?redirect=/dashboard?tab=writemindly");
     }
   };
- 
-  const selectFeelingChip = (chip: typeof FEELING_CHIPS[0]) => {
-    setSelectedFeeling(chip);
-  };
+
  
   const handleBookCoach = () => {
     setComingSoonFeature("sessionbooking");
@@ -141,72 +117,392 @@ export function LandingPage() {
           {/* Hero Section */}
           <HeroSection 
             onCheckInClick={handleCheckInClick} 
-            onExploreClick={handleExploreClick} 
+            onStartDiscovery={handleStartDiscovery} 
           />
-
-          {/* Quick Emotional Entry */}
-          <section className="py-12 sm:py-16 border-t border-line/60" id="quick-entry">
-            <div className="max-w-2xl mx-auto text-center">
-              <h2 className="text-2xl sm:text-3xl font-serif text-ink tracking-tight font-medium mb-3">
-                How have you actually been lately?
+          <section className="py-16 border-t border-line/60" id="explore-tools">
+            <div className="text-center max-w-2xl mx-auto mb-12">
+              <span className="text-[11px] font-bold text-coral uppercase tracking-widest block mb-3">WHAT WE PROVIDE</span>
+              <h2 className="text-3xl sm:text-4xl font-serif text-ink tracking-tight font-medium">
+                Proactive care that meets you where you are.
               </h2>
-              <p className="text-sm text-ink-soft mb-8">
-                Select what feels closest right now. No sign-up, no judgment.
+              <p className="text-sm text-ink-soft mt-3">
+                Explore our three core pillars designed to fit your day-to-day routine. Select a tool to see how it works.
               </p>
+            </div>
+
+            {/* Tab selector */}
+            <div className="flex flex-wrap justify-center gap-2.5 mb-10">
+              <button
+                onClick={() => setActiveOfferTab('blueprints')}
+                className={`px-5 py-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeOfferTab === 'blueprints'
+                    ? "bg-plum text-white shadow-md"
+                    : "bg-card text-ink-soft border border-line hover:border-ink hover:text-ink"
+                }`}
+              >
+                Self-Discovery Blueprints
+              </button>
+              <button
+                onClick={() => setActiveOfferTab('writemindly')}
+                className={`px-5 py-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeOfferTab === 'writemindly'
+                    ? "bg-plum text-white shadow-md"
+                    : "bg-card text-ink-soft border border-line hover:border-ink hover:text-ink"
+                }`}
+              >
+                WriteMindly AI
+              </button>
+              <button
+                onClick={() => setActiveOfferTab('talkmindly')}
+                className={`px-5 py-3 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  activeOfferTab === 'talkmindly'
+                    ? "bg-plum text-white shadow-md"
+                    : "bg-card text-ink-soft border border-line hover:border-ink hover:text-ink"
+                }`}
+              >
+                TalkMindly Peer Support
+              </button>
+            </div>
+
+            {/* Tab content panel */}
+            <div className="bg-card border border-line rounded-[2rem] p-8 sm:p-12 shadow-sm min-h-[380px] grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-plum/5 to-transparent rounded-full pointer-events-none" />
               
-              <div className="flex flex-wrap gap-2.5 justify-center mb-8">
-                {FEELING_CHIPS.map((chip) => {
-                  const isSelected = selectedFeeling?.name === chip.name;
-                  return (
-                    <button
-                      key={chip.name}
-                      onClick={() => selectFeelingChip(chip)}
-                      className={`px-4.5 py-2.5 rounded-full text-xs font-semibold border transition-all duration-200 cursor-pointer ${
-                        isSelected 
-                          ? "bg-navy text-white border-navy shadow-md scale-102"
-                          : "bg-white text-ink-soft border-line hover:border-ink hover:text-ink"
-                      }`}
+              <div className="md:col-span-6 flex flex-col items-start text-left">
+                <AnimatePresence mode="wait">
+                  {activeOfferTab === 'blueprints' && (
+                    <motion.div
+                      key="blueprints-info"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="space-y-4"
                     >
-                      <span className="mr-1.5">{chip.emoji}</span>
-                      {chip.name}
-                    </button>
-                  );
-                })}
+                      <span className="text-[10px] font-bold text-teal uppercase tracking-widest">Self-Discovery</span>
+                      <h3 className="text-2xl font-serif text-ink font-bold leading-snug">Character Blueprints</h3>
+                      <p className="text-sm text-ink-soft leading-relaxed">
+                        Take a few minutes to explore your personality traits, signature strengths, and core values. No test is clinical—they are built to help you reflect, find your footing, and understand what drives you.
+                      </p>
+                      <button
+                        onClick={handleStartDiscovery}
+                        className="rounded-full bg-navy text-white px-6 py-3 text-xs font-bold hover:bg-navy/90 transition-all cursor-pointer border-none flex items-center gap-2"
+                      >
+                        Try a Blueprint
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {activeOfferTab === 'writemindly' && (
+                    <motion.div
+                      key="writemindly-info"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="space-y-4"
+                    >
+                      <span className="text-[10px] font-bold text-teal uppercase tracking-widest">Private AI Companion</span>
+                      <h3 className="text-2xl font-serif text-ink font-bold leading-snug">Empathetic Reflective Journal</h3>
+                      <p className="text-sm text-ink-soft leading-relaxed">
+                        Write down whatever's running in your head at any hour. WriteMindly offers non-judgmental prompts to help you slow down, reframe stress, and find clarity without public exposure.
+                      </p>
+                      <button
+                        onClick={handleWriteMindlyClick}
+                        className="rounded-full bg-navy text-white px-6 py-3 text-xs font-bold hover:bg-navy/90 transition-all cursor-pointer border-none flex items-center gap-2"
+                      >
+                        Start Private Writing
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {activeOfferTab === 'talkmindly' && (
+                    <motion.div
+                      key="talkmindly-info"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 10 }}
+                      className="space-y-4"
+                    >
+                      <span className="text-[10px] font-bold text-teal uppercase tracking-widest">Peer Group Spaces</span>
+                      <h3 className="text-2xl font-serif text-ink font-bold leading-snug">Anonymous Student Circles</h3>
+                      <p className="text-sm text-ink-soft leading-relaxed">
+                        Join safe, 24/7 moderated group chat channels. Share experiences about academic burnout, social circles, or campus transitions anonymously. No real names, no profiles, and zero DMs.
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (isAuthenticated) {
+                            navigate("/dashboard");
+                          } else {
+                            navigate("/login?redirect=/dashboard");
+                          }
+                        }}
+                        className="rounded-full bg-navy text-white px-6 py-3 text-xs font-bold hover:bg-navy/90 transition-all cursor-pointer border-none flex items-center gap-2"
+                      >
+                        Join Peer Rooms
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
+              {/* Interactive side previews */}
+              <div className="md:col-span-6 flex justify-center items-center h-full w-full">
+                <AnimatePresence mode="wait">
+                  {activeOfferTab === 'blueprints' && (
+                    <motion.div
+                      key="blueprints-preview"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="w-full bg-paper border border-line rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between"
+                    >
+                      <div className="flex justify-between items-center text-left">
+                        <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Blueprint preview</span>
+                        <span className="text-[10px] font-bold bg-gold/10 text-gold-dark px-2.5 py-0.5 rounded-full">Strengths Card</span>
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <div className="text-sm font-bold text-ink">Select a trait below to review:</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {["Perseverance", "Creativity", "Bravery", "Gratitude"].map((trait, idx) => (
+                            <button
+                              key={trait}
+                              onClick={() => setMockWritePrompt(idx)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                mockWritePrompt === idx
+                                  ? "bg-gold text-white"
+                                  : "bg-paper-2 text-ink-soft hover:text-ink border border-line"
+                              }`}
+                            >
+                              {trait}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="p-4 bg-paper-2 rounded-2xl border border-line/65 text-xs text-ink-soft leading-relaxed min-h-[90px] flex items-center text-left">
+                        {mockWritePrompt === 0 && "🔥 Perseverance: You keep going when things get tough. You don't leave tasks half-done."}
+                        {mockWritePrompt === 1 && "🎨 Creativity: You discover original solutions. The flip side is occasionally overthinking simple steps."}
+                        {mockWritePrompt === 2 && "🛡️ Bravery: You stand up for what matters, even when it's uncomfortable or intimidating."}
+                        {mockWritePrompt === 3 && "🙏 Gratitude: You naturally notice the good around you. It helps anchor you during stressful weeks."}
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeOfferTab === 'writemindly' && (
+                    <motion.div
+                      key="writemindly-preview"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="w-full bg-paper border border-line rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between"
+                    >
+                      <div className="flex justify-between items-center border-b border-line pb-3 text-left">
+                        <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Private Journal Simulator</span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-teal" />
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <div className="text-xs font-bold text-ink-soft">Click a topic to start:</div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setMockWritePrompt(0)}
+                            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                              mockWritePrompt === 0
+                                ? "bg-teal text-white"
+                                : "bg-paper-2 text-ink-soft border border-line"
+                            }`}
+                          >
+                            Academic Stress
+                          </button>
+                          <button
+                            onClick={() => setMockWritePrompt(1)}
+                            className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                              mockWritePrompt === 1
+                                ? "bg-teal text-white"
+                                : "bg-paper-2 text-ink-soft border border-line"
+                            }`}
+                          >
+                            Feeling Lonely
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-2 bg-paper-2 p-3.5 rounded-2xl border border-line/65 text-xs text-left">
+                        <div className="font-bold text-ink">
+                          {mockWritePrompt === 0 ? "📝 Student: I have 3 deadlines tomorrow and I can't start..." : "📝 Student: It feels like everyone else has fit in easily..."}
+                        </div>
+                        <div className="text-teal font-medium pl-2.5 border-l-2 border-teal/40">
+                          {mockWritePrompt === 0 
+                            ? "✨ WriteMindly: Take a breath. Let's isolate the closest deadline. What is a single paragraph you can write in the next 15 minutes?" 
+                            : "✨ WriteMindly: Feeling disconnected in a new space is very common. Give yourself permission to go at your own pace today."
+                          }
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {activeOfferTab === 'talkmindly' && (
+                    <motion.div
+                      key="talkmindly-preview"
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="w-full bg-paper border border-line rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between"
+                    >
+                      <div className="flex justify-between items-center border-b border-line pb-3 text-left">
+                        <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">#anonymous-chat</span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setMockTalkTopic('exam-stress')}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                              mockTalkTopic === 'exam-stress' ? "bg-plum text-white" : "bg-paper-2 text-ink-soft"
+                            }`}
+                          >
+                            Burnout
+                          </button>
+                          <button
+                            onClick={() => setMockTalkTopic('social')}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-all ${
+                              mockTalkTopic === 'social' ? "bg-plum text-white" : "bg-paper-2 text-ink-soft"
+                            }`}
+                          >
+                            Socials
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-3 min-h-[140px] flex flex-col justify-end text-xs">
+                        {mockTalkTopic === 'exam-stress' ? (
+                          <>
+                            <div className="bg-paper-2 p-3 rounded-2xl rounded-tl-none border border-line/45 max-w-[85%] self-start text-left">
+                              <span className="block text-[9px] font-extrabold text-[#7c9473] mb-1">Anonymous Sage</span>
+                              Anyone else staring at the code compiler and wanting to scream?
+                            </div>
+                            <div className="bg-plum/10 p-3 rounded-2xl rounded-tr-none border border-plum/10 max-w-[85%] self-end text-left">
+                              <span className="block text-[9px] font-extrabold text-plum mb-1">Anonymous Lotus</span>
+                              Spent 4 hours debugging. Closed my laptop, going to walk outside. You've got this, take a break!
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="bg-paper-2 p-3 rounded-2xl rounded-tl-none border border-line/45 max-w-[85%] self-start text-left">
+                              <span className="block text-[9px] font-extrabold text-[#e0863f] mb-1">Anonymous Fern</span>
+                              Feels like everyone made friend groups in the first week. It's so quiet in the dorms.
+                            </div>
+                            <div className="bg-plum/10 p-3 rounded-2xl rounded-tr-none border border-plum/10 max-w-[85%] self-end text-left">
+                              <span className="block text-[9px] font-extrabold text-plum mb-1">Anonymous Tulip</span>
+                              Same. But it's early. Let's just grab coffee or go to the campus library together sometime.
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          </section>
+
+          {/* Interactive Audience Selector (mimics About Us but with direct interactive selector) */}
+          <section className="py-16 border-t border-line/60" id="audience-selector">
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <span className="text-[11px] font-bold text-coral uppercase tracking-widest block mb-3">Audience Alignment</span>
+              <h2 className="text-3xl sm:text-4xl font-serif text-ink tracking-tight font-medium">
+                Who WellMindly is built for.
+              </h2>
+              <p className="text-sm text-ink-soft mt-3">
+                Select your perspective below to explore the customized features and benefits we deliver.
+              </p>
+            </div>
+
+            {/* Selector buttons */}
+            <div className="flex justify-center gap-3.5 mb-10">
+              <button
+                onClick={() => setActiveAudience('students')}
+                className={`flex items-center gap-2 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                  activeAudience === 'students'
+                    ? "bg-navy text-white border-navy shadow-sm"
+                    : "bg-card text-ink-soft border-line hover:border-ink hover:text-ink"
+                }`}
+              >
+                For Students
+              </button>
+              <button
+                onClick={() => setActiveAudience('universities')}
+                className={`flex items-center gap-2 px-6 py-3.5 rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                  activeAudience === 'universities'
+                    ? "bg-navy text-white border-navy shadow-sm"
+                    : "bg-card text-ink-soft border-line hover:border-ink hover:text-ink"
+                }`}
+              >
+                For Universities
+              </button>
+            </div>
+
+            {/* Audience Content */}
+            <div className="min-h-[220px]">
               <AnimatePresence mode="wait">
-                {selectedFeeling && (
+                {activeAudience === 'students' ? (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    key="students-content"
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="bg-card border border-line rounded-3xl p-6.5 text-left shadow-lg relative"
+                    exit={{ opacity: 0, y: -12 }}
+                    className="grid md:grid-cols-3 gap-8"
                   >
-                    <div className="text-[10px] text-teal font-bold uppercase tracking-wider mb-2 font-sans">
-                      Thanks for being honest. That's harder than it sounds.
+                    <div className="bg-card p-8 rounded-2xl border border-line text-left shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2.5 bg-plum/10 text-plum rounded-xl inline-block mb-4 font-bold text-xs uppercase text-left">QUALITIES</div>
+                      <h4 className="text-base font-bold text-ink mb-2 text-left">Discover Yourself</h4>
+                      <p className="text-xs.5 text-ink-soft leading-relaxed text-left">
+                        Understand your signature qualities, core values, and habits using our quick self-discovery modules.
+                      </p>
                     </div>
-                    <p className="text-sm text-ink leading-relaxed font-serif mb-6">
-                      {selectedFeeling.text}
-                    </p>
-                    
-                    <div className="border-t border-line/60 pt-4.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div>
-                        <div className="text-[11px] font-bold text-ink-soft">Here's a 60-second thing that helps. No pressure.</div>
-                      </div>
-                      <div className="flex items-center gap-3 w-full sm:w-auto">
-                        <button
-                          onClick={handleCheckInClick}
-                          className="w-full sm:w-auto rounded-full bg-navy text-white px-5 py-2.5 text-xs font-bold hover:bg-navy/90 transition-colors cursor-pointer border-none"
-                        >
-                          Try it now
-                        </button>
-                        <button
-                          onClick={() => setSelectedFeeling(null)}
-                          className="w-full sm:w-auto rounded-full border border-line bg-transparent text-ink-soft px-4 py-2.5 text-xs font-bold hover:bg-paper-2 hover:text-ink transition-colors cursor-pointer"
-                        >
-                          Not now
-                        </button>
-                      </div>
+
+                    <div className="bg-card p-8 rounded-2xl border border-line text-left shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2.5 bg-teal/10 text-teal rounded-xl inline-block mb-4 font-bold text-xs uppercase text-left">PRIVACY</div>
+                      <h4 className="text-base font-bold text-ink mb-2 text-left">100% Anonymous Option</h4>
+                      <p className="text-xs.5 text-ink-soft leading-relaxed text-left">
+                        Reflect, chat, and check in without sharing your real name or emails. No tracking, no profiles.
+                      </p>
+                    </div>
+
+                    <div className="bg-card p-8 rounded-2xl border border-line text-left shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2.5 bg-coral/10 text-coral rounded-xl inline-block mb-4 font-bold text-xs uppercase text-left">COMMUNITY</div>
+                      <h4 className="text-base font-bold text-ink mb-2 text-left">Empathetic Peers</h4>
+                      <p className="text-xs.5 text-ink-soft leading-relaxed text-left">
+                        Find student circles dealing with the same pressures. Share your thoughts in a safe and moderated space.
+                      </p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="universities-content"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -12 }}
+                    className="grid md:grid-cols-3 gap-8"
+                  >
+                    <div className="bg-card p-8 rounded-2xl border border-line text-left shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2.5 bg-teal/10 text-teal rounded-xl inline-block mb-4 font-bold text-xs uppercase text-left">OUTREACH</div>
+                      <h4 className="text-base font-bold text-ink mb-2 text-left">Preventative Support</h4>
+                      <p className="text-xs.5 text-ink-soft leading-relaxed text-left">
+                        Catch mild/moderate student stress early, de-escalating clinical queues through self-reflection.
+                      </p>
+                    </div>
+
+                    <div className="bg-card p-8 rounded-2xl border border-line text-left shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2.5 bg-plum/10 text-plum rounded-xl inline-block mb-4 font-bold text-xs uppercase text-left">INSIGHTS</div>
+                      <h4 className="text-base font-bold text-ink mb-2 text-left">Anonymized Campus Trends</h4>
+                      <p className="text-xs.5 text-ink-soft leading-relaxed text-left">
+                        Understand macro-level student wellness patterns during exam seasons to deploy resources effectively.
+                      </p>
+                    </div>
+
+                    <div className="bg-card p-8 rounded-2xl border border-line text-left shadow-sm hover:shadow-md transition-shadow">
+                      <div className="p-2.5 bg-coral/10 text-coral rounded-xl inline-block mb-4 font-bold text-xs uppercase text-left">SECURITY</div>
+                      <h4 className="text-base font-bold text-ink mb-2 text-left">Safe & Compliant</h4>
+                      <p className="text-xs.5 text-ink-soft leading-relaxed text-left">
+                        Fully moderated channels, profile blocks, and no DMs protect your student body from harassment.
+                      </p>
                     </div>
                   </motion.div>
                 )}
@@ -214,168 +510,70 @@ export function LandingPage() {
             </div>
           </section>
 
-          {/* Interactive Focus Selector */}
-          <section className="py-16 border-t border-line/60" id="focus-areas">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-              <div className="md:col-span-5 flex flex-col justify-center">
-                <span className="text-[11px] font-bold text-coral uppercase tracking-widest mb-3">Focus Areas</span>
-                <h2 className="text-3xl sm:text-4xl font-serif text-ink tracking-tight font-medium leading-tight mb-4">
-                  Sometimes understanding changes more than fixing.
-                </h2>
-                <p className="text-sm text-ink-soft leading-relaxed mb-6">
-                  Not every difficult feeling needs a solution. Sometimes it just needs a name. Sometimes it needs a little attention. The goal isn't to feel good all the time. It's to understand yourself a little better today.
-                </p>
-                <div className="flex flex-col gap-2">
-                  {FOCUS_AREAS.map((area, idx) => (
-                    <button
-                      key={area.name}
-                      onClick={() => setActiveFocusIndex(idx)}
-                      className={`text-left px-5 py-3.5 rounded-2xl border transition-all duration-200 cursor-pointer ${
-                        activeFocusIndex === idx 
-                          ? "bg-card text-ink border-line shadow-sm font-semibold"
-                          : "bg-transparent text-ink-soft border-transparent hover:text-ink"
-                      }`}
-                    >
-                      {area.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="md:col-span-7">
-                <div className="bg-card border border-line rounded-[2rem] p-8 sm:p-12 shadow-sm min-h-[220px] flex items-center relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal/5 to-transparent rounded-full pointer-events-none" />
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={activeFocusIndex}
-                      initial={{ opacity: 0, x: 15 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -15 }}
-                      transition={{ duration: 0.3 }}
-                      className="flex flex-col gap-4 relative z-10"
-                    >
-                      <div className="text-xs font-bold text-teal font-sans uppercase tracking-wider">
-                        {FOCUS_AREAS[activeFocusIndex].name}
-                      </div>
-                      <p className="text-lg sm:text-xl font-serif text-ink leading-relaxed">
-                        "{FOCUS_AREAS[activeFocusIndex].text}"
-                      </p>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Six Launch Tests */}
-          <section className="py-16 border-t border-line/60" id="discover-tests">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <span className="text-[11px] font-bold text-coral uppercase tracking-widest block mb-3">Discovery Content</span>
-              <h2 className="text-3xl sm:text-4xl font-serif text-ink tracking-tight font-medium leading-tight">
-                Six quick ways to meet yourself.
-              </h2>
-              <p className="text-sm text-ink-soft mt-3">
-                Each takes about two minutes and hands back something worth keeping. Start with a check-in, or follow your curiosity. There's no wrong place to begin.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {LAUNCH_TESTS.map((test, idx) => (
-                <div 
-                  key={test.name} 
-                  className="bg-card border border-line rounded-3xl p-6.5 flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-                >
-                  <div>
-                    <div className={`w-10 h-10 rounded-2xl bg-gradient-to-br ${test.color} flex items-center justify-center text-white mb-4.5 shadow-sm`}>
-                      {idx === 0 && <Clock className="w-5 h-5" />}
-                      {idx === 1 && <Shield className="w-5 h-5" />}
-                      {idx === 2 && <Users className="w-5 h-5" />}
-                      {idx === 3 && <PenTool className="w-5 h-5" />}
-                      {idx === 4 && <AlertCircle className="w-5 h-5" />}
-                      {idx === 5 && <HelpCircle className="w-5 h-5" />}
-                    </div>
-                    <h3 className="font-serif text-lg font-bold text-ink mb-2">{test.name}</h3>
-                    <p className="text-xs.5 text-ink-soft leading-relaxed mb-4">{test.desc}</p>
-                  </div>
-                  <div className="border-t border-line/45 pt-4 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-ink-soft/80 bg-paper px-3 py-1 rounded-full">{test.tag}</span>
-                    <button 
-                      onClick={() => navigate(`/discover?start=${test.id}`)} 
-                      className="text-xs font-bold text-teal hover:underline flex items-center gap-1 cursor-pointer border-none bg-transparent"
-                    >
-                      Start
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Moodboard / Color mapping */}
+          {/* Moodboard / Color mapping (Light themed) */}
           <section className="py-16 border-t border-line/60" id="moodboard-showcase">
-            <div className="bg-navy text-white rounded-[2.5rem] p-8 sm:p-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-radial-gradient(circle at top right, rgba(249,168,37,0.1), transparent 60%) pointer-events-none" />
-              <div>
+            <div className="bg-card text-ink border border-line rounded-[2.5rem] p-8 sm:p-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative overflow-hidden shadow-sm">
+              <div className="absolute inset-0 bg-radial-gradient(circle at top right, rgba(122,91,147,0.04), transparent 60%) pointer-events-none" />
+              <div className="text-left">
                 <span className="text-[11px] font-bold text-coral uppercase tracking-widest mb-3 block">Mosaic Habit Model</span>
-                <h2 className="text-3xl sm:text-4xl font-serif leading-tight font-medium">
+                <h2 className="text-3xl sm:text-4xl font-serif leading-tight font-medium text-ink">
                   Every check-in becomes a color.
                 </h2>
-                <p className="text-sm text-slate-300 leading-relaxed mt-4">
+                <p className="text-sm text-ink-soft leading-relaxed mt-4">
                   Each time you check in, it builds your moodboard and a private picture of how your weeks actually feel. No streaks to keep, no empty calendar gaps, and no pressure. Just patterns you can notice and act on.
                 </p>
               </div>
 
-              <div className="bg-white/5 border border-white/10 rounded-3xl p-6.5 flex flex-col gap-4">
-                <div className="text-xs font-bold text-slate-300 border-b border-white/10 pb-3">Moodboard dimensions</div>
+              <div className="bg-paper border border-line rounded-3xl p-6.5 flex flex-col gap-4 shadow-sm">
+                <div className="text-xs font-bold text-ink border-b border-line pb-3 text-left">Moodboard dimensions</div>
                 
                 <div className="flex flex-col gap-3">
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-300 mb-1">
+                    <div className="flex justify-between text-[11px] font-bold text-ink-soft mb-1">
                       <span>Energy</span>
-                      <span className="text-[#e3b04b]">78%</span>
+                      <span className="text-[#e3b04b] font-bold">78%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-paper-2 rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-[#e3b04b] to-[#7c9473]" style={{ width: '78%' }} />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-300 mb-1">
+                    <div className="flex justify-between text-[11px] font-bold text-ink-soft mb-1">
                       <span>Calm</span>
-                      <span className="text-[#e0863f]">64%</span>
+                      <span className="text-[#e0863f] font-bold">64%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-paper-2 rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-[#e0863f] to-[#d8472f]" style={{ width: '64%' }} />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-300 mb-1">
+                    <div className="flex justify-between text-[11px] font-bold text-ink-soft mb-1">
                       <span>Focus</span>
-                      <span className="text-[#3aa78a]">71%</span>
+                      <span className="text-[#3aa78a] font-bold">71%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-paper-2 rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-[#3aa78a] to-[#0e7c6e]" style={{ width: '71%' }} />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-300 mb-1">
+                    <div className="flex justify-between text-[11px] font-bold text-ink-soft mb-1">
                       <span>Recovery</span>
-                      <span className="text-[#9aa2bd]">48%</span>
+                      <span className="text-[#9aa2bd] font-bold">48%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-paper-2 rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-[#9aa2bd] to-[#6f7aa0]" style={{ width: '48%' }} />
                     </div>
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold text-slate-300 mb-1">
+                    <div className="flex justify-between text-[11px] font-bold text-ink-soft mb-1">
                       <span>Motivation</span>
-                      <span className="text-[#cf7794]">83%</span>
+                      <span className="text-[#cf7794] font-bold">83%</span>
                     </div>
-                    <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-2 w-full bg-paper-2 rounded-full overflow-hidden">
                       <div className="h-full bg-gradient-to-r from-[#cf7794] to-[#b06a78]" style={{ width: '83%' }} />
                     </div>
                   </div>
@@ -654,10 +852,10 @@ export function LandingPage() {
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={handleCheckInClick}
+              onClick={handleStartDiscovery}
               className="rounded-full bg-navy text-white px-10 py-4.5 text-sm font-bold shadow-lg shadow-navy/20 hover:bg-navy/95 transition-all text-center cursor-pointer border-none"
             >
-              See how you're feeling
+              Explore Blueprints
             </motion.button>
             <div className="text-xs text-ink-soft/75 mt-3">
               Takes a minute. Costs nothing. No one finds out it's you.

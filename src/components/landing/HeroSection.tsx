@@ -4,10 +4,10 @@ import studentPortraitClean from "../../assets/student_portrait_clean.png";
 
 interface HeroSectionProps {
   onCheckInClick: () => void;
-  onExploreClick: () => void;
+  onStartDiscovery: () => void;
 }
 
-export function HeroSection({ onCheckInClick, onExploreClick }: HeroSectionProps) {
+export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionProps) {
   return (
     <section className="py-16 sm:py-24 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
       {/* Left Column: Typography & CTAs */}
@@ -28,7 +28,7 @@ export function HeroSection({ onCheckInClick, onExploreClick }: HeroSectionProps
         </h1>
 
         <p className="mt-6 text-base sm:text-lg text-ink-soft leading-relaxed max-w-[48ch]">
-          A warm, anonymous space to pause, check in, and unpack what you're carrying. No pressure, no labels. Just a space to understand yourself.
+          A warm, anonymous space to pause, check in, and unpack what you're carrying. No pressure, no clinical labels. Just a space to understand yourself.
         </p>
 
         {/* Action Buttons */}
@@ -45,17 +45,17 @@ export function HeroSection({ onCheckInClick, onExploreClick }: HeroSectionProps
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={onExploreClick}
+            onClick={onStartDiscovery}
             className="rounded-full border border-plum/30 bg-plum/5 text-plum px-8 py-4 text-sm font-bold hover:bg-plum/10 hover:border-plum/50 transition-all text-center cursor-pointer flex items-center justify-center gap-2"
           >
-            Look around first
+            Explore Blueprints
             <ArrowRight className="w-4 h-4" />
           </motion.button>
         </div>
         
         {/* Microcopy */}
         <span className="text-xs text-ink-soft/70 font-semibold tracking-wide mt-3 ml-4">
-          No sign-up. No questions. Just start.
+          Explore 11+ character blueprints and private peer support.
         </span>
 
         {/* Trust Strip */}

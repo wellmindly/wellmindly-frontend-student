@@ -6,6 +6,10 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { Dashboard } from './pages/Dashboard';
 import { DiscoverPage } from './pages/DiscoverPage';
 import { CrisisPage } from './pages/CrisisPage';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { UniversityPage } from './pages/UniversityPage';
+import { CounselorsPage } from './pages/CounselorsPage';
 
 function DiscoverRoute() {
   const { user } = useAuth();
@@ -55,6 +59,10 @@ function App() {
             <Route path="/login" element={<LoginRoute />} />
             <Route path="/discover" element={<DiscoverRoute />} />
             <Route path="/crisis" element={<CrisisPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/university" element={<UniversityPage />} />
+            <Route path="/counselors" element={<CounselorsPage />} />
             <Route 
               path="/dashboard" 
               element={
