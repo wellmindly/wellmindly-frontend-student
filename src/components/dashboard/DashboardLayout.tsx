@@ -61,6 +61,36 @@ export function DashboardLayout({
   children,
 }: DashboardLayoutProps) {
   const navigate = useNavigate();
+
+  if (activeTab === "talkmindly") {
+    return (
+      <div className="h-screen w-screen flex flex-col bg-[#0b0d11] text-[#f1f3f9] talkmindly-font-sans overflow-hidden">
+        {/* Immersive Mobile-style Header bar to return to dashboard */}
+        <header className="h-16 flex items-center justify-between px-6 bg-[#12141c] border-b border-[#212431] shrink-0 select-none z-25">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum text-white shadow-md shadow-plum/25">
+              <Heart className="h-4 w-4 fill-current" />
+            </div>
+            <span className="text-lg font-black tracking-tight text-white font-serif">
+              TalkMindly
+            </span>
+          </div>
+
+          <button
+            onClick={() => setActiveTab("overview")}
+            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white bg-[#1a1d29] hover:bg-[#222737] border border-[#2d3347] rounded-full transition-all duration-200 cursor-pointer"
+          >
+            ← Back to Dashboard
+          </button>
+        </header>
+        
+        <main className="flex-1 overflow-hidden relative">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-screen flex bg-[#F4F6F5] text-slate-800 font-sans overflow-hidden">
       {/* 1. Desktop Sidebar Navigation */}
@@ -85,7 +115,6 @@ export function DashboardLayout({
             const isActive = activeTab === item.id;
             const isComingSoon =
               (item.id === "writemindly" && !config.enableWriteMindly) ||
-              item.id === "talkmindly" ||
               item.id === "sessionbooking";
             return (
               <button
@@ -191,7 +220,6 @@ export function DashboardLayout({
                   const isActive = activeTab === item.id;
                   const isComingSoon =
                     (item.id === "writemindly" && !config.enableWriteMindly) ||
-                    item.id === "talkmindly" ||
                     item.id === "sessionbooking";
                   return (
                     <button

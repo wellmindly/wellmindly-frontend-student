@@ -9,6 +9,7 @@ import { DailyCheckinPopup } from "../components/dashboard/DailyCheckinPopup";
 import { ReportDetailModal } from "../components/dashboard/ReportDetailModal";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 import { WriteMindlyTab } from "../components/dashboard/WriteMindlyTab";
+import { TalkMindlyTab } from "../components/dashboard/TalkMindlyTab";
 
 export function Dashboard() {
   const db = useDashboard();
@@ -32,7 +33,13 @@ export function Dashboard() {
         initials={db.initials}
         logout={db.logout}
         onLogoClick={() => db.navigate("/")}
-        onComingSoonClick={(feature) => setComingSoonFeature(feature)}
+        onComingSoonClick={(feature) => {
+          if (feature === "talkmindly") {
+            db.setActiveTab("talkmindly");
+          } else {
+            setComingSoonFeature(feature);
+          }
+        }}
       >
         {/* ---------- DASHBOARD HOME VIEW ---------- */}
         {db.activeTab === "overview" && (
@@ -82,7 +89,13 @@ export function Dashboard() {
             discoverLoading={db.discoverLoading}
             onSwitchToAssessments={() => db.setActiveTab("assessments")}
             resultsData={db.resultsData}
-            onComingSoonClick={(feature) => setComingSoonFeature(feature)}
+            onComingSoonClick={(feature) => {
+              if (feature === "talkmindly") {
+                db.setActiveTab("talkmindly");
+              } else {
+                setComingSoonFeature(feature);
+              }
+            }}
             isCheckinMode={db.activeTab === "checkin"}
             onBackToOverview={() => db.setActiveTab("overview")}
           />
@@ -91,6 +104,11 @@ export function Dashboard() {
         {/* ---------- WRITEMINDLY VIEW ---------- */}
         {db.activeTab === "writemindly" && (
           <WriteMindlyTab />
+        )}
+
+        {/* ---------- TALKMINDLY VIEW ---------- */}
+        {db.activeTab === "talkmindly" && (
+          <TalkMindlyTab />
         )}
       </DashboardLayout>
 

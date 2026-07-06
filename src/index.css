@@ -127,3 +127,12 @@ input, textarea {
   user-select: text;
 }
 
+/* TalkMindly Custom Font Overrides */
+.talkmindly-font-sans {
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
+.talkmindly-font-serif {
+  font-family: 'Lora', Georgia, serif !important;
+}
+

@@ -77,6 +77,14 @@ export function LandingPage() {
     }
   };
 
+  const handleTalkMindlyClick = () => {
+    if (isAuthenticated) {
+      navigate("/dashboard?tab=talkmindly");
+    } else {
+      navigate("/login?redirect=/dashboard?tab=talkmindly");
+    }
+  };
+
  
   const handleBookCoach = () => {
     setComingSoonFeature("sessionbooking");
@@ -635,7 +643,7 @@ export function LandingPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => setComingSoonFeature("talkmindly")}
+                  onClick={handleTalkMindlyClick}
                   className="rounded-full bg-navy text-white py-3.5 px-6.5 text-xs font-bold w-full text-center hover:bg-navy/95 transition-colors cursor-pointer border-none"
                 >
                   Find your space
@@ -977,7 +985,7 @@ export function LandingPage() {
                 </li>
                 <li className="flex gap-2.5 items-start">
                   <span className="text-plum mt-0.5">✔</span>
-                  <span><b>Two bigger features are still coming</b>. You'll see WriteMindly and TalkMindly here as previews, not finished yet.</span>
+                  <span><b>TalkMindly is active</b>. Explore the anonymous, moderated peer spaces.</span>
                 </li>
                 <li className="flex gap-2.5 items-start">
                   <span className="text-plum mt-0.5">✔</span>
