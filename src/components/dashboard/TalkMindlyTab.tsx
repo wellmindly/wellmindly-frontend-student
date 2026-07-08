@@ -88,7 +88,7 @@ const BANNED_WORDS = [
 export function TalkMindlyTab() {
   const [profile, setProfile] = useState<TalkProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [activeScreen, setActiveScreen] = useState<"onboarding-terms" | "onboarding-profile" | "room-list" | "room-detail">("room-list");
+  const [activeScreen, setActiveScreen] = useState<"onboarding-terms" | "onboarding-profile" | "room-list" | "room-detail">("onboarding-terms");
 
   // Profile Onboarding State
   const [nicknameInput, setNicknameInput] = useState("");
@@ -283,7 +283,7 @@ export function TalkMindlyTab() {
       }
     } catch (err: any) {
       console.error("Failed to drop note:", err);
-      alert(err.response?.data?.error || "Failed to drop note");
+      setCustomAlert({ show: true, type: 'error', message: err.response?.data?.error || "Failed to drop note" });
     } finally {
       setSubmittingNote(false);
     }
@@ -330,7 +330,7 @@ export function TalkMindlyTab() {
       }
     } catch (err: any) {
       console.error("Failed to post reply:", err);
-      alert(err.response?.data?.error || "Failed to add reply");
+      setCustomAlert({ show: true, type: 'error', message: err.response?.data?.error || "Failed to add reply" });
     } finally {
       setSubmittingReply(false);
     }

@@ -76,8 +76,18 @@ export function useDashboard() {
   const [showScreening, setShowScreening] = useState(false);
 
   // ── Discover tab ─────────────────────────────────────────
-  const [discoverView, setDiscoverView] = useState<"hub" | "test" | "result" | "results">("hub");
-  const [curDiscoverId, setCurDiscoverId] = useState<string | null>(null);
+  const [discoverView, setDiscoverView] = useState<"hub" | "test" | "result" | "results">(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab === "checkin" || tab === "phq9") return "test";
+    return "hub";
+  });
+  const [curDiscoverId, setCurDiscoverId] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get("tab");
+    if (tab === "checkin" || tab === "phq9") return tab;
+    return null;
+  });
   const [discoverQi, setDiscoverQi] = useState(0);
   const [discoverResp, setDiscoverResp] = useState<(number | string)[]>([]);
   const [discoverResultData, setDiscoverResultData] = useState<DiscoverResultData | null>(null);
@@ -200,10 +210,10 @@ export function useDashboard() {
           setCurDiscoverId(showResult);
           setDiscoverResultData(data);
           setDiscoverView("result");
-          _setActiveTab("discover");
+          _setActiveTab(showResult === "checkin" ? "checkin" : "discover");
           
           // Clean the query parameters
-          navigate("/dashboard?tab=discover", { replace: true });
+          navigate(showResult === "checkin" ? "/dashboard?tab=checkin" : "/dashboard?tab=discover", { replace: true });
         }
       }
     }

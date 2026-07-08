@@ -136,7 +136,13 @@ export function LoginPage() {
         const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
         navigate(target);
       } else {
-        navigate('/dashboard');
+        const pendingTest = sessionStorage.getItem("last_test_started");
+        if (pendingTest === "checkin") {
+          sessionStorage.removeItem("last_test_started");
+          navigate("/dashboard?tab=checkin");
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Google Authentication failed.";
@@ -174,7 +180,13 @@ export function LoginPage() {
           const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
           navigate(target);
         } else {
-          navigate('/dashboard');
+          const pendingTest = sessionStorage.getItem("last_test_started");
+          if (pendingTest === "checkin") {
+            sessionStorage.removeItem("last_test_started");
+            navigate("/dashboard?tab=checkin");
+          } else {
+            navigate('/dashboard');
+          }
         }
       } else {
         throw new Error("No ID Token returned from Google Sign-In.");
@@ -338,7 +350,13 @@ export function LoginPage() {
         const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
         navigate(target);
       } else {
-        navigate('/dashboard');
+        const pendingTest = sessionStorage.getItem("last_test_started");
+        if (pendingTest === "checkin") {
+          sessionStorage.removeItem("last_test_started");
+          navigate("/dashboard?tab=checkin");
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Authentication failed. Please verify credentials.";

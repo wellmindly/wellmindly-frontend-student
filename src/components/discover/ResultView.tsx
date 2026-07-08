@@ -439,7 +439,7 @@ export function ResultView({
               onClick={() => onComingSoonClick('talkmindly')}
               className="cursor-pointer flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-extrabold text-sm transition active:scale-[.97]"
             >
-              <span>💬 Talk to Mindly</span>
+              <span>💬 TalkMindly</span>
             </button>
             <button 
               onClick={() => onComingSoonClick('sessionbooking')}

@@ -62,7 +62,10 @@ export function LandingPage() {
   const [toastMessage, setToastMessage] = useState("");
  
   const handleCrisisClick = () => navigate("/crisis");
-  const handleCheckInClick = () => navigate("/discover?start=checkin");
+  const handleCheckInClick = () => {
+    sessionStorage.setItem("last_test_started", "checkin");
+    navigate("/discover?start=checkin");
+  };
   const handleStartDiscovery = () => navigate("/discover");
  
   const handleWriteMindlyClick = () => {
