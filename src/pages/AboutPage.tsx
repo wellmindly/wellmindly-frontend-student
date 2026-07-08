@@ -11,12 +11,6 @@ export function AboutPage() {
     navigate("/crisis");
   };
 
-  const stats = [
-    { label: "Daily Active Students", value: "12,000+" },
-    { label: "Assessments Completed", value: "150,000+" },
-    { label: "Partner Universities", value: "15+" },
-    { label: "Privacy Satisfaction", value: "99.8%" },
-  ];
 
   const corePillars = [
     {
@@ -98,39 +92,28 @@ export function AboutPage() {
 
       {/* Showable to Universities (Value Prop) */}
       <section className="py-16 px-6 bg-paper-2/40 border-y border-line w-full">
-        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <span className="text-teal font-bold text-xs uppercase tracking-wider block mb-2">Designed For Campus Communities</span>
-            <h2 className="text-3xl font-extrabold text-ink font-serif mb-6 leading-snug">
-              Why Universities Partner with WellMindly
-            </h2>
-            <p className="text-ink-soft text-sm leading-relaxed mb-6">
-              Modern campus counseling centers are overwhelmed. WellMindly offers a preventative gateway that acts as a safe, anonymous precursor to clinical support systems.
-            </p>
-            <ul className="space-y-3.5">
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
-                <span className="text-sm text-ink font-medium">De-escalates mild/moderate challenges through self-awareness and peer validation.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
-                <span className="text-sm text-ink font-medium">Provides anonymous aggregate health trends to administrative stakeholders.</span>
-              </li>
-              <li className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
-                <span className="text-sm text-ink font-medium">Builds a culture of proactive care, reducing friction to onboard into official campus resources.</span>
-              </li>
-            </ul>
-          </div>
-
-          <div className="grid grid-cols-2 gap-6">
-            {stats.map((stat, idx) => (
-              <div key={idx} className="bg-card p-6 rounded-2xl border border-line text-center">
-                <div className="text-3xl font-extrabold text-plum font-serif mb-1">{stat.value}</div>
-                <div className="text-xs text-ink-soft font-semibold">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="max-w-3xl mx-auto">
+          <span className="text-teal font-bold text-xs uppercase tracking-wider block mb-2 text-center">Designed For Campus Communities</span>
+          <h2 className="text-3xl font-extrabold text-ink font-serif mb-6 leading-snug text-center">
+            Why Universities Partner with WellMindly
+          </h2>
+          <p className="text-ink-soft text-sm leading-relaxed mb-6 text-center">
+            Modern campus counseling centers are overwhelmed. WellMindly offers a preventative gateway that acts as a safe, anonymous precursor to clinical support systems.
+          </p>
+          <ul className="space-y-3.5 max-w-xl mx-auto">
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
+              <span className="text-sm text-ink font-medium">De-escalates mild/moderate challenges through self-awareness and peer validation.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
+              <span className="text-sm text-ink font-medium">Provides anonymous aggregate trends to administrative stakeholders.</span>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
+              <span className="text-sm text-ink font-medium">Builds a culture of proactive care, reducing friction to onboard into official campus resources.</span>
+            </li>
+          </ul>
         </div>
       </section>
 

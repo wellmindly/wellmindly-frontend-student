@@ -55,7 +55,7 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
         
         {/* Microcopy */}
         <span className="text-xs text-ink-soft/70 font-semibold tracking-wide mt-3 ml-4">
-          Explore 11+ character blueprints and private peer support.
+          Explore 6 character blueprints and private peer support.
         </span>
 
         {/* Trust Strip */}

@@ -4,7 +4,8 @@ import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { Mail, MapPin, MessageSquare, Send, Check, AlertTriangle } from "lucide-react";
+import { Mail, MessageSquare, Send, Check, AlertTriangle, Phone, Globe } from "lucide-react";
+
 
 export function ContactPage() {
   const navigate = useNavigate();
@@ -92,7 +93,17 @@ export function ContactPage() {
                   </div>
                   <div>
                     <h4 className="text-xs font-bold text-ink uppercase tracking-wider">Email Address</h4>
-                    <p className="text-sm text-ink-soft font-medium mt-0.5">hello@wellmindly.com</p>
+                    <p className="text-sm text-ink-soft font-medium mt-0.5">Info@wellmindly.com</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-2.5 bg-paper-2 rounded-lg text-teal shrink-0">
+                    <Phone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-ink uppercase tracking-wider">Phone Number</h4>
+                    <p className="text-sm text-ink-soft font-medium mt-0.5">+971507312108</p>
                   </div>
                 </div>
 
@@ -108,11 +119,11 @@ export function ContactPage() {
 
                 <div className="flex items-start gap-4">
                   <div className="p-2.5 bg-paper-2 rounded-lg text-coral shrink-0">
-                    <MapPin className="w-5 h-5" />
+                    <Globe className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-ink uppercase tracking-wider">Office Location</h4>
-                    <p className="text-sm text-ink-soft font-medium mt-0.5">Dubai Knowledge Park, UAE</p>
+                    <h4 className="text-xs font-bold text-ink uppercase tracking-wider">Countries</h4>
+                    <p className="text-sm text-ink-soft font-medium mt-0.5">UAE, Oman, Malaysia, Australia, India</p>
                   </div>
                 </div>
               </div>
@@ -122,17 +133,28 @@ export function ContactPage() {
             <div className="bg-card p-8 rounded-2xl border border-line shadow-sm space-y-4">
               <h3 className="text-sm font-bold text-ink uppercase tracking-wider">Follow Us On Social Media</h3>
               <p className="text-xs text-ink-soft leading-relaxed">
-                Connect with us for student mental health advocacy tips, update notices, and new blueprint announcements.
+                Connect with us for student advocacy tips, update notices, and new blueprint announcements.
               </p>
-              <div className="flex gap-4 pt-2">
-                <a href="https://instagram.com/wellmindly" target="_blank" rel="noreferrer" className="p-2 bg-paper-2 hover:bg-rose/10 hover:text-rose rounded-full transition-all text-ink-soft">
-                  <span className="text-xs font-bold">Instagram</span>
+              <div className="flex gap-3 pt-2">
+                <a href="https://instagram.com/wellmindly" target="_blank" rel="noreferrer" className="p-3 bg-paper-2 hover:bg-rose/10 hover:text-rose rounded-full transition-all text-ink-soft flex items-center justify-center" title="Instagram">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                  </svg>
                 </a>
-                <a href="https://linkedin.com/company/wellmindly" target="_blank" rel="noreferrer" className="p-2 bg-paper-2 hover:bg-sky/10 hover:text-sky rounded-full transition-all text-ink-soft">
-                  <span className="text-xs font-bold">LinkedIn</span>
+                <a href="https://linkedin.com/company/wellmindly" target="_blank" rel="noreferrer" className="p-3 bg-paper-2 hover:bg-sky/10 hover:text-sky rounded-full transition-all text-ink-soft flex items-center justify-center" title="LinkedIn">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                    <rect width="4" height="12" x="2" y="9" />
+                    <circle cx="4" cy="4" r="2" />
+                  </svg>
                 </a>
-                <a href="https://twitter.com/wellmindly" target="_blank" rel="noreferrer" className="p-2 bg-paper-2 hover:bg-navy/10 hover:text-navy rounded-full transition-all text-ink-soft">
-                  <span className="text-xs font-bold">X / Twitter</span>
+                <a href="https://www.youtube.com/@WellMindly" target="_blank" rel="noreferrer" className="p-3 bg-paper-2 hover:bg-red-500/10 hover:text-red-500 rounded-full transition-all text-ink-soft flex items-center justify-center" title="YouTube">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+                    <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17z" />
+                    <polygon points="10 15 15 12 10 9" fill="currentColor" stroke="none" />
+                  </svg>
                 </a>
               </div>
             </div>

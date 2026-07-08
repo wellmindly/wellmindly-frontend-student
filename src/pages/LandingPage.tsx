@@ -52,8 +52,8 @@ export function LandingPage() {
     document.title = "WellMindly | Get to know yourself, feel a little better";
   }, []);
   
-  // Interactive Section States
   const [activeOfferTab, setActiveOfferTab] = useState<'blueprints' | 'writemindly' | 'talkmindly'>('blueprints');
+  const [activePreviewCoachIndex, setActivePreviewCoachIndex] = useState(0);
   const [activeAudience, setActiveAudience] = useState<'students' | 'universities'>('students');
   const [mockWritePrompt, setMockWritePrompt] = useState(0);
   const [mockTalkTopic, setMockTalkTopic] = useState<'exam-stress' | 'social'>('exam-stress');
@@ -148,7 +148,7 @@ export function LandingPage() {
                     : "bg-card text-ink-soft border border-line hover:border-ink hover:text-ink"
                 }`}
               >
-                Self-Discovery Blueprints
+                Book a Coach
               </button>
               <button
                 onClick={() => setActiveOfferTab('writemindly')}
@@ -180,22 +180,24 @@ export function LandingPage() {
                 <AnimatePresence mode="wait">
                   {activeOfferTab === 'blueprints' && (
                     <motion.div
-                      key="blueprints-info"
+                      key="coaches-info"
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 10 }}
                       className="space-y-4"
                     >
-                      <span className="text-[10px] font-bold text-teal uppercase tracking-widest">Self-Discovery</span>
-                      <h3 className="text-2xl font-serif text-ink font-bold leading-snug">Character Blueprints</h3>
+                      <span className="text-[10px] font-bold text-teal uppercase tracking-widest">1-on-1 Support</span>
+                      <h3 className="text-2xl font-serif text-ink font-bold leading-snug">Mindset & Support Coaching</h3>
                       <p className="text-sm text-ink-soft leading-relaxed">
-                        Take a few minutes to explore your personality traits, signature strengths, and core values. No test is clinical—they are built to help you reflect, find your footing, and understand what drives you.
+                        Book a confidential 1-on-1 session with a trained student coach to talk through academic stress, motivation, balance, or handling setbacks. No clinical labels, just human support.
                       </p>
                       <button
-                        onClick={handleStartDiscovery}
+                        onClick={() => {
+                          document.getElementById('coaching-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }}
                         className="rounded-full bg-navy text-white px-6 py-3 text-xs font-bold hover:bg-navy/90 transition-all cursor-pointer border-none flex items-center gap-2"
                       >
-                        Try a Blueprint
+                        Book a Session
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </motion.div>
@@ -260,39 +262,42 @@ export function LandingPage() {
                 <AnimatePresence mode="wait">
                   {activeOfferTab === 'blueprints' && (
                     <motion.div
-                      key="blueprints-preview"
+                      key="coaches-preview"
                       initial={{ opacity: 0, scale: 0.95 }}
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       className="w-full bg-paper border border-line rounded-3xl p-6 shadow-sm space-y-4 flex flex-col justify-between"
                     >
                       <div className="flex justify-between items-center text-left">
-                        <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Blueprint preview</span>
-                        <span className="text-[10px] font-bold bg-gold/10 text-gold-dark px-2.5 py-0.5 rounded-full">Strengths Card</span>
+                        <span className="text-[10px] font-bold text-ink-soft uppercase tracking-wider">Meet Our Coaches</span>
+                        <span className="text-[10px] font-bold bg-teal/10 text-teal px-2.5 py-0.5 rounded-full">Available</span>
                       </div>
                       <div className="space-y-2 text-left">
-                        <div className="text-sm font-bold text-ink">Select a trait below to review:</div>
+                        <div className="text-sm font-bold text-ink">Select a coach below:</div>
                         <div className="flex flex-wrap gap-1.5">
-                          {["Perseverance", "Creativity", "Bravery", "Gratitude"].map((trait, idx) => (
+                          {COACHES.map((coach, idx) => (
                             <button
-                              key={trait}
-                              onClick={() => setMockWritePrompt(idx)}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                mockWritePrompt === idx
-                                  ? "bg-gold text-white"
+                              key={coach.name}
+                              onClick={() => setActivePreviewCoachIndex(idx)}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border-none ${
+                                activePreviewCoachIndex === idx
+                                  ? "bg-teal text-white"
                                   : "bg-paper-2 text-ink-soft hover:text-ink border border-line"
                               }`}
                             >
-                              {trait}
+                              {coach.name.split(" ")[0]}
                             </button>
                           ))}
                         </div>
                       </div>
-                      <div className="p-4 bg-paper-2 rounded-2xl border border-line/65 text-xs text-ink-soft leading-relaxed min-h-[90px] flex items-center text-left">
-                        {mockWritePrompt === 0 && "🔥 Perseverance: You keep going when things get tough. You don't leave tasks half-done."}
-                        {mockWritePrompt === 1 && "🎨 Creativity: You discover original solutions. The flip side is occasionally overthinking simple steps."}
-                        {mockWritePrompt === 2 && "🛡️ Bravery: You stand up for what matters, even when it's uncomfortable or intimidating."}
-                        {mockWritePrompt === 3 && "🙏 Gratitude: You naturally notice the good around you. It helps anchor you during stressful weeks."}
+                      <div className="p-4 bg-paper-2 rounded-2xl border border-line/65 text-xs text-ink-soft leading-relaxed min-h-[90px] flex flex-col justify-center text-left gap-1">
+                        <div className="font-bold text-ink">{COACHES[activePreviewCoachIndex].name}</div>
+                        <div className="text-[11px] text-ink-soft mb-1">{COACHES[activePreviewCoachIndex].role}</div>
+                        <div className="flex flex-wrap gap-1">
+                          {COACHES[activePreviewCoachIndex].specs.map(spec => (
+                            <span key={spec} className="bg-paper text-ink-soft text-[9px] font-bold px-2 py-0.5 rounded-full border border-line">{spec}</span>
+                          ))}
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -773,7 +778,7 @@ export function LandingPage() {
             </div>
             
             <p className="text-xs text-ink-soft max-w-3xl">
-              Coaches are non-clinical wellbeing coaches, not therapists. If anything you're facing needs clinical care, we'll gently connect you to a qualified professional. You're never left to figure it out alone.
+              Our student coaches are here as peers to help you handle stress, think things through, and feel a bit steadier. If you ever need specialized support, we'll help guide you to professional care so you're always supported.
             </p>
           </section>
 
@@ -833,21 +838,7 @@ export function LandingPage() {
             </div>
           </section>
 
-          {/* Onboarding & Stories (Shaped by students) */}
-          <section className="py-16 border-t border-line/60" id="student-voice">
-            <div className="bg-[#eadfce]/20 border border-line rounded-[2.5rem] p-8 sm:p-12 text-center max-w-4xl mx-auto shadow-sm">
-              <span className="text-[11px] font-bold text-coral uppercase tracking-widest block mb-3">Shaped by Students</span>
-              <h2 className="text-3xl font-serif text-ink tracking-tight font-medium mb-4">
-                Built for students. Shaped by students.
-              </h2>
-              <p className="text-sm text-ink-soft leading-relaxed max-w-2xl mx-auto mb-8">
-                WellMindly wasn't built because students needed another app. It was built because too many students were struggling quietly. Every tool. Every conversation. Every feature starts with one question: "What would have helped when life felt hard?"
-              </p>
-              <div className="text-xs font-bold text-ink-soft border-t border-line/60 pt-6">
-                This is not just something you use. It's something you're helping build.
-              </div>
-            </div>
-          </section>
+
 
           {/* Final CTA */}
           <section className="py-20 text-center" id="final-cta">

@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/',
+  base: process.env.GITHUB_ACTIONS ? '/wellmindly-frontend-student/' : '/',
   plugins: [
     react(),
     tailwindcss(),

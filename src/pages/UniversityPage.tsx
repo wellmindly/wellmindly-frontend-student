@@ -4,7 +4,8 @@ import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
-import { School, BarChart2, ShieldCheck, CheckCircle2, Send, Check, AlertTriangle } from "lucide-react";
+import { School, BarChart2, ShieldCheck, CheckCircle2, Send, Check, AlertTriangle, Download } from "lucide-react";
+
 
 export function UniversityPage() {
   const navigate = useNavigate();
@@ -25,6 +26,156 @@ export function UniversityPage() {
   const handleCrisisClick = () => {
     navigate("/crisis");
   };
+
+  const handleDownloadSampleReport = () => {
+    import("jspdf").then(({ jsPDF }) => {
+      const doc = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
+
+      // Colors
+
+      // Draw Title Page / Header
+      doc.setFillColor(77, 41, 91); // Plum
+      doc.rect(0, 0, 210, 45, "F");
+
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(20);
+      doc.text("WellMindly Campus Analytics", 15, 18);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(220, 220, 220);
+      doc.text("Anonymized aggregate reports for campus administration", 15, 25);
+      doc.text("Gulf International University — Spring Cohort", 15, 30);
+
+      // Report metadata box
+      doc.setFillColor(248, 250, 252);
+      doc.rect(15, 55, 180, 25, "F");
+      doc.setDrawColor(226, 232, 240);
+      doc.rect(15, 55, 180, 25, "S");
+
+      doc.setTextColor(71, 85, 105);
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(9);
+      doc.text("REPORT METADATA", 20, 61);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text("Generated: June 2026", 20, 67);
+      doc.text("License Type: Campus-Wide Beta", 20, 72);
+      doc.text("Total Registered Seats: 8,000", 110, 67);
+      doc.text("Cohort Coverage / Active: 61% (4,880 active)", 110, 72);
+
+      // Section 1: Executive Summary
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(77, 41, 91);
+      doc.text("1. Executive Summary", 15, 95);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(71, 85, 105);
+      const summaryText = "WellMindly provides a safe, anonymous precursor to clinical support systems. This report compiles macroscopic, aggregate emotional landscape trends. Student identities are protected by strict cryptographic tenant isolation. No individual names, emails, check-ins, or chat logs are ever visible to campus administration.";
+      const splitSummary = doc.splitTextToSize(summaryText, 180);
+      doc.text(splitSummary, 15, 101);
+
+      // Section 2: Macro-Level Cohort Indicators
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(77, 41, 91);
+      doc.text("2. Macro-Level Indicators", 15, 125);
+
+      // Draw score card
+      doc.setFillColor(241, 245, 249);
+      doc.rect(15, 131, 55, 30, "F");
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(18);
+      doc.text("6.8 / 10", 25, 144);
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Campus Wellness Index", 21, 152);
+
+      // Draw engagement card
+      doc.setFillColor(241, 245, 249);
+      doc.rect(77, 131, 55, 30, "F");
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(18);
+      doc.text("61%", 94, 144);
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Student Cohort Coverage", 83, 152);
+
+      // Draw referral card
+      doc.setFillColor(241, 245, 249);
+      doc.rect(140, 131, 55, 30, "F");
+      doc.setTextColor(15, 23, 42);
+      doc.setFontSize(18);
+      doc.text("4.2%", 157, 144);
+      doc.setFontSize(8);
+      doc.setTextColor(71, 85, 105);
+      doc.text("Support Opt-In Rate", 149, 152);
+
+      // Section 3: Severity Segmentation
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(77, 41, 91);
+      doc.text("3. Severity Segmentation (Risk Distribution)", 15, 175);
+
+      // Draw progress indicators
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+
+      // Mild Risk: 64%
+      doc.text("Mild Tiers (Safe / Self-Discovery Enabled)", 15, 183);
+      doc.setFillColor(224, 242, 254);
+      doc.rect(15, 186, 180, 4, "F");
+      doc.setFillColor(14, 165, 233);
+      doc.rect(15, 186, 180 * 0.64, 4, "F");
+      doc.text("64%", 185, 183);
+
+      // Moderate Risk: 24%
+      doc.text("Moderate Tiers (Surfacing Peer Coaching Sessions)", 15, 196);
+      doc.setFillColor(254, 243, 199);
+      doc.rect(15, 199, 180, 4, "F");
+      doc.setFillColor(245, 158, 11);
+      doc.rect(15, 199, 180 * 0.24, 4, "F");
+      doc.text("24%", 185, 196);
+
+      // Severe Risk: 12%
+      doc.text("Severe Tiers (Helpline Directory Routing)", 15, 209);
+      doc.setFillColor(254, 226, 226);
+      doc.rect(15, 212, 180, 4, "F");
+      doc.setFillColor(239, 68, 68);
+      doc.rect(15, 212, 180 * 0.12, 4, "F");
+      doc.text("12%", 185, 209);
+
+      // Section 4: Key Insights & Recommendations
+      doc.setFont("Helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(77, 41, 91);
+      doc.text("4. Academic Insights & Intervention Strategy", 15, 230);
+
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      doc.text("• Stress spikes are concentrated around pre-exam period (Weeks 10-11). Recommended action: launch targeted peer support campaigns in Week 9.", 15, 237);
+      doc.text("• Medicine and Engineering faculties report elevated burnout flags. Action: coordinate with department deans to embed relaxation resources.", 15, 243);
+      doc.text("• Early onboarding has protected student retention: engaged student cohorts show a 93% term retention vs 86% in control groups.", 15, 249);
+
+      // Footer
+      doc.setFontSize(7.5);
+      doc.setTextColor(148, 163, 184);
+      doc.text("CONFIDENTIAL · PREPARED FOR GULF INTERNATIONAL UNIVERSITY · POWERED BY WELLMINDLY", 15, 280);
+      doc.text("Page 1 of 1", 185, 280);
+
+      doc.save("WellMindly_GIU_Sample_Report.pdf");
+    });
+  };
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -126,6 +277,89 @@ export function UniversityPage() {
               <p className="text-sm text-ink-soft leading-relaxed">{benefit.description}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Sample Reports Section */}
+      <section className="py-16 px-6 max-w-5xl mx-auto w-full border-t border-line/60">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <span className="text-[11px] font-bold text-coral uppercase tracking-widest block mb-3">Data Transparency</span>
+          <h2 className="text-3xl font-serif text-ink tracking-tight font-medium">
+            Sample Analytics Reports
+          </h2>
+          <p className="text-sm text-ink-soft mt-3">
+            Preview the anonymized, macro-level cohort analytics that your administration receives. Strict student privacy and anonymity are cryptographically preserved.
+          </p>
+        </div>
+
+        <div className="bg-card border border-line rounded-[2.5rem] p-6 sm:p-10 shadow-sm grid lg:grid-cols-12 gap-8 items-center">
+          <div className="lg:col-span-7 space-y-6">
+            <div>
+              <span className="bg-teal/10 text-teal text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">Anonymized Dashboard Preview</span>
+              <h3 className="text-xl font-bold text-ink mt-3">Gulf International University Report</h3>
+              <p className="text-xs text-ink-soft mt-2 leading-relaxed">
+                Aggregated cohort intelligence provides a clear timeline of stress hotspots and support uptake rates across departments, helping you allocate counselor resources where they are needed most.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 bg-paper-2 rounded-2xl border border-line text-center">
+                <div className="text-lg font-bold text-ink">6.8 / 10</div>
+                <div className="text-[10px] text-ink-soft font-semibold mt-1 font-sans">Campus Index</div>
+              </div>
+              <div className="p-4 bg-paper-2 rounded-2xl border border-line text-center">
+                <div className="text-lg font-bold text-ink">61%</div>
+                <div className="text-[10px] text-ink-soft font-semibold mt-1 font-sans">Cohort Coverage</div>
+              </div>
+              <div className="p-4 bg-paper-2 rounded-2xl border border-line text-center">
+                <div className="text-lg font-bold text-ink">4.2%</div>
+                <div className="text-[10px] text-ink-soft font-semibold mt-1 font-sans">Support Uptake</div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="text-xs font-bold text-ink">Anonymized Stress Distribution:</div>
+              <div className="space-y-2">
+                <div>
+                  <div className="flex justify-between text-[11px] text-ink-soft font-semibold mb-1 font-sans">
+                    <span>Mild Strain Tiers</span>
+                    <span>64%</span>
+                  </div>
+                  <div className="w-full bg-paper-2 h-2 rounded-full overflow-hidden">
+                    <div className="bg-teal h-full rounded-full" style={{ width: "64%" }} />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-[11px] text-ink-soft font-semibold mb-1 font-sans">
+                    <span>Moderate Strain Tiers</span>
+                    <span>24%</span>
+                  </div>
+                  <div className="w-full bg-paper-2 h-2 rounded-full overflow-hidden">
+                    <div className="bg-plum h-full rounded-full" style={{ width: "24%" }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 bg-paper-2 border border-line rounded-2xl text-center space-y-4">
+            <div className="w-14 h-14 bg-plum/10 text-plum rounded-full flex items-center justify-center">
+              <Download className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="font-bold text-ink text-sm">Download Sample PDF Report</h4>
+              <p className="text-xs text-ink-soft mt-1 leading-relaxed">
+                Get a copy of the high-fidelity sample PDF report showing aggregate department benchmarks, cohort retention correlations, and quarterly trends.
+              </p>
+            </div>
+            <button
+              onClick={handleDownloadSampleReport}
+              className="w-full py-3 bg-plum text-white font-bold rounded-full text-xs shadow-md shadow-plum/20 hover:opacity-95 transition-all active:scale-95 cursor-pointer border-none flex items-center justify-center gap-2"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download PDF (A4)</span>
+            </button>
+          </div>
         </div>
       </section>
 

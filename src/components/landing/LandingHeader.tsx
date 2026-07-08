@@ -37,7 +37,7 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
             onClick={onCrisisClick} 
             className="underline hover:text-coral transition-colors ml-1 font-bold cursor-pointer border-none bg-transparent p-0 text-[inherit]"
           >
-            Get help immediately &rarr;
+            View support helplines &rarr;
           </button>
         </span>
       </div>

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { config } from "../../config";
+import logoPng from "../../assets/logo.png";
 
 interface MenuItem {
   id: string;
@@ -98,14 +99,9 @@ export function DashboardLayout({
         {/* Brand Logo Header */}
         <div
           onClick={onLogoClick}
-          className="h-20 flex items-center gap-3 px-8 border-b border-slate-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+          className="h-20 flex items-center px-8 border-b border-slate-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-plum text-white shadow-lg shadow-plum/20">
-            <Heart className="h-5 w-5 fill-current animate-pulse" />
-          </div>
-          <span className="text-2xl font-black tracking-tight text-slate-900 select-none font-serif">
-            WellMindly
-          </span>
+          <img src={logoPng} alt="WellMindly Logo" className="h-8 w-auto block select-none" />
         </div>
 
         {/* Sidebar Nav Links */}
@@ -197,14 +193,9 @@ export function DashboardLayout({
                     onLogoClick();
                     setMobileMenuOpen(false);
                   }}
-                  className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
+                  className="flex items-center cursor-pointer hover:opacity-90 transition-opacity"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-plum text-white shadow-lg">
-                    <Heart className="h-5 w-5 fill-current animate-pulse" />
-                  </div>
-                  <span className="text-xl font-black tracking-tight text-slate-900 font-serif">
-                    WellMindly
-                  </span>
+                  <img src={logoPng} alt="WellMindly Logo" className="h-8 w-auto block select-none" />
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
@@ -282,7 +273,7 @@ export function DashboardLayout({
               onClick={() => navigate("/crisis")} 
               className="underline hover:text-amber-900 transition-colors ml-1 font-bold cursor-pointer border-none bg-transparent p-0 text-[inherit]"
             >
-              Get help immediately &rarr;
+              View support helplines &rarr;
             </button>
           </span>
         </div>
@@ -298,9 +289,9 @@ export function DashboardLayout({
             </button>
             <span
               onClick={onLogoClick}
-              className="font-black text-slate-900 text-xl tracking-tight cursor-pointer font-serif hover:opacity-85 transition-opacity"
+              className="flex items-center cursor-pointer hover:opacity-85 transition-opacity"
             >
-              WellMindly
+              <img src={logoPng} alt="WellMindly Logo" className="h-6 w-auto block select-none" />
             </span>
           </div>
 
