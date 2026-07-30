@@ -90,7 +90,11 @@ export function LandingPage() {
 
  
   const handleBookCoach = () => {
-    setComingSoonFeature("sessionbooking");
+    if (isAuthenticated) {
+      navigate("/dashboard?tab=sessionbooking");
+    } else {
+      navigate("/login?redirect=/dashboard?tab=sessionbooking");
+    }
   };
  
   const confirmBooking = () => {
@@ -724,7 +728,7 @@ export function LandingPage() {
             <div className="text-center max-w-2xl mx-auto mb-12">
               <span className="text-[11px] font-bold text-coral uppercase tracking-widest flex items-center justify-center gap-2 mb-3">
                 Real Human Support
-                <span className="bg-plum/10 text-plum text-[9px] font-bold px-2 py-0.5 rounded-full normal-case tracking-normal">Beta / Coming Soon</span>
+                <span className="bg-emerald-500/10 text-emerald-600 text-[9px] font-bold px-2.5 py-0.5 rounded-full normal-case tracking-normal border border-emerald-500/20">● Live 1-on-1 Sessions</span>
               </span>
               <h2 className="text-3xl sm:text-4xl font-serif text-ink tracking-tight font-medium">
                 Book a coach when you want to talk.

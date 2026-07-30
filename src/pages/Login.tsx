@@ -631,7 +631,7 @@ export function LoginPage() {
                   type="email"
                   autoComplete="email"
                   required
-                  placeholder="name@university.edu"
+                  placeholder="name@wellmindly.com"
                   value={email}
                   onChange={(e) => {
                     setEmail(e.target.value);

@@ -109,9 +109,7 @@ export function DashboardLayout({
           {menuItems.map((item) => {
             const IconComp = item.icon;
             const isActive = activeTab === item.id;
-            const isComingSoon =
-              (item.id === "writemindly" && !config.enableWriteMindly) ||
-              item.id === "sessionbooking";
+            const isComingSoon = item.id === "writemindly" && !config.enableWriteMindly;
             return (
               <button
                 key={item.id}
@@ -209,9 +207,7 @@ export function DashboardLayout({
                 {menuItems.map((item) => {
                   const IconComp = item.icon;
                   const isActive = activeTab === item.id;
-                  const isComingSoon =
-                    (item.id === "writemindly" && !config.enableWriteMindly) ||
-                    item.id === "sessionbooking";
+                  const isComingSoon = item.id === "writemindly" && !config.enableWriteMindly;
                   return (
                     <button
                       key={item.id}

@@ -221,7 +221,7 @@ export function UniversityPage() {
     {
       icon: <ShieldCheck className="w-8 h-8 text-teal" />,
       title: "Secure Domain Gating",
-      description: "Restrict registrations to verified university email domains (e.g. yourschool.edu) instantly. Safe, secure, and isolated database clusters.",
+      description: "Restrict registrations to verified university email domains (e.g. wellmindly.com) instantly. Safe, secure, and isolated database clusters.",
     },
     {
       icon: <School className="w-8 h-8 text-coral" />,
@@ -447,7 +447,7 @@ export function UniversityPage() {
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="henderson@university.edu"
+                    placeholder="henderson@wellmindly.com"
                     className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors"
                   />
                 </div>

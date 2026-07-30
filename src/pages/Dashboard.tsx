@@ -10,6 +10,7 @@ import { ReportDetailModal } from "../components/dashboard/ReportDetailModal";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 import { WriteMindlyTab } from "../components/dashboard/WriteMindlyTab";
 import { TalkMindlyTab } from "../components/dashboard/TalkMindlyTab";
+import { CounselorBookingView } from "../components/booking/CounselorBookingView";
 
 export function Dashboard() {
   const db = useDashboard();
@@ -36,6 +37,8 @@ export function Dashboard() {
         onComingSoonClick={(feature) => {
           if (feature === "talkmindly") {
             db.setActiveTab("talkmindly");
+          } else if (feature === "sessionbooking") {
+            db.setActiveTab("sessionbooking");
           } else {
             setComingSoonFeature(feature);
           }
@@ -109,6 +112,11 @@ export function Dashboard() {
         {/* ---------- TALKMINDLY VIEW ---------- */}
         {db.activeTab === "talkmindly" && (
           <TalkMindlyTab />
+        )}
+
+        {/* ---------- COUNSELOR BOOKING VIEW ---------- */}
+        {db.activeTab === "sessionbooking" && (
+          <CounselorBookingView />
         )}
       </DashboardLayout>
 

@@ -201,7 +201,7 @@ export function ContactPage() {
                       required
                       value={formData.email}
                       onChange={handleInputChange}
-                      placeholder="jai@wellmindly.edu"
+                      placeholder="jai@wellmindly.com"
                       className="px-4 py-2.5 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors"
                     />
                   </div>
