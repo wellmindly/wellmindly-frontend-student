@@ -34,16 +34,17 @@ export function useDashboard() {
   });
 
   const setActiveTab = useCallback((tab: string) => {
+    let targetTab = tab;
     if (tab === "checkin" || tab === "phq9") {
-      // Navigate to discover tab but auto-start the check-in or phq9 test
-      _setActiveTab(tab === "checkin" ? "checkin" : "discover");
+      targetTab = tab === "checkin" ? "checkin" : "discover";
+      _setActiveTab(targetTab);
       setCurDiscoverId(tab);
       setDiscoverQi(0);
       setDiscoverResp([]);
       setDiscoverResultData(null);
       setDiscoverView("test");
     } else if (tab === "discover") {
-      _setActiveTab(tab);
+      _setActiveTab("discover");
       setDiscoverView("hub");
       setCurDiscoverId(null);
       setDiscoverQi(0);
@@ -52,7 +53,8 @@ export function useDashboard() {
     } else {
       _setActiveTab(tab);
     }
-  }, []);
+    navigate(`/dashboard?tab=${targetTab}`, { replace: true });
+  }, [navigate]);
   const [greeting] = useState(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
