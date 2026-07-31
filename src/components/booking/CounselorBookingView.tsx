@@ -62,8 +62,8 @@ export const CounselorBookingView: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // Timezone preference
-  const [timezoneMode, setTimezoneMode] = useState<'local' | 'utc'>('local');
+  // Timezone preference (Default to UTC as requested)
+  const [timezoneMode, setTimezoneMode] = useState<'utc' | 'local'>('utc');
 
   // Full Bio Modal state
   const [bioModalCounselor, setBioModalCounselor] = useState<Counselor | null>(null);
@@ -248,15 +248,39 @@ export const CounselorBookingView: React.FC = () => {
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [slots, selectedCounselor]);
 
-  // Format slot time for display
-  const formatSlotTime = (isoString: string) => {
-    const d = new Date(isoString);
+  // Format slot time range for display (e.g. "08:00 – 09:00 UTC" or "01:30 PM – 02:30 PM IST")
+  const formatSlotTimeRange = (startTimeIso: string, endTimeIso: string) => {
+    const start = new Date(startTimeIso);
+    const end = new Date(endTimeIso);
+
     if (timezoneMode === 'utc') {
-      const utcHours = String(d.getUTCHours()).padStart(2, '0');
-      const utcMins = String(d.getUTCMinutes()).padStart(2, '0');
-      return `${utcHours}:${utcMins} UTC`;
+      const startH = String(start.getUTCHours()).padStart(2, '0');
+      const startM = String(start.getUTCMinutes()).padStart(2, '0');
+      const endH = String(end.getUTCHours()).padStart(2, '0');
+      const endM = String(end.getUTCMinutes()).padStart(2, '0');
+      return `${startH}:${startM} – ${endH}:${endM} UTC`;
     }
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    const startStr = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    const endStr = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    return `${startStr} – ${endStr}`;
+  };
+
+  // Format full date & time for session confirmations & cards accurately
+  const formatSessionDateTime = (isoString: string) => {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return isoString;
+
+    if (timezoneMode === 'utc') {
+      const year = d.getUTCFullYear();
+      const month = d.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+      const day = d.getUTCDate();
+      const hours = String(d.getUTCHours()).padStart(2, '0');
+      const mins = String(d.getUTCMinutes()).padStart(2, '0');
+      return `${month} ${day}, ${year} at ${hours}:${mins} UTC`;
+    }
+
+    return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })} (${localTzAbbr})`;
   };
 
   // Group slots into Morning, Afternoon, Evening
@@ -630,11 +654,11 @@ export const CounselorBookingView: React.FC = () => {
                 {/* Timezone Toggle Pill */}
                 <button
                   onClick={() => setTimezoneMode(timezoneMode === 'local' ? 'utc' : 'local')}
-                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/70 text-slate-700 rounded-lg text-[11px] font-bold transition-all flex items-center space-x-1.5 border border-slate-200"
-                  title="Toggle Local vs UTC display"
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200/70 text-slate-800 rounded-xl text-[11px] font-bold transition-all flex items-center space-x-1.5 border border-slate-200/80 shadow-sm"
+                  title="Click to toggle between UTC and Local Timezone"
                 >
                   <Globe className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>{timezoneMode === 'local' ? localTzAbbr : 'UTC'}</span>
+                  <span>{timezoneMode === 'utc' ? 'UTC Standard' : `Local (${localTzAbbr})`}</span>
                 </button>
               </div>
 
@@ -687,7 +711,7 @@ export const CounselorBookingView: React.FC = () => {
                     Available time slots ({processedSlots.length})
                   </label>
                   <span className="text-[11px] text-slate-400">
-                    Format: 1-hour consultation session
+                    {timezoneMode === 'utc' ? '08:00 – 18:00 UTC' : `Converted to ${localTzAbbr}`}
                   </span>
                 </div>
 
@@ -711,9 +735,9 @@ export const CounselorBookingView: React.FC = () => {
                           <Sunrise className="w-3.5 h-3.5 text-amber-500" />
                           <span>Morning slots</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {groupedSlots.morning.map((slot, i) => {
-                            const timeStr = formatSlotTime(slot.startTime);
+                            const timeStr = formatSlotTimeRange(slot.startTime, slot.endTime);
                             const isSelected = selectedSlot?.startTime === slot.startTime;
 
                             return (
@@ -751,9 +775,9 @@ export const CounselorBookingView: React.FC = () => {
                           <Sun className="w-3.5 h-3.5 text-amber-500" />
                           <span>Afternoon slots</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {groupedSlots.afternoon.map((slot, i) => {
-                            const timeStr = formatSlotTime(slot.startTime);
+                            const timeStr = formatSlotTimeRange(slot.startTime, slot.endTime);
                             const isSelected = selectedSlot?.startTime === slot.startTime;
 
                             return (
@@ -791,9 +815,9 @@ export const CounselorBookingView: React.FC = () => {
                           <Sunset className="w-3.5 h-3.5 text-indigo-400" />
                           <span>Evening slots</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {groupedSlots.evening.map((slot, i) => {
-                            const timeStr = formatSlotTime(slot.startTime);
+                            const timeStr = formatSlotTimeRange(slot.startTime, slot.endTime);
                             const isSelected = selectedSlot?.startTime === slot.startTime;
 
                             return (
@@ -844,7 +868,7 @@ export const CounselorBookingView: React.FC = () => {
                       </strong>
                     </p>
                     <p>
-                      Time: <strong>{formatSlotTime(selectedSlot.startTime)} ({selectedDate})</strong> · (1 Hour Session)
+                      Time: <strong>{formatSessionDateTime(selectedSlot.startTime)}</strong>
                     </p>
                   </div>
                 </div>
@@ -893,7 +917,6 @@ export const CounselorBookingView: React.FC = () => {
           ) : (
             <div className="space-y-4">
               {mySessions.map((session) => {
-                const start = new Date(session.startTime);
                 const isConfirmed = session.status === 'CONFIRMED';
 
                 return (
@@ -910,7 +933,7 @@ export const CounselorBookingView: React.FC = () => {
                           Session with {session.counselor?.user?.firstName} {session.counselor?.user?.lastName}
                         </h4>
                         <p className="text-slate-500 text-xs mt-0.5">
-                          Scheduled: <strong>{start.toLocaleString()}</strong> ({timezoneMode === 'local' ? localTzAbbr : 'UTC'}) · 1 Hour Session
+                          Scheduled: <strong>{formatSessionDateTime(session.startTime)}</strong>
                         </p>
                       </div>
                     </div>
@@ -1052,7 +1075,7 @@ export const CounselorBookingView: React.FC = () => {
                   <strong>Counselor:</strong>{' '}
                   {counselors.find((c) => c.id === bookingSuccess.counselorId)?.name || selectedCounselor?.name}
                 </p>
-                <p><strong>Scheduled Time:</strong> {new Date(bookingSuccess.startTime).toLocaleString()} (1 Hour Session)</p>
+                <p><strong>Scheduled Time:</strong> {formatSessionDateTime(bookingSuccess.startTime)}</p>
                 <p className="truncate">
                   <strong>Meeting Link:</strong>{' '}
                   <a href={bookingSuccess.meetingLink} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
