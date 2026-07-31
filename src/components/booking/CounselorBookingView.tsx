@@ -45,6 +45,7 @@ interface Slot {
   endTime: string;
   counselorId: string;
   isAvailable: boolean;
+  availableCount?: number;
 }
 
 export const CounselorBookingView: React.FC = () => {
@@ -205,6 +206,48 @@ export const CounselorBookingView: React.FC = () => {
     });
   }, [counselors, searchQuery, selectedCategory]);
 
+  // Deduplicate and process slots so duplicate start times never appear
+  const processedSlots = useMemo(() => {
+    if (selectedCounselor) {
+      const map = new Map<string, Slot>();
+      slots.forEach((s) => {
+        if (!map.has(s.startTime) || (s.isAvailable && !map.get(s.startTime)?.isAvailable)) {
+          map.set(s.startTime, s);
+        }
+      });
+      return Array.from(map.values()).sort(
+        (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+      );
+    }
+
+    // When all counselors are shown: Group by unique startTime
+    const slotMap = new Map<string, { slot: Slot; counselorIds: string[] }>();
+    slots.forEach((s) => {
+      if (!slotMap.has(s.startTime)) {
+        slotMap.set(s.startTime, {
+          slot: { ...s },
+          counselorIds: s.isAvailable ? [s.counselorId] : [],
+        });
+      } else {
+        const existing = slotMap.get(s.startTime)!;
+        if (s.isAvailable && !existing.counselorIds.includes(s.counselorId)) {
+          existing.counselorIds.push(s.counselorId);
+        }
+        if (s.isAvailable) {
+          existing.slot.isAvailable = true;
+          existing.slot.counselorId = s.counselorId; // attach active counselor ID
+        }
+      }
+    });
+
+    return Array.from(slotMap.values())
+      .map((item) => ({
+        ...item.slot,
+        availableCount: item.counselorIds.length,
+      }))
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  }, [slots, selectedCounselor]);
+
   // Format slot time for display
   const formatSlotTime = (isoString: string) => {
     const d = new Date(isoString);
@@ -222,7 +265,7 @@ export const CounselorBookingView: React.FC = () => {
     const afternoon: Slot[] = [];
     const evening: Slot[] = [];
 
-    slots.forEach((slot) => {
+    processedSlots.forEach((slot) => {
       const d = new Date(slot.startTime);
       const hour = timezoneMode === 'utc' ? d.getUTCHours() : d.getHours();
 
@@ -236,10 +279,16 @@ export const CounselorBookingView: React.FC = () => {
     });
 
     return { morning, afternoon, evening };
-  }, [slots, timezoneMode]);
+  }, [processedSlots, timezoneMode]);
 
   const handleBookSession = async () => {
-    if (!selectedCounselor || !selectedSlot) return;
+    const counselorIdToBook = selectedCounselor ? selectedCounselor.id : selectedSlot?.counselorId;
+
+    if (!counselorIdToBook || !selectedSlot) {
+      setBookingError('Please select a counselor or pick an available time slot.');
+      return;
+    }
+
     setConfirmingBooking(true);
     setBookingError(null);
 
@@ -247,7 +296,7 @@ export const CounselorBookingView: React.FC = () => {
       const res = await axios.post(
         `${API_BASE}/students/sessions/book`,
         {
-          counselorId: selectedCounselor.id,
+          counselorId: counselorIdToBook,
           startTime: selectedSlot.startTime,
           endTime: selectedSlot.endTime,
         },
@@ -288,13 +337,13 @@ export const CounselorBookingView: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans">
       {/* Top Header & Tab Navigation Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/80 backdrop-blur-xl p-3 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/90 backdrop-blur-xl p-3 rounded-3xl border border-slate-200/80 shadow-sm">
         <div className="flex items-center space-x-2 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('book')}
             className={`flex-1 sm:flex-initial px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 ${
               activeTab === 'book'
-                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/10'
+                ? 'bg-slate-900 text-white shadow-md'
                 : 'text-slate-600 hover:bg-slate-100/80'
             }`}
           >
@@ -306,7 +355,7 @@ export const CounselorBookingView: React.FC = () => {
             onClick={() => setActiveTab('my-sessions')}
             className={`flex-1 sm:flex-initial px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 ${
               activeTab === 'my-sessions'
-                ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/10'
+                ? 'bg-slate-900 text-white shadow-md'
                 : 'text-slate-600 hover:bg-slate-100/80'
             }`}
           >
@@ -320,7 +369,7 @@ export const CounselorBookingView: React.FC = () => {
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 px-3 py-1.5 bg-slate-100/70 rounded-2xl text-xs font-semibold text-slate-600 self-end sm:self-auto">
+        <div className="flex items-center space-x-2 px-3.5 py-2 bg-slate-100/70 rounded-2xl text-xs font-medium text-slate-600 self-end sm:self-auto">
           <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
           <span>100% Confidential & Peer Vetted</span>
         </div>
@@ -334,17 +383,17 @@ export const CounselorBookingView: React.FC = () => {
             <div className="absolute right-1/3 -bottom-20 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 max-w-3xl space-y-4">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-semibold tracking-wide">
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-medium tracking-wide">
                 <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
                 <span>Dedicated Peer Counseling & Guidance</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight font-serif text-white leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight font-serif text-white leading-tight">
                 Talk to Someone Who Truly Understands Student Life
               </h1>
 
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Connect with verified therapists, clinical psychologists, and student coaches. Select your preferred date, pick a convenient time slot, and get your video link immediately.
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-normal">
+                Connect with verified therapists, clinical psychologists, and student coaches. Select your preferred date, pick a convenient 1-hour slot, and receive your meeting link.
               </p>
             </div>
           </div>
@@ -573,7 +622,7 @@ export const CounselorBookingView: React.FC = () => {
                     {selectedCounselor ? (
                       <span>Booking with <strong>{selectedCounselor.name}</strong></span>
                     ) : (
-                      'Showing slots across all counselors'
+                      'Showing available slots across counselors'
                     )}
                   </p>
                 </div>
@@ -591,8 +640,8 @@ export const CounselorBookingView: React.FC = () => {
 
               {/* Quick Select Next 7 Days Strip */}
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-600 uppercase tracking-wider">
-                  Choose Date
+                <label className="block text-xs font-semibold text-slate-700">
+                  Choose a date
                 </label>
                 <div className="flex space-x-2 overflow-x-auto pb-1 no-scrollbar">
                   {next7Days.map((day) => {
@@ -606,12 +655,12 @@ export const CounselorBookingView: React.FC = () => {
                         }}
                         className={`px-3 py-2 rounded-2xl text-center shrink-0 border transition-all ${
                           isSelected
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200'
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-md'
                             : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80'
                         }`}
                       >
-                        <div className="text-[10px] uppercase font-bold tracking-wider opacity-80">{day.dayName}</div>
-                        <div className="text-xs font-extrabold">{day.monthDay}</div>
+                        <div className="text-[10px] font-medium opacity-80">{day.dayName}</div>
+                        <div className="text-xs font-bold">{day.monthDay}</div>
                       </button>
                     );
                   })}
@@ -626,7 +675,7 @@ export const CounselorBookingView: React.FC = () => {
                       setSelectedDate(e.target.value);
                       setSelectedSlot(null);
                     }}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50"
                   />
                 </div>
               </div>
@@ -634,33 +683,33 @@ export const CounselorBookingView: React.FC = () => {
               {/* Time Slots Section */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                    Available Slots ({slots.length})
+                  <label className="text-xs font-semibold text-slate-700">
+                    Available time slots ({processedSlots.length})
                   </label>
                   <span className="text-[11px] text-slate-400">
-                    Format: 45 min video call
+                    Format: 1-hour consultation session
                   </span>
                 </div>
 
                 {loadingSlots ? (
                   <div className="py-8 text-center space-y-2">
                     <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-slate-400 text-xs">Checking slots availability...</p>
+                    <p className="text-slate-400 text-xs">Checking available time slots...</p>
                   </div>
-                ) : slots.length === 0 ? (
+                ) : processedSlots.length === 0 ? (
                   <div className="p-6 text-center bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
                     <Clock className="w-6 h-6 text-slate-400 mx-auto" />
-                    <p className="text-slate-600 font-semibold text-xs">No available slots on this date</p>
-                    <p className="text-slate-400 text-[11px]">Try picking another date from the bar above.</p>
+                    <p className="text-slate-600 font-medium text-xs">No available slots on this date</p>
+                    <p className="text-slate-400 text-[11px]">Select another date from the bar above.</p>
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
                     {/* Morning Block */}
                     {groupedSlots.morning.length > 0 && (
                       <div className="space-y-2">
-                        <div className="text-[11px] font-bold text-slate-500 flex items-center space-x-1.5 uppercase tracking-wider">
+                        <div className="text-[11px] font-semibold text-slate-500 flex items-center space-x-1.5">
                           <Sunrise className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Morning</span>
+                          <span>Morning slots</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           {groupedSlots.morning.map((slot, i) => {
@@ -672,7 +721,7 @@ export const CounselorBookingView: React.FC = () => {
                                 key={i}
                                 disabled={!slot.isAvailable}
                                 onClick={() => setSelectedSlot(slot)}
-                                className={`py-2.5 px-3 rounded-xl font-bold text-xs border transition-all ${
+                                className={`py-2.5 px-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-between ${
                                   !slot.isAvailable
                                     ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
                                     : isSelected
@@ -680,7 +729,14 @@ export const CounselorBookingView: React.FC = () => {
                                     : 'bg-slate-50/80 hover:bg-indigo-50/60 text-slate-800 border-slate-200/80 hover:border-indigo-300'
                                 }`}
                               >
-                                {timeStr}
+                                <span>{timeStr}</span>
+                                {!selectedCounselor && slot.availableCount && slot.availableCount > 1 && (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                                    isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'
+                                  }`}>
+                                    {slot.availableCount} avail
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -691,9 +747,9 @@ export const CounselorBookingView: React.FC = () => {
                     {/* Afternoon Block */}
                     {groupedSlots.afternoon.length > 0 && (
                       <div className="space-y-2">
-                        <div className="text-[11px] font-bold text-slate-500 flex items-center space-x-1.5 uppercase tracking-wider">
+                        <div className="text-[11px] font-semibold text-slate-500 flex items-center space-x-1.5">
                           <Sun className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Afternoon</span>
+                          <span>Afternoon slots</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           {groupedSlots.afternoon.map((slot, i) => {
@@ -705,7 +761,7 @@ export const CounselorBookingView: React.FC = () => {
                                 key={i}
                                 disabled={!slot.isAvailable}
                                 onClick={() => setSelectedSlot(slot)}
-                                className={`py-2.5 px-3 rounded-xl font-bold text-xs border transition-all ${
+                                className={`py-2.5 px-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-between ${
                                   !slot.isAvailable
                                     ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
                                     : isSelected
@@ -713,7 +769,14 @@ export const CounselorBookingView: React.FC = () => {
                                     : 'bg-slate-50/80 hover:bg-indigo-50/60 text-slate-800 border-slate-200/80 hover:border-indigo-300'
                                 }`}
                               >
-                                {timeStr}
+                                <span>{timeStr}</span>
+                                {!selectedCounselor && slot.availableCount && slot.availableCount > 1 && (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                                    isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'
+                                  }`}>
+                                    {slot.availableCount} avail
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -724,9 +787,9 @@ export const CounselorBookingView: React.FC = () => {
                     {/* Evening Block */}
                     {groupedSlots.evening.length > 0 && (
                       <div className="space-y-2">
-                        <div className="text-[11px] font-bold text-slate-500 flex items-center space-x-1.5 uppercase tracking-wider">
+                        <div className="text-[11px] font-semibold text-slate-500 flex items-center space-x-1.5">
                           <Sunset className="w-3.5 h-3.5 text-indigo-400" />
-                          <span>Evening</span>
+                          <span>Evening slots</span>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           {groupedSlots.evening.map((slot, i) => {
@@ -738,7 +801,7 @@ export const CounselorBookingView: React.FC = () => {
                                 key={i}
                                 disabled={!slot.isAvailable}
                                 onClick={() => setSelectedSlot(slot)}
-                                className={`py-2.5 px-3 rounded-xl font-bold text-xs border transition-all ${
+                                className={`py-2.5 px-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-between ${
                                   !slot.isAvailable
                                     ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
                                     : isSelected
@@ -746,7 +809,14 @@ export const CounselorBookingView: React.FC = () => {
                                     : 'bg-slate-50/80 hover:bg-indigo-50/60 text-slate-800 border-slate-200/80 hover:border-indigo-300'
                                 }`}
                               >
-                                {timeStr}
+                                <span>{timeStr}</span>
+                                {!selectedCounselor && slot.availableCount && slot.availableCount > 1 && (
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
+                                    isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'
+                                  }`}>
+                                    {slot.availableCount} avail
+                                  </span>
+                                )}
                               </button>
                             );
                           })}
@@ -758,15 +828,24 @@ export const CounselorBookingView: React.FC = () => {
               </div>
 
               {/* Selection Summary Box */}
-              {selectedCounselor && selectedSlot && (
+              {selectedSlot && (
                 <div className="bg-indigo-50/80 border border-indigo-200/80 p-4 rounded-2xl space-y-2 text-xs">
                   <div className="font-bold text-indigo-900 flex items-center space-x-1.5">
                     <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
                     <span>Booking Summary</span>
                   </div>
                   <div className="space-y-1 text-indigo-950 font-medium">
-                    <p>Counselor: <strong>{selectedCounselor.name}</strong></p>
-                    <p>Time: <strong>{formatSlotTime(selectedSlot.startTime)} ({selectedDate})</strong></p>
+                    <p>
+                      Counselor:{' '}
+                      <strong>
+                        {selectedCounselor
+                          ? selectedCounselor.name
+                          : counselors.find((c) => c.id === selectedSlot.counselorId)?.name || 'Assigned Counselor'}
+                      </strong>
+                    </p>
+                    <p>
+                      Time: <strong>{formatSlotTime(selectedSlot.startTime)} ({selectedDate})</strong> · (1 Hour Session)
+                    </p>
                   </div>
                 </div>
               )}
@@ -780,9 +859,9 @@ export const CounselorBookingView: React.FC = () => {
 
               {/* Main Booking CTA */}
               <button
-                disabled={!selectedCounselor || !selectedSlot || confirmingBooking}
+                disabled={!selectedSlot || confirmingBooking}
                 onClick={handleBookSession}
-                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-indigo-200 transition-all disabled:opacity-40 disabled:shadow-none flex items-center justify-center space-x-2"
+                className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl shadow-xl transition-all disabled:opacity-40 disabled:shadow-none flex items-center justify-center space-x-2"
               >
                 <span>{confirmingBooking ? 'Booking Session...' : 'Confirm & Book Session'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -831,7 +910,7 @@ export const CounselorBookingView: React.FC = () => {
                           Session with {session.counselor?.user?.firstName} {session.counselor?.user?.lastName}
                         </h4>
                         <p className="text-slate-500 text-xs mt-0.5">
-                          Scheduled: <strong>{start.toLocaleString()}</strong> ({timezoneMode === 'local' ? localTzAbbr : 'UTC'})
+                          Scheduled: <strong>{start.toLocaleString()}</strong> ({timezoneMode === 'local' ? localTzAbbr : 'UTC'}) · 1 Hour Session
                         </p>
                       </div>
                     </div>
@@ -969,8 +1048,11 @@ export const CounselorBookingView: React.FC = () => {
               </div>
 
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-left text-xs space-y-2">
-                <p><strong>Counselor:</strong> {selectedCounselor?.name}</p>
-                <p><strong>Scheduled Time:</strong> {new Date(bookingSuccess.startTime).toLocaleString()}</p>
+                <p>
+                  <strong>Counselor:</strong>{' '}
+                  {counselors.find((c) => c.id === bookingSuccess.counselorId)?.name || selectedCounselor?.name}
+                </p>
+                <p><strong>Scheduled Time:</strong> {new Date(bookingSuccess.startTime).toLocaleString()} (1 Hour Session)</p>
                 <p className="truncate">
                   <strong>Meeting Link:</strong>{' '}
                   <a href={bookingSuccess.meetingLink} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
@@ -999,7 +1081,7 @@ export const CounselorBookingView: React.FC = () => {
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
             <h3 className="text-xl font-bold text-slate-900 font-serif">Session Feedback</h3>
-            <p className="text-slate-500 text-xs">Help us maintain clinical care standards for your peers.</p>
+            <p className="text-slate-500 text-xs">Help us maintain care standards for your peers.</p>
 
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Rating (1 to 5 Stars)</label>
