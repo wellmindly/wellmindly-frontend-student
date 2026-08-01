@@ -102,7 +102,7 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
           </div>
         </motion.div>
 
-        {/* Interactive Floating Card 2: Next Session with Coach (TO Tom Okafor initial) */}
+        {/* Interactive Floating Card 2: Next Session with Coach (VK Vinayak Katyayan initial) */}
         <motion.div
           whileHover={{ y: -5, scale: 1.02 }}
           animate={{ y: [0, -8, 0] }}
@@ -110,11 +110,11 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
           className="absolute top-12 -right-4 bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex items-center gap-3 max-w-[220px] z-20 pointer-events-auto"
         >
           <div className="w-7 h-7 bg-coral/15 text-coral rounded-lg flex items-center justify-center font-bold text-xs shrink-0 select-none">
-            TO
+            VK
           </div>
           <div>
             <div className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Next Session</div>
-            <div className="text-xs font-bold text-ink">Coach Tom &middot; Thu 5pm</div>
+            <div className="text-xs font-bold text-ink">Coach Vinayak &middot; Thu 5pm</div>
           </div>
         </motion.div>
 

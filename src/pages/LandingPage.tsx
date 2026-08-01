@@ -11,14 +11,56 @@ import { HeroSection } from "../components/landing/HeroSection";
 import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 import { config } from "../config";
 import { useAuth } from "../context/AuthContext";
+import api from "../services/api";
 
+export interface CoachItem {
+  id?: string;
+  name: string;
+  role: string;
+  init: string;
+  c1: string;
+  specs: string[];
+  bio?: string;
+  avatarUrl?: string;
+}
 
-
-const COACHES = [
-  { name: "Riya Kapoor", role: "Wellbeing Coach", init: "RK", c1: "from-[#d8472f] to-[#a8331f]", specs: ["Stress", "Confidence", "Anxiety"] },
-  { name: "Marcus Bell", role: "Mindset & Focus Coach", init: "MB", c1: "from-[#0e7c6e] to-[#0a5a4a]", specs: ["Focus", "Motivation", "Habits"] },
-  { name: "Sara Nakamura", role: "Wellbeing & Balance Coach", init: "SN", c1: "from-[#6d28d9] to-[#4818a0]", specs: ["Balance", "Burnout", "Sleep"] },
-  { name: "Tom Okafor", role: "Resilience Coach", init: "TO", c1: "from-[#c8973a] to-[#a06f1f]", specs: ["Setbacks", "Resilience", "Big changes"] }
+const DEFAULT_COACHES: CoachItem[] = [
+  {
+    name: "Varisha Nigar",
+    role: "Psychology & Peer Support Coach",
+    init: "VN",
+    c1: "from-[#d8472f] to-[#a8331f]",
+    specs: ["Psychology Mentorship", "Peer Support", "Mental Health"],
+    bio: "Dedicated academic and psychology professional providing personalized mentorship.",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
+  },
+  {
+    name: "Vinayak Katyayan",
+    role: "Youth Mental Health & Recovery Coach",
+    init: "VK",
+    c1: "from-[#0e7c6e] to-[#0a5a4a]",
+    specs: ["Youth Mental Health", "Clinical Care", "Structured Recovery"],
+    bio: "Clinical Psychologist & PhD Scholar at KGMU focusing on emotional wellbeing.",
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
+  },
+  {
+    name: "Garvita Singh",
+    role: "Youth Wellbeing & Resilience Coach",
+    init: "GS",
+    c1: "from-[#6d28d9] to-[#4818a0]",
+    specs: ["Youth Wellbeing", "Resilience", "Stress Management"],
+    bio: "Educator with 9+ years experience empowering youth to grow academically and personally.",
+    avatarUrl: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&auto=format&fit=crop&q=80"
+  },
+  {
+    name: "Jairus Rohan",
+    role: "Behavioral Health & Neurodiversity Coach",
+    init: "JR",
+    c1: "from-[#c8973a] to-[#a06f1f]",
+    specs: ["Behavioral Health", "Neurodiversity (ADHD)", "Skill Building"],
+    bio: "Behavioral professional supporting youth with neurodiversity, ADHD, and emotional regulation.",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80"
+  }
 ];
 
 const BOOKING_SLOTS = ["Mon 4:00pm", "Tue 10:00am", "Wed 6:30pm", "Thu 5:00pm", "Sat 9:00am", "Sun 11:00am"];
@@ -52,14 +94,27 @@ export function LandingPage() {
     document.title = "WellMindly | Get to know yourself, feel a little better";
   }, []);
   
+  const [coaches, setCoaches] = useState<CoachItem[]>(DEFAULT_COACHES);
   const [activeOfferTab, setActiveOfferTab] = useState<'blueprints' | 'writemindly' | 'talkmindly'>('blueprints');
   const [activePreviewCoachIndex, setActivePreviewCoachIndex] = useState(0);
   const [activeAudience, setActiveAudience] = useState<'students' | 'universities'>('students');
   const [mockWritePrompt, setMockWritePrompt] = useState(0);
   const [mockTalkTopic, setMockTalkTopic] = useState<'exam-stress' | 'social'>('exam-stress');
-  const [selectedCoach, setSelectedCoach] = useState<typeof COACHES[0] | null>(null);
+  const [selectedCoach, setSelectedCoach] = useState<CoachItem | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
   const [toastMessage, setToastMessage] = useState("");
+
+  useEffect(() => {
+    api.get("/contacts/coaches")
+      .then((res) => {
+        if (res.data && res.data.coaches && res.data.coaches.length > 0) {
+          setCoaches(res.data.coaches);
+        }
+      })
+      .catch((err) => {
+        console.log("Using default coaches from backend seed:", err);
+      });
+  }, []);
  
   const handleCrisisClick = () => navigate("/crisis");
   const handleCheckInClick = () => {
@@ -282,7 +337,7 @@ export function LandingPage() {
                       <div className="space-y-2 text-left">
                         <div className="text-sm font-bold text-ink">Select a coach below:</div>
                         <div className="flex flex-wrap gap-1.5">
-                          {COACHES.map((coach, idx) => (
+                          {coaches.map((coach, idx) => (
                             <button
                               key={coach.name}
                               onClick={() => setActivePreviewCoachIndex(idx)}
@@ -298,10 +353,10 @@ export function LandingPage() {
                         </div>
                       </div>
                       <div className="p-4 bg-paper-2 rounded-2xl border border-line/65 text-xs text-ink-soft leading-relaxed min-h-[90px] flex flex-col justify-center text-left gap-1">
-                        <div className="font-bold text-ink">{COACHES[activePreviewCoachIndex].name}</div>
-                        <div className="text-[11px] text-ink-soft mb-1">{COACHES[activePreviewCoachIndex].role}</div>
+                        <div className="font-bold text-ink">{coaches[activePreviewCoachIndex]?.name || coaches[0]?.name}</div>
+                        <div className="text-[11px] text-ink-soft mb-1">{coaches[activePreviewCoachIndex]?.role || coaches[0]?.role}</div>
                         <div className="flex flex-wrap gap-1">
-                          {COACHES[activePreviewCoachIndex].specs.map(spec => (
+                          {(coaches[activePreviewCoachIndex]?.specs || coaches[0]?.specs || []).map(spec => (
                             <span key={spec} className="bg-paper text-ink-soft text-[9px] font-bold px-2 py-0.5 rounded-full border border-line">{spec}</span>
                           ))}
                         </div>
@@ -746,7 +801,7 @@ export function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {COACHES.map((coach) => (
+              {coaches.map((coach) => (
                 <div 
                   key={coach.name} 
                   className="bg-card border border-line rounded-3xl p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all"
