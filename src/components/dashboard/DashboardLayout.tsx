@@ -303,17 +303,15 @@ export function DashboardLayout({
         </header>
 
         {/* Main Scrolling Area */}
-        <main className="flex-1 overflow-y-auto p-6 sm:p-10 relative">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 pb-28 lg:pb-10 relative">
           <div className="max-w-6xl mx-auto">
-
-
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.3 }}
+                transition={{ duration: 0.2 }}
               >
                 {children}
               </motion.div>
@@ -321,6 +319,34 @@ export function DashboardLayout({
           </div>
         </main>
       </div>
+
+      {/* 4. Mobile Bottom Navigation Bar (< lg viewports) */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-40 px-2 py-1.5 pb-safe flex items-center justify-around shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
+        {[
+          { id: "overview", label: "Home", icon: LayoutDashboard },
+          { id: "checkin", label: "Check-in", icon: Heart },
+          { id: "discover", label: "Explore", icon: BrainCircuit },
+          { id: "sessionbooking", label: "Book", icon: Calendar },
+          { id: "talkmindly", label: "TalkMindly", icon: MessageSquare },
+        ].map((tab) => {
+          const TabIcon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[44px] px-2 py-1 rounded-xl transition-all cursor-pointer border-none bg-transparent ${
+                isActive ? "text-plum font-bold" : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              <div className={`p-1 rounded-xl transition-all ${isActive ? "bg-plum/10 text-plum scale-105" : ""}`}>
+                <TabIcon className="w-5 h-5" />
+              </div>
+              <span className="text-[10px] tracking-tight leading-none">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

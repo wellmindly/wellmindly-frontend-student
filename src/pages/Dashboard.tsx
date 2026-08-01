@@ -56,6 +56,15 @@ export function Dashboard() {
             onExploreDiscover={() => db.setActiveTab("discover")}
             onViewAssessments={() => db.setActiveTab("assessments")}
             onStartScreening={() => db.setActiveTab("checkin")}
+            onComingSoonClick={(feature) => {
+              if (feature === "talkmindly") {
+                db.setActiveTab("talkmindly");
+              } else if (feature === "sessionbooking") {
+                db.setActiveTab("sessionbooking");
+              } else {
+                setComingSoonFeature(feature);
+              }
+            }}
           />
         )}
 

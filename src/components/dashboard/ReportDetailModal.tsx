@@ -253,19 +253,22 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
         >
           <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 15 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 15 }}
-            transition={{ type: "spring", duration: 0.4 }}
-            className="w-full max-w-2xl bg-white rounded-[2rem] p-8 md:p-10 shadow-2xl relative border border-slate-100 max-h-[90vh] overflow-y-auto"
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 280 }}
+            className="w-full max-w-2xl bg-white rounded-t-[2.5rem] sm:rounded-[2rem] p-6 sm:p-10 shadow-2xl relative border border-slate-100 max-h-[92vh] overflow-y-auto pb-safe"
           >
+            {/* Mobile Drag Handle */}
+            <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 sm:hidden" />
+
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none cursor-pointer outline-none z-10"
+              className="absolute top-5 right-5 sm:top-6 sm:right-6 p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none cursor-pointer outline-none z-10 min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <X className="h-5 w-5" />
             </button>
