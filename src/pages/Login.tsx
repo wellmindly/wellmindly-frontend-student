@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, X, Heart, Shield, Mail, Lock, Eye, EyeOff, Loader2, User } from "lucide-react";
+import { AlertCircle, CheckCircle2, X, Heart, Shield, Mail, Lock, Eye, EyeOff, Loader2, User } from "lucide-react";
 import { GoogleLogin } from '@react-oauth/google';
 import type { CredentialResponse } from '@react-oauth/google';
 import { motion, AnimatePresence } from "framer-motion";
@@ -48,6 +48,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; firstName?: string; lastName?: string; otp?: string }>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [globalSuccess, setGlobalSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -298,7 +299,7 @@ export function LoginPage() {
     try {
       await api.post("/auth/reset-password", { email, otp, newPassword: password, role: 'STUDENT' });
       setGlobalError(null);
-      alert("Password has been reset successfully! Please sign in with your new password.");
+      setGlobalSuccess("Password has been reset successfully! Please sign in with your new password.");
       setMode('login');
       setResetOtpSent(false);
       setOtp("");
@@ -488,6 +489,28 @@ export function LoginPage() {
                   className="rounded-lg p-1 hover:bg-red-100 transition-colors"
                 >
                   <X className="h-4 w-4" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Success Alert */}
+          <AnimatePresence>
+            {globalSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute -top-4 left-0 right-0 lg:static lg:mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800 shadow-md z-20"
+              >
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
+                <span className="flex-1">{globalSuccess}</span>
+                <button
+                  type="button"
+                  onClick={() => setGlobalSuccess(null)}
+                  className="rounded-lg p-1 hover:bg-emerald-100 transition-colors cursor-pointer border-none bg-transparent"
+                >
+                  <X className="h-4 w-4 text-emerald-600" />
                 </button>
               </motion.div>
             )}

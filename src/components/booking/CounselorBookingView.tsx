@@ -351,8 +351,8 @@ export const CounselorBookingView: React.FC = () => {
       );
       setActiveFeedbackSession(null);
       fetchMySessions();
-    } catch (err) {
-      alert('Failed to submit feedback');
+    } catch (err: any) {
+      setBookingError(err.response?.data?.error || 'Failed to submit feedback. Please try again.');
     } finally {
       setSubmittingFeedback(false);
     }
