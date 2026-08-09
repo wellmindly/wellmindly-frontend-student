@@ -5,11 +5,34 @@ import studentPortraitClean from "../../assets/student_portrait_clean.png";
 interface HeroSectionProps {
   onCheckInClick: () => void;
   onStartDiscovery: () => void;
+  onBookCoachClick?: () => void;
+  onBubbleClick?: (question: string) => void;
 }
 
-export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionProps) {
+export function HeroSection({ 
+  onCheckInClick, 
+  onStartDiscovery, 
+  onBookCoachClick, 
+  onBubbleClick 
+}: HeroSectionProps) {
+  const handleBubble = (q: string) => {
+    if (onBubbleClick) {
+      onBubbleClick(q);
+    } else {
+      document.getElementById('explore-tools')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleBook = () => {
+    if (onBookCoachClick) {
+      onBookCoachClick();
+    } else {
+      document.getElementById('coaching-section')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="py-16 sm:py-24 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+    <section className="py-12 sm:py-24 grid grid-cols-1 md:grid-cols-2 gap-12 sm:gap-16 items-center">
       {/* Left Column: Typography & CTAs */}
       <motion.div 
         initial={{ opacity: 0, x: -50 }}
@@ -37,7 +60,7 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onCheckInClick}
-            className="rounded-full bg-plum text-white px-8 py-4 text-sm font-bold shadow-lg shadow-plum/20 hover:bg-plum/90 transition-all text-center cursor-pointer border-none"
+            className="rounded-full bg-plum text-white px-8 py-4 text-sm font-bold shadow-lg shadow-plum/20 hover:bg-plum/90 transition-all text-center cursor-pointer border-none min-h-[48px] flex items-center justify-center"
           >
             See how you're feeling
           </motion.button>
@@ -46,7 +69,7 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onStartDiscovery}
-            className="rounded-full border border-plum/30 bg-plum/5 text-plum px-8 py-4 text-sm font-bold hover:bg-plum/10 hover:border-plum/50 transition-all text-center cursor-pointer flex items-center justify-center gap-2"
+            className="rounded-full border border-plum/30 bg-plum/5 text-plum px-8 py-4 text-sm font-bold hover:bg-plum/10 hover:border-plum/50 transition-all text-center cursor-pointer flex items-center justify-center gap-2 min-h-[48px]"
           >
             Explore Blueprints
             <ArrowRight className="w-4 h-4" />
@@ -54,7 +77,7 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
         </div>
         
         {/* Microcopy */}
-        <span className="text-xs text-ink-soft/70 font-semibold tracking-wide mt-3 ml-4">
+        <span className="text-xs text-ink-soft/70 font-semibold tracking-wide mt-3 sm:ml-4">
           Explore 6 character blueprints and private peer support.
         </span>
 
@@ -75,78 +98,101 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
         </div>
       </motion.div>
 
-      {/* Right Column: Premium Hero Image with Floating Elements */}
+      {/* Right Column: Premium Hero Image with Interactive Floating Elements */}
       <motion.div 
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
-        className="relative flex justify-center items-center w-full"
+        className="relative flex justify-center items-center w-full min-h-[420px] sm:min-h-[480px]"
       >
         {/* Soft background aura glow */}
         <div className="absolute -inset-4 bg-gradient-to-tr from-sage-brand/10 to-coral/10 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
         
-        {/* Interactive Floating Card 1: Today's Tone (styled with clean border and glassmorphism) */}
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
+        {/* Interactive Floating Card 1: Today's Tone */}
+        <motion.button
+          onClick={onCheckInClick}
+          whileHover={{ y: -6, scale: 1.04 }}
+          whileTap={{ scale: 0.95 }}
           animate={{ y: [0, -6, 0] }}
           transition={{ y: { duration: 5, repeat: Infinity, ease: "easeInOut" } }}
-          className="absolute bottom-8 -left-6 bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex flex-col gap-1 max-w-[200px] z-20 pointer-events-auto"
+          className="absolute bottom-6 -left-2 sm:-left-6 bg-white/95 backdrop-blur-md border border-line hover:border-plum/40 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-[190px] sm:max-w-[210px] z-30 pointer-events-auto text-left cursor-pointer transition-colors"
+          title="Click to check in today"
         >
-          <div className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Today's tone</div>
-          <div className="text-sm font-serif font-semibold text-ink">Finding your footing</div>
-          <div className="flex gap-1.5 mt-2">
-            <span className="w-2 h-2 rounded-full bg-teal" />
-            <span className="w-2 h-2 rounded-full bg-gold" />
-            <span className="w-2 h-2 rounded-full bg-rose opacity-40" />
-            <span className="w-2 h-2 rounded-full bg-plum opacity-40" />
+          <div className="flex items-center justify-between w-full">
+            <span className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Today's tone</span>
+            <span className="text-[9px] bg-plum/10 text-plum font-bold px-1.5 py-0.5 rounded">Tap</span>
           </div>
-        </motion.div>
+          <div className="text-xs sm:text-sm font-serif font-semibold text-ink">Finding your footing &rarr;</div>
+          <div className="flex gap-1.5 mt-1.5">
+            <span className="w-2 h-2 rounded-full bg-teal animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-gold" />
+            <span className="w-2 h-2 rounded-full bg-rose opacity-60" />
+            <span className="w-2 h-2 rounded-full bg-plum opacity-60" />
+          </div>
+        </motion.button>
 
-        {/* Interactive Floating Card 2: Next Session with Coach (VK Vinayak Katyayan initial) */}
-        <motion.div
-          whileHover={{ y: -5, scale: 1.02 }}
+        {/* Interactive Floating Card 2: Next Session with Coach */}
+        <motion.button
+          onClick={handleBook}
+          whileHover={{ y: -6, scale: 1.04 }}
+          whileTap={{ scale: 0.95 }}
           animate={{ y: [0, -8, 0] }}
           transition={{ y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 } }}
-          className="absolute top-12 -right-4 bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex items-center gap-3 max-w-[220px] z-20 pointer-events-auto"
+          className="absolute top-8 -right-2 sm:-right-4 bg-white/95 backdrop-blur-md border border-line hover:border-coral/40 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-[200px] sm:max-w-[220px] z-30 pointer-events-auto text-left cursor-pointer transition-colors"
+          title="Click to book a coach"
         >
-          <div className="w-7 h-7 bg-coral/15 text-coral rounded-lg flex items-center justify-center font-bold text-xs shrink-0 select-none">
+          <div className="w-8 h-8 bg-coral/15 text-coral rounded-xl flex items-center justify-center font-bold text-xs shrink-0 select-none shadow-inner">
             VK
           </div>
           <div>
-            <div className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Next Session</div>
-            <div className="text-xs font-bold text-ink">Coach Vinayak &middot; Thu 5pm</div>
+            <div className="text-[10px] text-ink-soft font-bold uppercase tracking-wider flex items-center gap-1">
+              Next Session
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            </div>
+            <div className="text-xs font-bold text-ink hover:text-coral transition-colors">
+              Coach Vinayak &middot; Thu 5pm
+            </div>
           </div>
-        </motion.div>
+        </motion.button>
 
         {/* Floating Bubble 1: who even am I rn */}
-        <motion.div
+        <motion.button
+          onClick={() => handleBubble("who even am I rn")}
+          whileHover={{ scale: 1.08, rotate: 0 }}
+          whileTap={{ scale: 0.95 }}
           animate={{ y: [0, -8, 0], rotate: [-2, 1, -2] }}
           transition={{ y: { duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 } }}
-          className="absolute top-8 -left-8 bg-white/80 backdrop-blur-sm border border-line rounded-2xl px-4 py-2.5 shadow-md text-xs font-semibold text-ink-soft/90 max-w-[150px] z-20 pointer-events-none select-none"
+          className="absolute top-4 -left-4 sm:-left-8 bg-white/90 backdrop-blur-md border border-line hover:border-teal/50 rounded-2xl px-3.5 py-2 shadow-md text-xs font-semibold text-ink-soft hover:text-ink max-w-[160px] z-30 pointer-events-auto select-none cursor-pointer transition-all"
         >
-          who even am I rn
-        </motion.div>
+          💭 who even am I rn
+        </motion.button>
 
         {/* Floating Bubble 2: is it just me or... */}
-        <motion.div
+        <motion.button
+          onClick={() => handleBubble("is it just me or...")}
+          whileHover={{ scale: 1.08, rotate: 0 }}
+          whileTap={{ scale: 0.95 }}
           animate={{ y: [0, -10, 0], rotate: [1, -2, 1] }}
           transition={{ y: { duration: 6.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 } }}
-          className="absolute bottom-36 -right-6 bg-white/80 backdrop-blur-sm border border-line rounded-2xl px-4 py-2.5 shadow-md text-xs font-semibold text-ink-soft/90 max-w-[140px] z-20 pointer-events-none select-none"
+          className="absolute bottom-32 -right-4 sm:-right-6 bg-white/90 backdrop-blur-md border border-line hover:border-plum/50 rounded-2xl px-3.5 py-2 shadow-md text-xs font-semibold text-ink-soft hover:text-ink max-w-[150px] z-30 pointer-events-auto select-none cursor-pointer transition-all"
         >
-          is it just me or...
-        </motion.div>
+          🗣️ is it just me or...
+        </motion.button>
 
         {/* Floating Bubble 3: what am I actually good at? */}
-        <motion.div
+        <motion.button
+          onClick={() => handleBubble("what am I actually good at?")}
+          whileHover={{ scale: 1.08, rotate: 0 }}
+          whileTap={{ scale: 0.95 }}
           animate={{ y: [0, -7, 0], rotate: [-1, 2, -1] }}
           transition={{ y: { duration: 4.8, repeat: Infinity, ease: "easeInOut", delay: 2.2 } }}
-          className="absolute -bottom-4 right-12 bg-white/85 backdrop-blur-sm border border-line rounded-2xl px-4 py-2.5 shadow-md text-xs font-semibold text-ink-soft/90 max-w-[180px] z-20 pointer-events-none select-none"
+          className="absolute -bottom-2 right-6 sm:right-12 bg-white/90 backdrop-blur-md border border-line hover:border-gold/50 rounded-2xl px-3.5 py-2 shadow-md text-xs font-semibold text-ink-soft hover:text-ink max-w-[190px] z-30 pointer-events-auto select-none cursor-pointer transition-all"
         >
-          what am I actually good at?
-        </motion.div>
+          ✨ what am I actually good at?
+        </motion.button>
         
-        {/* Main image container with clean, solid-backdrop look */}
-        <div className="relative overflow-hidden rounded-[2.5rem] border-2 border-line bg-paper-2/40 shadow-2xl max-w-sm w-full aspect-[4/5] flex items-center justify-center">
+        {/* Main image container */}
+        <div className="relative overflow-hidden rounded-[2.5rem] border-2 border-line bg-paper-2/40 shadow-2xl max-w-xs sm:max-w-sm w-full aspect-[4/5] flex items-center justify-center">
           <img 
             src={studentPortraitClean} 
             alt="Smiling, warm university student portrait" 
@@ -157,3 +203,4 @@ export function HeroSection({ onCheckInClick, onStartDiscovery }: HeroSectionPro
     </section>
   );
 }
+
