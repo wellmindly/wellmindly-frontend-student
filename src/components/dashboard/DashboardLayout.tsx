@@ -325,24 +325,38 @@ export function DashboardLayout({
         {[
           { id: "overview", label: "Home", icon: LayoutDashboard },
           { id: "checkin", label: "Check-in", icon: Heart },
-          { id: "discover", label: "Explore", icon: BrainCircuit },
-          { id: "sessionbooking", label: "Book", icon: Calendar },
+          { id: "assessments", label: "Quizzes", icon: ClipboardList },
+          { id: "writemindly", label: "WriteMindly", icon: PenTool },
           { id: "talkmindly", label: "TalkMindly", icon: MessageSquare },
         ].map((tab) => {
           const TabIcon = tab.icon;
           const isActive = activeTab === tab.id;
+          const isComingSoon = tab.id === "writemindly" && !config.enableWriteMindly;
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-col items-center justify-center gap-1 min-w-[56px] min-h-[44px] px-2 py-1 rounded-xl transition-all cursor-pointer border-none bg-transparent ${
+              onClick={() => {
+                if (isComingSoon) {
+                  onComingSoonClick?.("writemindly");
+                } else {
+                  setActiveTab(tab.id);
+                }
+              }}
+              className={`flex flex-col items-center justify-center gap-1 min-w-[60px] min-h-[48px] px-2 py-1 rounded-2xl transition-all relative active-press cursor-pointer border-none bg-transparent ${
                 isActive ? "text-plum font-bold" : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              <div className={`p-1 rounded-xl transition-all ${isActive ? "bg-plum/10 text-plum scale-105" : ""}`}>
-                <TabIcon className="w-5 h-5" />
+              <div className="relative flex items-center justify-center p-1.5">
+                {isActive && (
+                  <motion.div
+                    layoutId="mobileActiveTab"
+                    className="absolute inset-0 bg-plum/15 rounded-xl z-0"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <TabIcon className={`w-5 h-5 z-10 ${isActive ? "text-plum scale-110" : ""}`} />
               </div>
-              <span className="text-[10px] tracking-tight leading-none">{tab.label}</span>
+              <span className="text-[10px] tracking-tight leading-none z-10 font-bold">{tab.label}</span>
             </button>
           );
         })}

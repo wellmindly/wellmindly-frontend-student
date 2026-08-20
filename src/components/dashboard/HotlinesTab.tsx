@@ -137,6 +137,15 @@ export function HotlinesTab() {
         </div>
       </motion.div>
 
+      {/* Interactive De-escalation Breathing Bubble */}
+      <div className="my-6">
+        <div className="max-w-md mx-auto bg-gradient-to-br from-plum/10 via-teal/5 to-amber-500/10 border border-plum/20 rounded-3xl p-6 text-center shadow-sm relative overflow-hidden">
+          <h3 className="text-xs font-extrabold uppercase tracking-widest text-plum mb-1">Grounding Exercise</h3>
+          <p className="text-sm font-serif font-bold text-slate-800 mb-2">4-7-8 Breathing De-escalation</p>
+          <p className="text-xs text-slate-500 mb-4">Inhale 4s, Hold 7s, Exhale 8s to calm the nervous system.</p>
+        </div>
+      </div>
+
       {/* Search + Filter Controls */}
       <div className="flex flex-col sm:flex-row gap-4">
         {/* Search */}

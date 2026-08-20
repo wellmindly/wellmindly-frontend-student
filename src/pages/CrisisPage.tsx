@@ -29,6 +29,75 @@ const CATEGORY_COLORS: Record<string, string> = {
   "Youth Support": "bg-violet-50 text-violet-700 border-violet-200/50",
 };
 
+export function BreathingBubbleWidget() {
+  const [active, setActive] = useState(false);
+  const [phase, setPhase] = useState<"Inhale" | "Hold" | "Exhale">("Inhale");
+  const [seconds, setSeconds] = useState(4);
+
+  useEffect(() => {
+    if (!active) return;
+    const interval = setInterval(() => {
+      setSeconds((prev) => {
+        if (prev > 1) return prev - 1;
+        if (phase === "Inhale") {
+          setPhase("Hold");
+          return 7;
+        } else if (phase === "Hold") {
+          setPhase("Exhale");
+          return 8;
+        } else {
+          setPhase("Inhale");
+          return 4;
+        }
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [active, phase]);
+
+  return (
+    <div className="max-w-md mx-auto bg-gradient-to-br from-plum/10 via-teal/5 to-amber-500/10 border border-plum/20 rounded-3xl p-6 sm:p-8 text-center mb-12 shadow-sm relative overflow-hidden">
+      <h3 className="text-xs font-extrabold uppercase tracking-widest text-plum mb-1">Interactive Grounding Exercise</h3>
+      <p className="text-sm font-serif font-bold text-slate-800 mb-6">4-7-8 De-escalation Breathing</p>
+      
+      <div className="relative flex items-center justify-center my-6 h-36">
+        <motion.div
+          animate={{
+            scale: active ? (phase === "Inhale" ? 1.4 : phase === "Hold" ? 1.4 : 1) : 1,
+            opacity: active ? (phase === "Hold" ? 0.9 : 0.75) : 0.6
+          }}
+          transition={{
+            duration: phase === "Inhale" ? 4 : phase === "Exhale" ? 8 : 0.2,
+            ease: "easeInOut"
+          }}
+          className="w-28 h-28 rounded-full bg-plum/20 border-2 border-plum/50 flex items-center justify-center shadow-lg"
+        >
+          <div className="w-20 h-20 rounded-full bg-plum text-white flex flex-col items-center justify-center font-bold shadow-md">
+            <span className="text-xs font-semibold">{active ? phase : "Ready"}</span>
+            {active && <span className="text-lg font-black">{seconds}s</span>}
+          </div>
+        </motion.div>
+      </div>
+
+      <button
+        onClick={() => {
+          if (active) {
+            setActive(false);
+            setPhase("Inhale");
+            setSeconds(4);
+          } else {
+            setActive(true);
+            setPhase("Inhale");
+            setSeconds(4);
+          }
+        }}
+        className="px-6 py-3 rounded-full bg-plum hover:bg-plum/90 text-white font-bold text-xs shadow-md transition-all active-press cursor-pointer border-none"
+      >
+        {active ? "Stop Breathing Exercise" : "Start 4-7-8 Breathing"}
+      </button>
+    </div>
+  );
+}
+
 export function CrisisPage() {
   const [hotlines, setHotlines] = useState<CrisisHotline[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,6 +207,9 @@ export function CrisisPage() {
               These are free, confidential resources with real people trained to support you.
             </p>
           </div>
+
+          {/* Interactive De-escalation Breathing Bubble Widget */}
+          <BreathingBubbleWidget />
 
           {/* Controls Bar: Country Selector & Hotline Search */}
           <div className="max-w-3xl mx-auto mb-16">
