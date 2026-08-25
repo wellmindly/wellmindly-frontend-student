@@ -144,7 +144,7 @@ export function SegmentedControl<T extends string>({
                 aria-hidden
                 layoutId={`${groupId}-segment-indicator`}
                 transition={spring.snappy}
-                className="absolute inset-0 rounded-xl bg-white shadow-xs"
+                className="absolute inset-0 rounded-xl bg-card shadow-xs"
               />
             )}
             <span className="relative z-[1] inline-flex items-center gap-2">

@@ -57,7 +57,7 @@ export function SkeletonCard({ className }: { className?: string }) {
     <div
       aria-hidden
       className={cn(
-        "rounded-2xl border border-ink-200/70 bg-white p-5 sm:p-6",
+        "rounded-2xl border border-ink-200/70 bg-card p-5 sm:p-6",
         className,
       )}
     >

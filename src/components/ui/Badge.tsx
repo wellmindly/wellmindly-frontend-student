@@ -119,8 +119,8 @@ export function Chip({
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
         "active-press disabled:pointer-events-none disabled:opacity-50",
         selected
-          ? "border-plum-500 bg-plum-500 text-white shadow-sm"
-          : "border-ink-200 bg-white text-ink-600 hover:border-ink-300 hover:text-ink-900",
+          ? "border-plum-500 bg-plum-500 text-plum-50 shadow-sm"
+          : "border-ink-200 bg-card text-ink-600 hover:border-ink-300 hover:text-ink-900",
         className,
       )}
       {...rest}
@@ -179,7 +179,7 @@ export function Avatar({
       className={cn(
         "relative inline-flex shrink-0 items-center justify-center overflow-hidden",
         "rounded-2xl bg-plum-100 font-display font-bold text-plum-700 select-none",
-        ring && "ring-2 ring-plum-300 ring-offset-2 ring-offset-white",
+        ring && "ring-2 ring-plum-300 ring-offset-2 ring-offset-card",
         AVATAR_SIZES[size],
         className,
       )}

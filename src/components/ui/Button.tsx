@@ -28,7 +28,7 @@ export type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: cn(
-    "bg-plum-500 text-white shadow-sm",
+    "bg-plum-500 text-plum-50 shadow-sm",
     "hover:bg-plum-600 hover:shadow-md",
     "active:bg-plum-700",
     "disabled:bg-plum-300 disabled:shadow-none",
@@ -46,13 +46,13 @@ const VARIANTS: Record<ButtonVariant, string> = {
     "disabled:text-ink-400",
   ),
   outline: cn(
-    "bg-white text-ink-800 border border-ink-200 shadow-2xs",
+    "bg-card text-ink-800 border border-ink-200 shadow-2xs",
     "hover:border-ink-300 hover:bg-ink-50",
     "active:bg-ink-100",
-    "disabled:bg-white disabled:text-ink-400 disabled:border-ink-100 disabled:shadow-none",
+    "disabled:bg-card disabled:text-ink-400 disabled:border-ink-100 disabled:shadow-none",
   ),
   danger: cn(
-    "bg-danger text-white shadow-sm",
+    "bg-danger text-danger-soft shadow-sm",
     "hover:bg-danger-strong hover:shadow-md",
     "active:bg-danger-strong",
     "disabled:bg-ink-300 disabled:shadow-none",

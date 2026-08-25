@@ -87,7 +87,7 @@ export function Field({
 /* ------------------------------------------------------------- control shell */
 
 const controlBase = cn(
-  "w-full rounded-xl border bg-white text-ink-900",
+  "w-full rounded-xl border bg-card text-ink-900",
   "placeholder:text-ink-400",
   "transition-[border-color,box-shadow,background-color] duration-150",
   "focus:outline-none focus-visible:outline-none",
@@ -238,7 +238,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               <span
                 aria-hidden
                 className={cn(
-                  "pointer-events-none absolute bottom-2.5 right-3 rounded-full bg-white/90 px-1.5 text-2xs font-semibold tabular-nums",
+                  "pointer-events-none absolute bottom-2.5 right-3 rounded-full bg-card/90 px-1.5 text-2xs font-semibold tabular-nums",
                   nearLimit ? "text-warning" : "text-ink-400",
                 )}
               >

@@ -115,7 +115,7 @@ export function Sheet({
               if (info.offset.y > 110 || info.velocity.y > 600) onClose();
             }}
             className={cn(
-              "relative flex max-h-[92dvh] w-full flex-col overflow-hidden bg-white",
+              "relative flex max-h-[92dvh] w-full flex-col overflow-hidden bg-card",
               "rounded-t-4xl sm:rounded-3xl",
               "shadow-2xl",
               SIZES[size],
@@ -167,7 +167,7 @@ export function Sheet({
             )}
 
             {footer && (
-              <div className="border-t border-ink-100 bg-white/95 px-5 py-4 pb-[calc(1rem+var(--safe-area-bottom))] backdrop-blur-sm sm:px-6 sm:pb-4">
+              <div className="border-t border-ink-100 bg-card/95 px-5 py-4 pb-[calc(1rem+var(--safe-area-bottom))] backdrop-blur-sm sm:px-6 sm:pb-4">
                 {footer}
               </div>
             )}

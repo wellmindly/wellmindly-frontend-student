@@ -55,22 +55,22 @@ export function useToast() {
 
 const TONES: Record<ToastTone, { cls: string; icon: ReactNode; role: "status" | "alert" }> = {
   success: {
-    cls: "bg-white border-success/25 text-ink-900",
+    cls: "bg-card border-success/25 text-ink-900",
     icon: <CheckCircle2 className="h-5 w-5 text-success" />,
     role: "status",
   },
   error: {
-    cls: "bg-white border-danger/30 text-ink-900",
+    cls: "bg-card border-danger/30 text-ink-900",
     icon: <XCircle className="h-5 w-5 text-danger" />,
     role: "alert",
   },
   warning: {
-    cls: "bg-white border-warning/30 text-ink-900",
+    cls: "bg-card border-warning/30 text-ink-900",
     icon: <AlertTriangle className="h-5 w-5 text-warning" />,
     role: "status",
   },
   info: {
-    cls: "bg-white border-plum-200 text-ink-900",
+    cls: "bg-card border-plum-200 text-ink-900",
     icon: <Info className="h-5 w-5 text-plum-600" />,
     role: "status",
   },

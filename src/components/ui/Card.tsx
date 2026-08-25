@@ -27,7 +27,7 @@ export type CardTone =
 export type CardElevation = "flat" | "raised" | "floating" | "sunken";
 
 const TONES: Record<CardTone, string> = {
-  default: "bg-white border-ink-200/70",
+  default: "bg-card border-ink-200/70",
   primary: "bg-plum-50 border-plum-200/60",
   teal: "bg-teal-50 border-teal-200/60",
   coral: "bg-coral-50 border-coral-200/60",
