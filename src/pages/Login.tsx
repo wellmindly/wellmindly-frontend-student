@@ -424,7 +424,7 @@ export function LoginPage() {
               failedAttempt={failedAttempt}
               onFirstNameChange={(v) => { setFirstName(v); if (errors.firstName) setErrors((p) => ({ ...p, firstName: undefined })); clearGlobal(); }}
               onLastNameChange={(v) => { setLastName(v); if (errors.lastName) setErrors((p) => ({ ...p, lastName: undefined })); clearGlobal(); }}
-              onEmailChange={(v) => { setEmail(v); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); if (otpSent) setOtpSent(false); if (resetOtpSent) setResetOtpSent(false); clearGlobal(); }}
+              onEmailChange={(v) => { setEmail(v); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); if (otpSent) { setOtpSent(false); setOtp(""); } if (resetOtpSent) { setResetOtpSent(false); setOtp(""); } clearGlobal(); }}
               onPasswordChange={(v) => { setPassword(v); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); clearGlobal(); }}
               onOtpChange={(v) => { setOtp(v); if (errors.otp) setErrors((p) => ({ ...p, otp: undefined })); clearGlobal(); }}
               onSubmit={handleSubmit}
