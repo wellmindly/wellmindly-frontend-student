@@ -11,10 +11,26 @@ import {
   PenTool,
   MessageSquare,
   Calendar,
+  ArrowLeft,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { config } from "../../config";
+import { cn } from "../../lib/cn";
+import { spring, tween } from "../../lib/motion";
+import { Avatar, CrisisBanner, IconButton } from "../ui";
 import logoPng from "../../assets/logo.png";
+
+/* ============================================================================
+   DashboardLayout
+   ----------------------------------------------------------------------------
+   One shell for every signed-in surface. The previous version forked into a
+   separate hard-coded dark tree for TalkMindly (losing the nav entirely) and
+   used h-screen/w-screen with four different greys. This unifies on the design
+   system while keeping the two things that were genuinely right: a focused
+   immersive mode for the chat/community space, and a persistent crisis banner.
+   ========================================================================= */
+
+type FeatureId = "writemindly" | "talkmindly" | "sessionbooking";
 
 interface MenuItem {
   id: string;
@@ -22,15 +38,22 @@ interface MenuItem {
   icon: typeof LayoutDashboard;
 }
 
+// Full navigation - desktop sidebar + mobile drawer. Order is the IA priority.
 const menuItems: MenuItem[] = [
-  { id: "overview", label: "Dashboard Home", icon: LayoutDashboard },
-  { id: "checkin", label: "Emotional Check-in", icon: Heart },
-  { id: "assessments", label: "My Quiz Results", icon: ClipboardList },
-  { id: "discover", label: "Explore Tests", icon: BrainCircuit },
+  { id: "overview", label: "Home", icon: LayoutDashboard },
+  { id: "checkin", label: "Check-in", icon: Heart },
+  { id: "assessments", label: "My results", icon: ClipboardList },
+  { id: "discover", label: "Explore quizzes", icon: BrainCircuit },
   { id: "writemindly", label: "WriteMindly", icon: PenTool },
   { id: "talkmindly", label: "TalkMindly", icon: MessageSquare },
-  { id: "sessionbooking", label: "Book a Session", icon: Calendar },
+  { id: "sessionbooking", label: "Book a session", icon: Calendar },
 ];
+
+// The five that live on the mobile bottom bar; the rest live in the drawer.
+const bottomNavIds = ["overview", "checkin", "discover", "writemindly", "talkmindly"];
+
+// Tabs that take over the whole viewport (their own immersive UI).
+const immersiveTabs = new Set(["talkmindly"]);
 
 interface DashboardLayoutProps {
   activeTab: string;
@@ -43,275 +66,223 @@ interface DashboardLayoutProps {
   initials: string;
   logout: () => void;
   onLogoClick: () => void;
-  onComingSoonClick?: (feature: "writemindly" | "talkmindly" | "sessionbooking") => void;
+  onComingSoonClick?: (feature: FeatureId) => void;
   children: ReactNode;
 }
 
-export function DashboardLayout({
-  activeTab,
-  setActiveTab,
-  mobileMenuOpen,
-  setMobileMenuOpen,
-  firstName,
-  lastName,
-  email,
-  initials,
-  logout,
-  onLogoClick,
-  onComingSoonClick,
-  children,
-}: DashboardLayoutProps) {
+export function DashboardLayout(props: DashboardLayoutProps) {
+  const { activeTab, setActiveTab, onComingSoonClick, children } = props;
   const navigate = useNavigate();
 
-  if (activeTab === "talkmindly") {
+  const isComingSoon = (id: string) => id === "writemindly" && !config.enableWriteMindly;
+
+  const handleNav = (id: string, alsoCloseDrawer = false) => {
+    if (isComingSoon(id)) {
+      onComingSoonClick?.(id as FeatureId);
+    } else {
+      setActiveTab(id);
+    }
+    if (alsoCloseDrawer) props.setMobileMenuOpen(false);
+  };
+
+  /* ---------------------------------------------------- immersive (chat) mode */
+  if (immersiveTabs.has(activeTab)) {
     return (
-      <div className="h-screen w-screen flex flex-col bg-[#0b0d11] text-[#f1f3f9] talkmindly-font-sans overflow-hidden">
-        {/* Immersive Mobile-style Header bar to return to dashboard */}
-        <header className="h-16 flex items-center justify-between px-6 bg-[#12141c] border-b border-[#212431] shrink-0 select-none z-25">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum text-white shadow-md shadow-plum/25">
-              <Heart className="h-4 w-4 fill-current" />
-            </div>
-            <span className="text-lg font-black tracking-tight text-white font-serif">
-              TalkMindly
+      <div className="flex min-h-dvh flex-col bg-ink-900 text-ink-50">
+        <header className="z-[var(--z-nav)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-700 bg-ink-800 px-4 pt-safe sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum-500 text-white">
+              <MessageSquare className="h-4 w-4" />
+            </span>
+            <span className="font-display text-lg font-semibold text-white">
+              {activeTab === "talkmindly" ? "TalkMindly" : "WellMindly"}
             </span>
           </div>
-
           <button
+            type="button"
             onClick={() => setActiveTab("overview")}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-300 hover:text-white bg-[#1a1d29] hover:bg-[#222737] border border-[#2d3347] rounded-full transition-all duration-200 cursor-pointer"
+            className={cn(
+              "inline-flex min-h-9 items-center gap-2 rounded-full border border-ink-700 bg-ink-800 px-4",
+              "text-xs font-semibold text-ink-100 transition-colors hover:bg-ink-700",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
+            )}
           >
-            ← Back to Dashboard
+            <ArrowLeft className="h-3.5 w-3.5" />
+            Dashboard
           </button>
         </header>
-        
-        <main className="flex-1 overflow-hidden relative">
-          {children}
-        </main>
+        <main className="relative flex-1 overflow-hidden">{children}</main>
       </div>
     );
   }
 
+  /* ------------------------------------------------------------- normal shell */
   return (
-    <div className="h-screen w-screen flex bg-[#F4F6F5] text-slate-800 font-sans overflow-hidden">
-      {/* 1. Desktop Sidebar Navigation */}
-      <aside className="hidden lg:flex flex-col w-72 bg-white border-r border-slate-200/50 h-full shrink-0 relative z-20 shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-        {/* Brand Logo Header */}
-        <div
-          onClick={onLogoClick}
-          className="h-20 flex items-center px-8 border-b border-slate-100 shrink-0 cursor-pointer hover:opacity-90 transition-opacity"
+    <div className="flex min-h-dvh bg-paper text-ink-800">
+      {/* Desktop sidebar */}
+      <aside className="sticky top-0 z-[var(--z-raised)] hidden h-dvh w-72 shrink-0 flex-col border-r border-ink-200/60 bg-white lg:flex">
+        <button
+          type="button"
+          onClick={props.onLogoClick}
+          className="flex h-20 shrink-0 cursor-pointer items-center border-b border-ink-100 px-8 transition-opacity hover:opacity-90"
         >
-          <img src={logoPng} alt="WellMindly Logo" className="h-8 w-auto block select-none" />
-        </div>
+          <img src={logoPng} alt="WellMindly - home" className="block h-8 w-auto" />
+        </button>
 
-        {/* Sidebar Nav Links */}
-        <nav className="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
-          {menuItems.map((item) => {
-            const IconComp = item.icon;
-            const isActive = activeTab === item.id;
-            const isComingSoon = item.id === "writemindly" && !config.enableWriteMindly;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (isComingSoon) {
-                    onComingSoonClick?.(item.id as "writemindly" | "talkmindly" | "sessionbooking");
-                  } else {
-                    setActiveTab(item.id);
-                  }
-                }}
-                className={`w-full flex items-center justify-between gap-4 px-5 py-3.5 rounded-2xl text-left text-sm font-bold transition-all duration-300 relative group outline-none cursor-pointer ${
-                  isActive ? "text-plum" : "text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                <div className="flex items-center gap-4 flex-1">
-                  {/* Plum active state background utilizing Framer Motion layoutId */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeSidebarBg"
-                      className="absolute inset-0 bg-plum/10 rounded-2xl z-0"
-                      transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    />
-                  )}
-
-                  <IconComp
-                    className={`h-5 w-5 shrink-0 z-10 transition-colors duration-300 ${
-                      isActive ? "text-plum" : "text-slate-400 group-hover:text-slate-600"
-                    }`}
-                  />
-                  <span className="z-10 tracking-wide">{item.label}</span>
-                </div>
-                {isComingSoon && (
-                  <span className="ml-auto z-10 bg-plum/10 text-plum text-[10px] px-2 py-0.5 rounded-full font-bold select-none">
-                    Soon
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6" aria-label="Dashboard sections">
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.id}
+              item={item}
+              active={activeTab === item.id}
+              comingSoon={isComingSoon(item.id)}
+              onClick={() => handleNav(item.id)}
+              layoutId="sidebarActive"
+            />
+          ))}
         </nav>
 
-        {/* User Card in Desktop Sidebar Footer */}
-        <div className="p-6 border-t border-slate-100 shrink-0 bg-white">
-          <div className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer border border-transparent hover:border-slate-100">
-            <div className="h-12 w-12 rounded-full bg-plum/15 flex items-center justify-center font-black text-plum text-base shadow-inner">
-              {initials}
-            </div>
+        <div className="shrink-0 border-t border-ink-100 p-4">
+          <div className="flex items-center gap-3 rounded-2xl p-2">
+            <Avatar name={`${props.firstName} ${props.lastName}`} initials={props.initials} size="md" />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-slate-900 truncate">
-                {firstName} {lastName}
+              <p className="truncate text-sm font-semibold text-ink-900">
+                {props.firstName} {props.lastName}
               </p>
-              <p className="text-xs font-medium text-slate-500 truncate">{email}</p>
+              <p className="truncate text-xs text-ink-500">{props.email}</p>
             </div>
           </div>
         </div>
       </aside>
 
-      {/* 2. Mobile Off-Canvas Sidebar */}
+      {/* Mobile drawer */}
       <AnimatePresence>
-        {mobileMenuOpen && (
+        {props.mobileMenuOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.4 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-900 z-40 lg:hidden"
+              transition={tween.fast}
+              onClick={() => props.setMobileMenuOpen(false)}
+              className="fixed inset-0 z-[var(--z-overlay)] bg-ink-900/45 backdrop-blur-[2px] lg:hidden"
             />
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="fixed top-0 bottom-0 left-0 w-72 bg-white shadow-2xl z-50 flex flex-col h-full lg:hidden"
+              transition={spring.soft}
+              className="fixed inset-y-0 left-0 z-[var(--z-overlay)] flex w-[82%] max-w-xs flex-col bg-white shadow-2xl lg:hidden"
+              aria-label="Menu"
             >
-              <div className="h-auto pt-safe pb-4 flex items-center justify-between px-6 border-b border-slate-100 shrink-0">
-                <div
-                  onClick={() => {
-                    onLogoClick();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center cursor-pointer hover:opacity-90 transition-opacity"
-                >
-                  <img src={logoPng} alt="WellMindly Logo" className="h-8 w-auto block select-none" />
-                </div>
+              <div className="flex shrink-0 items-center justify-between border-b border-ink-100 px-5 pt-safe pb-4">
                 <button
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors"
+                  type="button"
+                  onClick={() => {
+                    props.onLogoClick();
+                    props.setMobileMenuOpen(false);
+                  }}
+                  className="flex cursor-pointer items-center transition-opacity hover:opacity-90"
                 >
-                  <X className="h-5 w-5" />
+                  <img src={logoPng} alt="WellMindly - home" className="block h-8 w-auto" />
                 </button>
+                <IconButton
+                  label="Close menu"
+                  size="sm"
+                  variant="ghost"
+                  icon={<X />}
+                  onClick={() => props.setMobileMenuOpen(false)}
+                />
               </div>
 
-              <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto">
-                {menuItems.map((item) => {
-                  const IconComp = item.icon;
-                  const isActive = activeTab === item.id;
-                  const isComingSoon = item.id === "writemindly" && !config.enableWriteMindly;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        if (isComingSoon) {
-                          onComingSoonClick?.(item.id as "writemindly" | "talkmindly" | "sessionbooking");
-                        } else {
-                          setActiveTab(item.id);
-                        }
-                        setMobileMenuOpen(false);
-                      }}
-                      className="w-full flex items-center justify-between gap-4 px-5 py-3.5 rounded-2xl text-left text-sm font-bold transition-all duration-200 relative group cursor-pointer"
-                    >
-                      <div className="flex items-center gap-4 flex-1">
-                        {isActive && <div className="absolute inset-0 bg-plum/10 rounded-2xl z-0" />}
-                        <IconComp
-                          className={`h-5 w-5 shrink-0 z-10 ${isActive ? "text-plum" : "text-slate-400"}`}
-                        />
-                        <span className={`z-10 ${isActive ? "text-plum font-bold" : "text-slate-600"}`}>
-                          {item.label}
-                        </span>
-                      </div>
-                      {isComingSoon && (
-                        <span className="z-10 bg-plum/10 text-plum text-[10px] px-2 py-0.5 rounded-full font-bold select-none">
-                          Soon
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+              <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5" aria-label="Dashboard sections">
+                {menuItems.map((item) => (
+                  <NavLink
+                    key={item.id}
+                    item={item}
+                    active={activeTab === item.id}
+                    comingSoon={isComingSoon(item.id)}
+                    onClick={() => handleNav(item.id, true)}
+                    layoutId="drawerActive"
+                  />
+                ))}
               </nav>
 
-              <div className="px-6 pt-6 pb-safe border-t border-slate-100 shrink-0">
-                <div className="flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-plum/15 flex items-center justify-center font-black text-plum text-base">
-                    {initials}
-                  </div>
+              <div className="shrink-0 border-t border-ink-100 px-5 pt-4 pb-[calc(1rem+var(--safe-area-bottom))]">
+                <div className="mb-3 flex items-center gap-3">
+                  <Avatar name={`${props.firstName} ${props.lastName}`} initials={props.initials} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-bold text-slate-900 truncate">
-                      {firstName} {lastName}
+                    <p className="truncate text-sm font-semibold text-ink-900">
+                      {props.firstName} {props.lastName}
                     </p>
-                    <p className="text-xs font-medium text-slate-500 truncate">{email}</p>
+                    <p className="truncate text-xs text-ink-500">{props.email}</p>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={props.logout}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-ink-200 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-ink-50"
+                >
+                  <LogOut className="h-4 w-4" /> Sign out
+                </button>
               </div>
             </motion.aside>
           </>
         )}
       </AnimatePresence>
 
-      {/* 3. Primary Main Content Viewport */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
-        {/* Global Crisis Support Banner (Subtle, like homepage) */}
-        <div className="w-full bg-[#fcf8f2] border-b border-amber-200/45 pt-safe pb-2 px-6 text-center text-[11px] sm:text-xs font-semibold text-amber-800 relative z-25 shrink-0 select-none flex items-center justify-center">
-          <span className="inline-flex items-center gap-1.5">
-            <Heart className="w-3.5 h-3.5 text-amber-600 animate-pulse fill-current" />
-            Need help right now?
-            <button 
-              onClick={() => navigate("/crisis")} 
-              className="underline hover:text-amber-900 transition-colors ml-1 font-bold cursor-pointer border-none bg-transparent p-0 text-[inherit]"
-            >
-              View support helplines &rarr;
-            </button>
-          </span>
-        </div>
+      {/* Main column */}
+      <div className="relative flex min-w-0 flex-1 flex-col">
+        {/* Crisis banner - always reachable, calm not alarming */}
+        <CrisisBanner
+          onAction={() => navigate("/crisis")}
+          className="z-[var(--z-sticky)] shrink-0 pt-safe"
+        />
 
-        {/* Top Header Bar */}
-        <header className="h-20 border-b border-slate-200/50 bg-white/80 backdrop-blur-md px-6 sm:px-10 flex items-center justify-between shrink-0 z-10 sticky top-0 animate-fade-in">
-          <div className="flex items-center gap-4 lg:hidden">
+        {/* Top bar */}
+        <header className="sticky top-0 z-[var(--z-sticky)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-200/50 bg-white/85 px-4 backdrop-blur-md sm:h-20 sm:px-8">
+          <div className="flex items-center gap-3 lg:hidden">
+            <IconButton
+              label="Open menu"
+              size="sm"
+              variant="ghost"
+              icon={<Menu />}
+              onClick={() => props.setMobileMenuOpen(true)}
+              className="-ml-1"
+            />
             <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="p-2.5 -ml-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer border-none"
+              type="button"
+              onClick={props.onLogoClick}
+              className="flex cursor-pointer items-center transition-opacity hover:opacity-85"
             >
-              <Menu className="h-6 w-6" />
+              <img src={logoPng} alt="WellMindly - home" className="block h-6 w-auto" />
             </button>
-            <span
-              onClick={onLogoClick}
-              className="flex items-center cursor-pointer hover:opacity-85 transition-opacity"
-            >
-              <img src={logoPng} alt="WellMindly Logo" className="h-6 w-auto block select-none" />
-            </span>
           </div>
 
-          <div className="flex items-center gap-6 ml-auto">
-            <button
-              onClick={logout}
-              className="group flex items-center gap-2.5 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:shadow-sm"
-            >
-              <span className="hidden sm:inline">Sign Out</span>
-              <LogOut className="h-4 w-4 text-slate-400 group-hover:text-slate-700 transition-colors" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={props.logout}
+            className={cn(
+              "ml-auto hidden items-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5",
+              "text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 sm:flex",
+            )}
+          >
+            Sign out
+            <LogOut className="h-4 w-4 text-ink-400" />
+          </button>
         </header>
 
-        {/* Main Scrolling Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-10 pb-28 lg:pb-10 relative">
-          <div className="max-w-6xl mx-auto">
+        {/* Scroll area */}
+        <main className="relative flex-1 px-4 py-5 pb-nav sm:px-6 sm:py-6 lg:px-10 lg:py-8 lg:pb-10">
+          <div className="mx-auto max-w-6xl">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={tween.base}
               >
                 {children}
               </motion.div>
@@ -320,47 +291,93 @@ export function DashboardLayout({
         </main>
       </div>
 
-      {/* 4. Mobile Bottom Navigation Bar (< lg viewports) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-slate-200/80 z-40 px-2 py-1.5 pb-safe flex items-center justify-around shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
-        {[
-          { id: "overview", label: "Home", icon: LayoutDashboard },
-          { id: "checkin", label: "Check-in", icon: Heart },
-          { id: "assessments", label: "Quizzes", icon: ClipboardList },
-          { id: "writemindly", label: "WriteMindly", icon: PenTool },
-          { id: "talkmindly", label: "TalkMindly", icon: MessageSquare },
-        ].map((tab) => {
-          const TabIcon = tab.icon;
-          const isActive = activeTab === tab.id;
-          const isComingSoon = tab.id === "writemindly" && !config.enableWriteMindly;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => {
-                if (isComingSoon) {
-                  onComingSoonClick?.("writemindly");
-                } else {
-                  setActiveTab(tab.id);
-                }
-              }}
-              className={`flex flex-col items-center justify-center gap-1 min-w-[60px] min-h-[48px] px-2 py-1 rounded-2xl transition-all relative active-press cursor-pointer border-none bg-transparent ${
-                isActive ? "text-plum font-bold" : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              <div className="relative flex items-center justify-center p-1.5">
-                {isActive && (
-                  <motion.div
-                    layoutId="mobileActiveTab"
-                    className="absolute inset-0 bg-plum/15 rounded-xl z-0"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                  />
+      {/* Mobile bottom nav */}
+      <nav
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex items-stretch justify-around border-t border-ink-200/70 bg-white/95 px-1 pb-[calc(0.375rem+var(--safe-area-bottom))] pt-1.5 backdrop-blur-md lg:hidden"
+      >
+        {menuItems
+          .filter((item) => bottomNavIds.includes(item.id))
+          .map((item) => {
+            const isActive = activeTab === item.id;
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => handleNav(item.id)}
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  "active-press relative flex min-h-12 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-none bg-transparent px-1 py-1",
+                  isActive ? "text-plum-700" : "text-ink-400",
                 )}
-                <TabIcon className={`w-5 h-5 z-10 ${isActive ? "text-plum scale-110" : ""}`} />
-              </div>
-              <span className="text-[10px] tracking-tight leading-none z-10 font-bold">{tab.label}</span>
-            </button>
-          );
-        })}
+              >
+                <span className="relative flex items-center justify-center p-1.5">
+                  {isActive && (
+                    <motion.span
+                      layoutId="bottomNavActive"
+                      transition={spring.snappy}
+                      className="absolute inset-0 rounded-xl bg-plum-100"
+                    />
+                  )}
+                  <Icon className={cn("relative h-5 w-5", isActive && "scale-110")} />
+                </span>
+                <span className="text-2xs font-semibold leading-none">{item.label}</span>
+              </button>
+            );
+          })}
       </nav>
     </div>
+  );
+}
+
+/* ----------------------------------------------------------------- NavLink */
+
+function NavLink({
+  item,
+  active,
+  comingSoon,
+  onClick,
+  layoutId,
+}: {
+  item: MenuItem;
+  active: boolean;
+  comingSoon: boolean;
+  onClick: () => void;
+  layoutId: string;
+}) {
+  const Icon = item.icon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "group relative flex w-full items-center gap-3.5 rounded-2xl px-4 py-3 text-left text-sm font-semibold",
+        "cursor-pointer border-none bg-transparent transition-colors duration-200",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
+        active ? "text-plum-800" : "text-ink-500 hover:text-ink-900",
+      )}
+    >
+      {active && (
+        <motion.span
+          layoutId={layoutId}
+          transition={spring.snappy}
+          className="absolute inset-0 rounded-2xl bg-plum-100"
+        />
+      )}
+      <Icon
+        className={cn(
+          "relative h-5 w-5 shrink-0 transition-colors",
+          active ? "text-plum-600" : "text-ink-400 group-hover:text-ink-600",
+        )}
+      />
+      <span className="relative flex-1">{item.label}</span>
+      {comingSoon && (
+        <span className="relative rounded-full bg-plum-100 px-2 py-0.5 text-2xs font-bold text-plum-700">
+          Soon
+        </span>
+      )}
+    </button>
   );
 }

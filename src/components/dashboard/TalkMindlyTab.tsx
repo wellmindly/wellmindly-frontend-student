@@ -507,7 +507,7 @@ export function TalkMindlyTab() {
                   onClick={rollRandomIdentity}
                   className="flex items-center gap-1 text-[11px] font-bold text-plum hover:text-plum/80"
                 >
-                  <RefreshCw className="w-3 h-3 animate-spin-hover" /> Roll Random
+                  <RefreshCw className="w-3 h-3" /> Roll Random
                 </button>
               </div>
               <input

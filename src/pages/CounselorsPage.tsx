@@ -83,7 +83,8 @@ export function CounselorsPage() {
     <div className="min-h-screen bg-paper flex flex-col font-sans">
       <LandingHeader onCrisisClick={handleCrisisClick} />
 
-      {/* Hero Header */}
+      <main id="main-content" tabIndex={-1}>
+        {/* Hero Header */}
       <section className="py-20 px-6 bg-gradient-to-r from-plum to-[#614777] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <motion.span 
@@ -293,6 +294,7 @@ export function CounselorsPage() {
           </div>
         </div>
       </section>
+      </main>
 
       <LandingFooter onCrisisClick={handleCrisisClick} />
     </div>

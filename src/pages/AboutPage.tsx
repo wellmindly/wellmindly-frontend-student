@@ -34,111 +34,111 @@ export function AboutPage() {
     <div className="min-h-screen bg-paper flex flex-col font-sans">
       <LandingHeader onCrisisClick={handleCrisisClick} />
 
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-6 bg-gradient-to-b from-paper-2/50 to-paper">
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <motion.span 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-block px-3 py-1 bg-plum/10 text-plum rounded-full text-xs font-semibold uppercase tracking-wider mb-4"
-          >
-            Who We Are
-          </motion.span>
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-extrabold tracking-tight text-ink font-serif mb-6 leading-tight"
-          >
-            Fitting Alongside Campus Care to Help You Understand What You Carry
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-lg text-ink-soft max-w-2xl mx-auto leading-relaxed mb-8"
-          >
-            WellMindly is a student-first self-discovery and peer-support environment. We design space for students to reflect, connect, and seek resources privately before they reach a crisis point.
-          </motion.p>
-        </div>
-      </section>
-
-      {/* Services/Pillars Section */}
-      <section className="py-16 px-6 max-w-6xl mx-auto w-full">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-ink font-serif">What Services We Provide</h2>
-          <p className="text-sm text-ink-soft mt-2 max-w-md mx-auto">Providing non-clinical tools that support students in their day-to-day journey.</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {corePillars.map((pillar, idx) => (
-            <motion.div 
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-card p-8 rounded-2xl border border-line shadow-sm hover:shadow-md transition-shadow flex flex-col items-center md:items-start text-center md:text-left"
+      <main id="main-content" tabIndex={-1}>
+        {/* Hero Section */}
+        <section className="relative overflow-hidden py-20 px-6 bg-gradient-to-b from-paper-2/50 to-paper">
+          <div className="max-w-4xl mx-auto text-center relative z-10">
+            <motion.span 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-block px-3 py-1 bg-plum/10 text-plum rounded-full text-xs font-semibold uppercase tracking-wider mb-4"
             >
-              <div className="p-3 bg-paper-2 rounded-xl mb-4 inline-block">
-                {pillar.icon}
-              </div>
-              <h3 className="text-lg font-bold text-ink mb-2">{pillar.title}</h3>
-              <p className="text-sm text-ink-soft leading-relaxed">{pillar.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+              Who We Are
+            </motion.span>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-4xl md:text-5xl font-extrabold tracking-tight text-ink font-serif mb-6 leading-tight"
+            >
+              Fitting Alongside Campus Care to Help You Understand What You Carry
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg text-ink-soft max-w-2xl mx-auto leading-relaxed mb-8"
+            >
+              WellMindly is an accessible, evidence-informed mental health self-discovery platform tailored for modern university students.
+            </motion.p>
+          </div>
+        </section>
 
-      {/* Showable to Universities (Value Prop) */}
-      <section className="py-16 px-6 bg-paper-2/40 border-y border-line w-full">
-        <div className="max-w-3xl mx-auto">
-          <span className="text-teal font-bold text-xs uppercase tracking-wider block mb-2 text-center">Designed For Campus Communities</span>
-          <h2 className="text-3xl font-extrabold text-ink font-serif mb-6 leading-snug text-center">
-            Why Universities Partner with WellMindly
-          </h2>
-          <p className="text-ink-soft text-sm leading-relaxed mb-6 text-center">
-            Modern campus counseling centers are overwhelmed. WellMindly offers a preventative gateway that acts as a safe, anonymous precursor to clinical support systems.
+        {/* Core Pillars */}
+        <section className="py-16 px-6 max-w-6xl mx-auto w-full">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-ink font-serif">What Drives Our Mission</h2>
+            <p className="text-sm text-ink-soft mt-2">Built to empower proactive student self-care before clinical intervention is needed.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {corePillars.map((pillar, idx) => (
+              <motion.div 
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                className="bg-card p-8 rounded-2xl border border-line shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="p-3 bg-paper-2 rounded-xl w-fit mb-6">
+                  {pillar.icon}
+                </div>
+                <h3 className="text-lg font-bold text-ink mb-3">{pillar.title}</h3>
+                <p className="text-sm text-ink-soft leading-relaxed">{pillar.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        {/* Mission Statement & Vision */}
+        <section className="py-16 px-6 bg-paper-2 border-y border-line">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-ink font-serif text-center mb-6">
+              Bridging the Gap in Higher Education
+            </h2>
+            <p className="text-ink-soft text-sm leading-relaxed mb-6 text-center">
+              Modern campus counseling centers are overwhelmed. WellMindly offers a preventative gateway that acts as a safe, anonymous precursor to clinical support systems.
+            </p>
+            <ul className="space-y-3.5 max-w-xl mx-auto">
+              <li className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
+                <span className="text-sm text-ink font-medium">De-escalates mild/moderate challenges through self-awareness and peer validation.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
+                <span className="text-sm text-ink font-medium">Provides anonymous aggregate trends to administrative stakeholders.</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
+                <span className="text-sm text-ink font-medium">Builds a culture of proactive care, reducing friction to onboard into official campus resources.</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-6 text-center max-w-3xl mx-auto">
+          <Heart className="w-12 h-12 text-rose mx-auto mb-6 animate-pulse" />
+          <h2 className="text-2xl md:text-3xl font-extrabold text-ink font-serif mb-4">Want to Bring WellMindly to Your Campus?</h2>
+          <p className="text-sm text-ink-soft leading-relaxed max-w-lg mx-auto mb-8">
+            Join leading universities in transforming student engagement with proactive tools. Explore our onboarding models or contact our support team.
           </p>
-          <ul className="space-y-3.5 max-w-xl mx-auto">
-            <li className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
-              <span className="text-sm text-ink font-medium">De-escalates mild/moderate challenges through self-awareness and peer validation.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
-              <span className="text-sm text-ink font-medium">Provides anonymous aggregate trends to administrative stakeholders.</span>
-            </li>
-            <li className="flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 text-teal shrink-0 mt-0.5" />
-              <span className="text-sm text-ink font-medium">Builds a culture of proactive care, reducing friction to onboard into official campus resources.</span>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 px-6 text-center max-w-3xl mx-auto">
-        <Heart className="w-12 h-12 text-rose mx-auto mb-6 animate-pulse" />
-        <h2 className="text-2xl md:text-3xl font-extrabold text-ink font-serif mb-4">Want to Bring WellMindly to Your Campus?</h2>
-        <p className="text-sm text-ink-soft leading-relaxed max-w-lg mx-auto mb-8">
-          Join leading universities in transforming student engagement with proactive tools. Explore our onboarding models or contact our support team.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <button 
-            onClick={() => navigate("/university")}
-            className="px-6 py-3 bg-plum text-white font-bold rounded-full text-xs shadow-md shadow-plum/20 hover:opacity-95 transition-all active:scale-95 cursor-pointer border-none"
-          >
-            Partner with Us
-          </button>
-          <button 
-            onClick={() => navigate("/contact")}
-            className="px-6 py-3 bg-navy text-white font-bold rounded-full text-xs shadow-md hover:opacity-95 transition-all active:scale-95 cursor-pointer border-none"
-          >
-            Get in Touch
-          </button>
-        </div>
-      </section>
+          <div className="flex flex-wrap justify-center gap-4">
+            <button 
+              onClick={() => navigate("/university")}
+              className="px-6 py-3 bg-plum text-white font-bold rounded-full text-xs shadow-md shadow-plum/20 hover:opacity-95 transition-all active:scale-95 cursor-pointer border-none"
+            >
+              Partner with Us
+            </button>
+            <button 
+              onClick={() => navigate("/contact")}
+              className="px-6 py-3 bg-navy text-white font-bold rounded-full text-xs shadow-md hover:opacity-95 transition-all active:scale-95 cursor-pointer border-none"
+            >
+              Get in Touch
+            </button>
+          </div>
+        </section>
+      </main>
 
       <LandingFooter onCrisisClick={handleCrisisClick} />
     </div>

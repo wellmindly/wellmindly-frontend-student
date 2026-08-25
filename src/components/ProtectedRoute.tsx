@@ -1,56 +1,76 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import type { ReactNode } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { ShieldAlert } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { AppSplash } from "./AppSplash";
+import { Button } from "./ui";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: ReactNode;
   allowedRoles?: string[];
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  if (isLoading) {
-    // Show a basic Tailwind loading spinner while auth context rehydrates
+  if (isLoading) return <AppSplash label="Checking your session" />;
+
+  if (!isAuthenticated || !user) {
+    // Send them to login - not the landing page - and carry the intended
+    // destination in `redirect`, which is the contract LoginRoute already reads.
+    // `state.from` is kept for anything that prefers router state.
+    const intended = `${location.pathname}${location.search}`;
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
+      <Navigate
+        to={`/login?redirect=${encodeURIComponent(intended)}`}
+        state={{ from: location }}
+        replace
+      />
     );
   }
 
-  if (!isAuthenticated || !user) {
-    // Redirect unauthenticated users strictly to the public landing page (/)
-    // and remember the intended location so we can redirect them back after login
-    return <Navigate to="/" state={{ from: location }} replace />;
-  }
-
   if (allowedRoles && allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    // Render a strict 403 Forbidden message if their role profile is incompatible
+    // Reached when a counselor/admin account signs in to the student app. The
+    // old copy said "403 Forbidden … contact your administrator", which is
+    // meaningless to the person actually reading it.
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
-        <h1 className="text-4xl font-bold text-red-600 mb-4">403 Forbidden</h1>
-        <p className="text-gray-600 text-lg max-w-md">
-          You do not have the required permissions to access this page. Please contact your administrator if you believe this is an error.
-        </p>
-        <div className="mt-6 flex gap-4">
-          <a href="/" className="px-4 py-2 bg-slate-200 text-slate-700 rounded hover:bg-slate-300 transition-colors font-semibold">
-            Return to Home
-          </a>
-          <button 
+      <main className="flex min-h-dvh flex-col items-center justify-center gap-6 bg-paper px-6 py-16 text-center">
+        <span
+          aria-hidden
+          className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-gold-100 text-gold-700"
+        >
+          <ShieldAlert className="h-8 w-8" />
+        </span>
+
+        <div className="measure-tight">
+          <h1 className="font-display text-2xl font-semibold text-ink-900">
+            This is the student space
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-ink-600">
+            You're signed in as{" "}
+            <span className="font-semibold text-ink-800">{user.role.toLowerCase()}</span>, so this
+            area isn't available to your account. Sign out to switch to a student login.
+          </p>
+        </div>
+
+        <div className="flex w-full max-w-xs flex-col-reverse gap-2 sm:w-auto sm:flex-row">
+          <Button variant="outline" onClick={() => navigate("/")}>
+            Back to home
+          </Button>
+          <Button
             onClick={() => {
               logout();
-              window.location.href = '/login';
-            }} 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors font-semibold"
+              navigate("/login", { replace: true });
+            }}
           >
-            Sign Out & Try Again
-          </button>
+            Sign out
+          </Button>
         </div>
-      </div>
+      </main>
     );
   }
 
   return <>{children}</>;
-};
+}

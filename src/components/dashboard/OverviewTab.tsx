@@ -8,6 +8,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { WellbeingChart } from "./WellbeingChart";
+import { MOODS, moodByRating } from "../../lib/mood";
+import { cn } from "../../lib/cn";
 
 interface OverviewTabProps {
   greeting: string;
@@ -36,39 +38,6 @@ export function OverviewTab({
 }: OverviewTabProps) {
   const [selectedTile, setSelectedTile] = useState<any>(null);
   const [hoveredTile, setHoveredTile] = useState<number | null>(null);
-
-  const moodConfig: Record<number, { color: string; emoji: string; text: string; msg: string }> = {
-    1: {
-      color: "var(--rose)",
-      emoji: "💜",
-      text: "Gentle Reminder",
-      msg: "It's okay to have tough days. Remember to take gentle breaths and reach out to campus resources or someone you trust.",
-    },
-    2: {
-      color: "var(--sage-brand)",
-      emoji: "🌿",
-      text: "Self-Care Moment",
-      msg: "Be gentle with yourself today. Taking a short break, walking in nature, or listening to a favorite song might help ease things.",
-    },
-    3: {
-      color: "var(--sky)",
-      emoji: "🌱",
-      text: "Steady & Balanced",
-      msg: "A steady, balanced day. Keep taking it one step at a time!",
-    },
-    4: {
-      color: "var(--gold)",
-      emoji: "☀️",
-      text: "Bright Energy",
-      msg: "Keep riding this positive wave. Try sharing some of your good energy with a friend or colleague today.",
-    },
-    5: {
-      color: "var(--coral)",
-      emoji: "🎉",
-      text: "Thriving & Strong",
-      msg: "Your light is shining bright today. Celebrate this moment and keep doing what makes you thrive!",
-    },
-  };
 
   const tiles: Date[] = [];
   const today = new Date();
@@ -225,15 +194,20 @@ export function OverviewTab({
           {/* Simple legend */}
           <div className="flex gap-2 items-center flex-wrap">
             <span className="text-xs font-bold text-slate-400 mr-1">Legend:</span>
-            {[1, 2, 3, 4, 5].map(rating => {
-              const config = moodConfig[rating];
-              return (
-                <span key={rating} className="flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border border-line" style={{ backgroundColor: `${config.color}15` }}>
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: config.color }} />
-                  <span>{config.emoji}</span>
-                </span>
-              );
-            })}
+            {MOODS.map((mood) => (
+              <span
+                key={mood.rating}
+                className={cn(
+                  "flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-md border",
+                  mood.soft,
+                  mood.border,
+                  mood.text,
+                )}
+              >
+                <span className={cn("w-2.5 h-2.5 rounded-full", mood.dot)} />
+                <span>{mood.label}</span>
+              </span>
+            ))}
           </div>
         </div>
 
@@ -254,7 +228,7 @@ export function OverviewTab({
                 
                 if (checkin) {
                   style = { 
-                    backgroundColor: moodConfig[checkin.rating].color,
+                    backgroundColor: moodByRating(checkin.rating).color,
                     boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06), inset 0 -2.5px 0 rgba(0,0,0,0.15)"
                   };
                   className += isSelected ? "ring-4 ring-offset-2 ring-plum/50 shadow-md scale-105 z-10" : "shadow-sm hover:shadow-md hover:z-10";
@@ -283,7 +257,7 @@ export function OverviewTab({
                       <span className="text-[10px] font-black text-plum font-sans">+</span>
                     )}
                     {checkin && (
-                      <span className="text-[10px] select-none opacity-90">{moodConfig[checkin.rating].emoji}</span>
+                      <span className="text-[10px] select-none opacity-90">{moodByRating(checkin.rating).affirmation.emoji}</span>
                     )}
 
                     {/* Custom hover tooltip */}
@@ -293,8 +267,8 @@ export function OverviewTab({
                           {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                         </p>
                         <p className="font-black mt-1 flex items-center gap-1.5 text-xs text-white">
-                          <span>{moodConfig[checkin.rating].emoji}</span>
-                          <span>{moodConfig[checkin.rating].text}</span>
+                          <span>{moodByRating(checkin.rating).affirmation.emoji}</span>
+                          <span>{moodByRating(checkin.rating).affirmation.title}</span>
                         </p>
                         <p className="text-[9px] text-slate-300 font-bold mt-1">
                           Rating: {checkin.rating}/5
@@ -326,18 +300,18 @@ export function OverviewTab({
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                     {activeSelection.date.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
-                  <span className="text-2xl">{moodConfig[activeSelection.checkin.rating].emoji}</span>
+                  <span className="text-2xl">{moodByRating(activeSelection.checkin.rating).affirmation.emoji}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <h4 className="text-lg font-black text-slate-900">
-                    {moodConfig[activeSelection.checkin.rating].text}
+                    {moodByRating(activeSelection.checkin.rating).affirmation.title}
                   </h4>
                   <span className="text-xs font-bold px-2 py-0.5 rounded bg-white text-slate-500 border border-line">
                     Rating {activeSelection.checkin.rating}/5
                   </span>
                 </div>
                 <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  {moodConfig[activeSelection.checkin.rating].msg}
+                  {moodByRating(activeSelection.checkin.rating).affirmation.message}
                 </p>
               </motion.div>
             ) : (

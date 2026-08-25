@@ -180,7 +180,7 @@ export function CrisisPage() {
   });
 
   const handleScrollToContent = () => {
-    const el = document.getElementById("crisis-content-section");
+    const el = document.getElementById("main-content");
     if (el) {
       el.scrollIntoView({ behavior: "smooth" });
     }
@@ -193,7 +193,7 @@ export function CrisisPage() {
         <LandingHeader onCrisisClick={handleScrollToContent} />
 
         {/* Main Content Area */}
-        <main className="mx-auto max-w-4xl px-6 py-16 relative z-10 flex-1" id="crisis-content-section">
+        <main className="mx-auto max-w-4xl px-6 py-16 relative z-10 flex-1" id="main-content" tabIndex={-1}>
           {/* Header Introduction */}
           <div className="text-center max-w-2xl mx-auto mb-10 animate-fade-in">
             <span className="text-[11px] font-bold text-coral uppercase tracking-widest block mb-3">

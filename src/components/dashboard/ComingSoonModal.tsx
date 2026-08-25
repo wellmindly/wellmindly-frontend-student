@@ -131,7 +131,7 @@ export function ComingSoonModal({ show, onClose, feature }: ComingSoonModalProps
             {/* Bullet points */}
             <ul className="space-y-2.5 mb-8">
               {currentFeature.bulletPoints.map((pt) => (
-                <li key={pt} className="flex items-start gap-2.5 text-xs.5 font-bold text-slate-600">
+                <li key={pt} className="flex items-start gap-2.5 text-xs font-bold text-slate-600">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                   <span>{pt}</span>
                 </li>
@@ -175,7 +175,7 @@ export function ComingSoonModal({ show, onClose, feature }: ComingSoonModalProps
                           placeholder="Enter your email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-3 text-xs.5 font-bold text-slate-800 focus:outline-none focus:border-slate-350 focus:bg-white transition-all placeholder:text-slate-400"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-10 pr-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-350 focus:bg-white transition-all placeholder:text-slate-400"
                         />
                       </div>
                       <button

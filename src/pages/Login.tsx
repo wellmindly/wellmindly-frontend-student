@@ -17,13 +17,16 @@ export function LoginPage() {
   useEffect(() => {
     if (user) {
       const params = new URLSearchParams(window.location.search);
-      const redirectParam = params.get("redirect");
+      const raw = params.get("redirect");
+      const safeRedirect = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
       const testIdParam = params.get("testId");
-      if (redirectParam) {
-        const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
+      if (raw && safeRedirect !== "/dashboard") {
+        const target = testIdParam ? `${safeRedirect}?showResult=${testIdParam}` : safeRedirect;
         navigate(target, { replace: true });
+      } else if (safeRedirect === "/dashboard" && testIdParam && raw) {
+        navigate(`${safeRedirect}?showResult=${testIdParam}`, { replace: true });
       } else {
-        navigate('/dashboard', { replace: true });
+        navigate(safeRedirect, { replace: true });
       }
     }
   }, [user, navigate]);

@@ -1,24 +1,62 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { LoginPage } from './pages/Login';
-import { LandingPage } from './pages/LandingPage';
-import { ProtectedRoute } from './components/ProtectedRoute';
-import { Dashboard } from './pages/Dashboard';
-import { DiscoverPage } from './pages/DiscoverPage';
-import { CrisisPage } from './pages/CrisisPage';
-import { AboutPage } from './pages/AboutPage';
-import { ContactPage } from './pages/ContactPage';
-import { UniversityPage } from './pages/UniversityPage';
-import { CounselorsPage } from './pages/CounselorsPage';
+import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { MotionConfig } from "framer-motion";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AppSplash } from "./components/AppSplash";
+import { ToastProvider } from "./components/ui";
 
+/* ----------------------------------------------------------------------------
+   Route-level code splitting.
+
+   A cold visitor lands on `/`, so only the landing page stays in the entry
+   chunk. Everything else - including login, which drags in the Google OAuth
+   SDK, and the dashboard, which pulls the quiz engine, chat UI and booking flow
+   - loads on demand. This is what the >500kB build warning was about.
+-------------------------------------------------------------------------- */
+import { LandingPage } from "./pages/LandingPage";
+
+const LoginPage = lazy(() =>
+  import("./pages/Login").then((m) => ({ default: m.LoginPage })),
+);
+
+const Dashboard = lazy(() =>
+  import("./pages/Dashboard").then((m) => ({ default: m.Dashboard })),
+);
+const DiscoverPage = lazy(() =>
+  import("./pages/DiscoverPage").then((m) => ({ default: m.DiscoverPage })),
+);
+const CrisisPage = lazy(() =>
+  import("./pages/CrisisPage").then((m) => ({ default: m.CrisisPage })),
+);
+const AboutPage = lazy(() =>
+  import("./pages/AboutPage").then((m) => ({ default: m.AboutPage })),
+);
+const ContactPage = lazy(() =>
+  import("./pages/ContactPage").then((m) => ({ default: m.ContactPage })),
+);
+const UniversityPage = lazy(() =>
+  import("./pages/UniversityPage").then((m) => ({ default: m.UniversityPage })),
+);
+const CounselorsPage = lazy(() =>
+  import("./pages/CounselorsPage").then((m) => ({ default: m.CounselorsPage })),
+);
+
+/**
+ * `/discover` is the guest-accessible quiz surface. A signed-in student belongs
+ * in the dashboard's Discover tab instead, so we forward them - preserving the
+ * `showResult` / `testId` contract that the gated-result flow depends on.
+ */
 function DiscoverRoute() {
   const { user } = useAuth();
+  const location = useLocation();
+
   if (user) {
-    const params = new URLSearchParams(window.location.search);
-    const showResult = params.get('showResult') || params.get('testId');
-    const redirectUrl = showResult 
-      ? `/dashboard?tab=discover&showResult=${showResult}` 
-      : `/dashboard?tab=discover`;
+    const params = new URLSearchParams(location.search);
+    const showResult = params.get("showResult") || params.get("testId");
+    const redirectUrl = showResult
+      ? `/dashboard?tab=discover&showResult=${encodeURIComponent(showResult)}`
+      : "/dashboard?tab=discover";
     return <Navigate to={redirectUrl} replace />;
   }
   return <DiscoverPage />;
@@ -26,19 +64,20 @@ function DiscoverRoute() {
 
 function LoginRoute() {
   const { user, isLoading } = useAuth();
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7F9F7]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-plum"></div>
-      </div>
-    );
-  }
+  const location = useLocation();
+
+  if (isLoading) return <AppSplash label="Signing you in" />;
+
   if (user) {
-    const params = new URLSearchParams(window.location.search);
-    const redirectParam = params.get('redirect');
-    const testIdParam = params.get('testId');
+    const params = new URLSearchParams(location.search);
+    const redirectParam = params.get("redirect");
+    const testIdParam = params.get("testId");
     if (redirectParam) {
-      const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
+      // `redirect` may already carry its own query (e.g. /dashboard?tab=talkmindly),
+      // so append with the correct separator instead of assuming there is none.
+      const target = testIdParam
+        ? `${redirectParam}${redirectParam.includes("?") ? "&" : "?"}showResult=${encodeURIComponent(testIdParam)}`
+        : redirectParam;
       return <Navigate to={target} replace />;
     }
     return <Navigate to="/dashboard" replace />;
@@ -46,34 +85,39 @@ function LoginRoute() {
   return <LoginPage />;
 }
 
-import { MotionConfig } from 'framer-motion';
-
 function App() {
-  const isCapacitor = typeof window !== 'undefined' && !!(window as any).Capacitor;
   return (
     <AuthProvider>
-      <MotionConfig reducedMotion={isCapacitor ? "always" : "user"}>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginRoute />} />
-            <Route path="/discover" element={<DiscoverRoute />} />
-            <Route path="/crisis" element={<CrisisPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/university" element={<UniversityPage />} />
-            <Route path="/counselors" element={<CounselorsPage />} />
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute allowedRoles={['STUDENT']}>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+      {/* Respect the OS-level reduce-motion setting on every platform, native
+          included - a Capacitor webview reports prefers-reduced-motion too.
+          Every animation in the design system is transform/opacity only, so it
+          composites on the GPU and stays smooth in the Android webview. */}
+      <MotionConfig reducedMotion="user">
+        <ToastProvider>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <Suspense fallback={<AppSplash />}>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/login" element={<LoginRoute />} />
+                <Route path="/discover" element={<DiscoverRoute />} />
+                <Route path="/crisis" element={<CrisisPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/university" element={<UniversityPage />} />
+                <Route path="/counselors" element={<CounselorsPage />} />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute allowedRoles={["STUDENT"]}>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </ToastProvider>
       </MotionConfig>
     </AuthProvider>
   );

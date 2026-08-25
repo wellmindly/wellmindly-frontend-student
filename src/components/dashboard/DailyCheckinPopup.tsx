@@ -1,5 +1,9 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Heart } from "lucide-react";
+import { motion } from "framer-motion";
+import { MOODS } from "../../lib/mood";
+import { cn } from "../../lib/cn";
+import { spring } from "../../lib/motion";
+import { MoodFace } from "../ui/MoodFace";
+import { Sheet } from "../ui";
 
 interface DailyCheckinPopupProps {
   show: boolean;
@@ -7,145 +11,62 @@ interface DailyCheckinPopupProps {
   onSelect: (rating: number) => void;
 }
 
-const EMOJIS = [
-  {
-    rating: 1,
-    label: "Awful",
-    color: "from-rose-400 to-red-500",
-    bgHover: "hover:bg-rose-50",
-    svg: (
-      <svg className="w-8 h-8 sm:w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" fill="none" />
-        <path d="M8 15h8" strokeLinecap="round" />
-        <circle cx="9" cy="9" r="1" fill="currentColor" />
-        <circle cx="15" cy="9" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    rating: 2,
-    label: "Down",
-    color: "from-amber-400 to-orange-500",
-    bgHover: "hover:bg-amber-50",
-    svg: (
-      <svg className="w-8 h-8 sm:w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M9 16a3 3 0 0 1 6 0" strokeLinecap="round" />
-        <circle cx="9" cy="9.5" r="1" fill="currentColor" />
-        <circle cx="15" cy="9.5" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    rating: 3,
-    label: "Okay",
-    color: "from-emerald-400 to-teal-500",
-    bgHover: "hover:bg-emerald-50",
-    svg: (
-      <svg className="w-8 h-8 sm:w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <line x1="8" y1="15" x2="16" y2="15" strokeLinecap="round" />
-        <circle cx="9" cy="9" r="1" fill="currentColor" />
-        <circle cx="15" cy="9" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    rating: 4,
-    label: "Good",
-    color: "from-blue-400 to-indigo-500",
-    bgHover: "hover:bg-blue-50",
-    svg: (
-      <svg className="w-8 h-8 sm:w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M8 14s1.5 2 4 2 4-2 4-2" strokeLinecap="round" />
-        <circle cx="9" cy="9" r="1" fill="currentColor" />
-        <circle cx="15" cy="9" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    rating: 5,
-    label: "Great",
-    color: "from-plum to-[#8E74A5]",
-    bgHover: "hover:bg-purple-50",
-    svg: (
-      <svg className="w-8 h-8 sm:w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M8 13s1.5 3.5 4 3.5 4-3.5 4-3.5" strokeLinecap="round" />
-        <circle cx="9" cy="9" r="1.5" fill="currentColor" />
-        <circle cx="15" cy="9" r="1.5" fill="currentColor" />
-      </svg>
-    ),
-  },
-];
-
+/**
+ * The day's first interaction, so it has to be the fastest one in the product:
+ * one tap, no scrolling, no reading.
+ *
+ * Rebuilt on `Sheet`, which fixes the things the hand-rolled overlay got wrong -
+ * it had no focus trap, no Escape handler, no dialog role, and a close button
+ * with no accessible name. On mobile it is now a bottom sheet, which puts all
+ * five targets inside thumb reach instead of floating them mid-screen.
+ *
+ * Each face carries its mood colour permanently rather than revealing it on
+ * hover: hover doesn't exist on a phone, and showing the colours up front is
+ * what teaches the scale used by the mood mosaic in the dashboard.
+ */
 export function DailyCheckinPopup({ show, onClose, onSelect }: DailyCheckinPopupProps) {
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-paper/60 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4"
-        >
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 15 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 15 }}
-            transition={{ type: "spring", duration: 0.4 }}
-            className="w-full max-w-[460px] bg-white/95 rounded-[2rem] p-5 sm:p-8 shadow-2xl relative border border-slate-100/80 backdrop-blur-md"
+    <Sheet
+      open={show}
+      onClose={onClose}
+      title="How are you feeling today?"
+      description="Take a brief self-reflection moment to check in with your mind."
+      size="sm"
+    >
+      <div className="grid grid-cols-5 gap-1.5 pt-1 pb-2 sm:gap-2.5">
+        {MOODS.map((mood) => (
+          <motion.button
+            key={mood.rating}
+            type="button"
+            onClick={() => {
+              onSelect(mood.rating);
+              onClose();
+            }}
+            aria-label={`${mood.label} - ${mood.summary.toLowerCase()}`}
+            whileHover={{ y: -4 }}
+            whileTap={{ scale: 0.94 }}
+            transition={spring.snappy}
+            className={cn(
+              "flex min-h-[5.25rem] cursor-pointer flex-col items-center justify-center gap-1.5",
+              "rounded-2xl border bg-white px-0.5 py-2.5 transition-colors",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
+              mood.border,
+              "hover:border-plum-300",
+            )}
           >
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-6 right-6 p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors border-none cursor-pointer outline-none z-10"
+            <span
+              className={cn(
+                "flex h-11 w-11 items-center justify-center rounded-xl",
+                mood.soft,
+                mood.text,
+              )}
             >
-              <X className="h-5 w-5" />
-            </button>
-
-            {/* Content */}
-            <div className="text-center space-y-6">
-              <div className="h-12 w-12 bg-plum/10 text-plum rounded-2xl flex items-center justify-center mx-auto mb-2">
-                <Heart className="h-6 w-6 fill-current animate-pulse" />
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 font-serif leading-tight">
-                  How are you feeling today?
-                </h3>
-                <p className="text-slate-500 font-medium text-sm max-w-xs mx-auto">
-                  Take a brief self-reflection moment to check in with your mind.
-                </p>
-              </div>
-
-              {/* Emoji Selectors */}
-              <div className="flex justify-between gap-1.5 sm:gap-2.5 pt-2">
-                {EMOJIS.map((emoji) => (
-                  <motion.button
-                    key={emoji.rating}
-                    onClick={() => {
-                      onSelect(emoji.rating);
-                      onClose();
-                    }}
-                    whileHover={{ scale: 1.15, y: -4 }}
-                    whileTap={{ scale: 0.95 }}
-                    className={`flex-1 flex flex-col items-center gap-1.5 py-2.5 px-1 sm:gap-2 sm:py-3.5 sm:px-2 rounded-2xl border border-slate-100 hover:border-plum/20 transition-all cursor-pointer bg-slate-50/50 ${emoji.bgHover} group outline-none`}
-                  >
-                    <div className={`p-1.5 rounded-xl text-slate-400 group-hover:bg-gradient-to-br ${emoji.color} group-hover:text-white transition-all duration-300`}>
-                      {emoji.svg}
-                    </div>
-                    <span className="text-[10px] font-black tracking-wider text-slate-400 uppercase group-hover:text-slate-700 transition-colors">
-                      {emoji.label}
-                    </span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              <MoodFace rating={mood.rating} className="h-7 w-7" />
+            </span>
+            <span className="text-2xs font-bold tracking-wide text-ink-600">{mood.label}</span>
+          </motion.button>
+        ))}
+      </div>
+    </Sheet>
   );
 }

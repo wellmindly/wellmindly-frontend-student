@@ -50,7 +50,7 @@ export function UniversityPage() {
       doc.setFontSize(10);
       doc.setTextColor(220, 220, 220);
       doc.text("Anonymized aggregate reports for campus administration", 15, 25);
-      doc.text("Gulf International University — Spring Cohort", 15, 30);
+      doc.text("Gulf International University - Spring Cohort", 15, 30);
 
       // Report metadata box
       doc.setFillColor(248, 250, 252);
@@ -234,7 +234,8 @@ export function UniversityPage() {
     <div className="min-h-screen bg-paper flex flex-col font-sans">
       <LandingHeader onCrisisClick={handleCrisisClick} />
 
-      {/* Hero Banner */}
+      <main id="main-content" tabIndex={-1}>
+        {/* Hero Banner */}
       <section className="py-20 px-6 bg-gradient-to-r from-navy to-[#2C3B53] text-white">
         <div className="max-w-4xl mx-auto text-center">
           <motion.span 
@@ -528,6 +529,7 @@ export function UniversityPage() {
           </div>
         </div>
       </section>
+      </main>
 
       <LandingFooter onCrisisClick={handleCrisisClick} />
     </div>

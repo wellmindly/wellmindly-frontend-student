@@ -1,10 +1,156 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Overpass:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap');
 @import "tailwindcss";
 
+/* ============================================================================
+   WellMindly - Student Design System
+   ----------------------------------------------------------------------------
+   ONE system. Every student surface reads from these tokens; no page invents
+   its own colour, radius, shadow, z-index or motion values.
+
+   Fonts are loaded once from index.html (Outfit + Inter + Lora). Do not add
+   @import url(...) here - it blocks first paint.
+
+     Outfit  → display / headings / numerals        (font-display)
+     Inter   → body, UI, labels, controls           (font-sans)
+     Lora    → long-form reflective prose only      (font-reflective)
+
+   Layers of the system, in order below:
+     1. Brand ramps (50→900)      2. Semantic aliases
+     3. Typography scale          4. Radius / shadow / blur
+     5. Motion tokens             6. Z-index scale
+     7. Base + reset              8. Utilities
+     9. Keyframes                10. Reduced motion
+   ========================================================================= */
+
 @theme {
-  --font-serif: "Overpass", system-ui, sans-serif;
-  --font-sans: "Inter", system-ui, sans-serif;
-  
+  /* ---------------------------------------------------------------- 1. FONTS */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-reflective: "Lora", Georgia, "Times New Roman", serif;
+  /* Legacy alias: ~40 existing headings use `font-serif`. It points at the
+     display face so untouched surfaces stay coherent during the redesign.
+     New code should use `font-display`. */
+  --font-serif: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --font-numeric: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  /* --------------------------------------------------- 2. BRAND COLOUR RAMPS */
+  /* Plum - primary. Identity colour, used for active state and primary action. */
+  --color-plum-50:  #F7F4FA;
+  --color-plum-100: #EDE7F3;
+  --color-plum-200: #DACFE6;
+  --color-plum-300: #C0AED4;
+  --color-plum-400: #A184BB;
+  --color-plum-500: #7A5B93;
+  --color-plum-600: #6A4E80;
+  --color-plum-700: #57406A;
+  --color-plum-800: #453353;
+  --color-plum-900: #2E2238;
+
+  /* Teal - calm / privacy / "safe" semantics. */
+  --color-teal-50:  #EDFAFB;
+  --color-teal-100: #D3F2F4;
+  --color-teal-200: #A8E5E9;
+  --color-teal-300: #6FD2D9;
+  --color-teal-400: #2EB4BD;
+  --color-teal-500: #05959D;
+  --color-teal-600: #05787F;
+  --color-teal-700: #076068;
+  --color-teal-800: #0A4C53;
+  --color-teal-900: #0B3438;
+
+  /* Coral - warmth / human support / coaching. */
+  --color-coral-50:  #FDF5F2;
+  --color-coral-100: #FAE7E1;
+  --color-coral-200: #F3CCC0;
+  --color-coral-300: #E9AC99;
+  --color-coral-400: #DA8B72;
+  --color-coral-500: #C86B56;
+  --color-coral-600: #AC5643;
+  --color-coral-700: #8C4436;
+  --color-coral-800: #6E362B;
+  --color-coral-900: #4A241D;
+
+  /* Gold - streaks, progress, small celebrations. */
+  --color-gold-50:  #FFFAEB;
+  --color-gold-100: #FEF0C7;
+  --color-gold-200: #FDE08A;
+  --color-gold-300: #FCCB4D;
+  --color-gold-400: #FAB524;
+  --color-gold-500: #F9A825;
+  --color-gold-600: #DC8A0B;
+  --color-gold-700: #B66908;
+  --color-gold-800: #92510D;
+  --color-gold-900: #78430F;
+
+  /* Rose - reflection / expressive accent. */
+  --color-rose-50:  #FBF5F7;
+  --color-rose-100: #F6E8EE;
+  --color-rose-200: #EDD0DC;
+  --color-rose-300: #DFAEC3;
+  --color-rose-400: #C98BA4;
+  --color-rose-500: #AD6A82;
+  --color-rose-600: #93556C;
+  --color-rose-700: #774457;
+  --color-rose-800: #5C3543;
+  --color-rose-900: #3D232C;
+
+  /* Sage - growth / steady / grounded. */
+  --color-sage-50:  #F3F7F4;
+  --color-sage-100: #E4EDE7;
+  --color-sage-200: #C9DBCF;
+  --color-sage-300: #A4C0AD;
+  --color-sage-400: #7C9E88;
+  --color-sage-500: #5B7861;
+  --color-sage-600: #4A634F;
+  --color-sage-700: #3C4F40;
+  --color-sage-800: #2F3E33;
+  --color-sage-900: #1F2822;
+
+  /* Ink - the neutral ramp. Warm-cool navy, not pure grey. */
+  --color-ink-50:  #F7F9F9;
+  --color-ink-100: #EEF1F4;
+  --color-ink-200: #DCE2E8;
+  --color-ink-300: #BFC8D3;
+  --color-ink-400: #8D97A8;
+  --color-ink-500: #6B7688;
+  --color-ink-600: #4F596F;
+  --color-ink-700: #3A4457;
+  --color-ink-800: #28313F;
+  --color-ink-900: #1B2433;
+
+  /* ------------------------------------------------- 3. SEMANTIC COLOUR API */
+  /* Prefer these in components. Raw ramp steps are for gradients and charts. */
+  --color-primary: var(--color-plum-500);
+  --color-primary-hover: var(--color-plum-600);
+  --color-primary-active: var(--color-plum-700);
+  --color-primary-soft: var(--color-plum-100);
+  --color-primary-softer: var(--color-plum-50);
+  --color-on-primary: #FFFFFF;
+
+  --color-surface: #FFFFFF;
+  --color-surface-2: #FBFCFB;
+  --color-surface-sunken: #EEF2EE;
+  --color-on-surface: var(--color-ink-900);
+  --color-on-surface-muted: var(--color-ink-600);
+  --color-on-surface-subtle: var(--color-ink-500);
+
+  --color-line-soft: #EDF1F5;
+  --color-line-strong: #CBD4DF;
+
+  --color-danger: #C0392F;
+  --color-danger-soft: #FDF1EF;
+  --color-danger-strong: #96271E;
+  --color-success: #2F7D5B;
+  --color-success-soft: #EDF8F2;
+  --color-warning: #B4780C;
+  --color-warning-soft: #FFF8EA;
+  --color-info: var(--color-teal-600);
+  --color-info-soft: var(--color-teal-50);
+
+  --color-ring: var(--color-plum-400);
+
+  /* --- Legacy single-value brand tokens. Kept so every existing class
+         (bg-plum, text-ink-soft, border-line, bg-paper-2, …) keeps working. --- */
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-paper: var(--paper);
@@ -17,47 +163,117 @@
   --color-forest-green: var(--forest-green);
   --color-rose: var(--rose);
   --color-plum: var(--plum);
+  --color-plum-hover: var(--color-plum-600);
   --color-sky: var(--sky);
   --color-coral: var(--coral);
   --color-sage-brand: var(--sage-brand);
   --color-ember: var(--ember);
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-border: var(--border);
+  --color-border: var(--line);
   --color-sage: var(--sage);
   --color-sage-foreground: var(--sage-foreground);
   --color-surface-muted: var(--surface-muted);
+
+  /* In-the-wild classes that referenced non-existent Tailwind slate steps. */
+  --color-slate-150: #EDF0F4;
+  --color-slate-350: #B2BCCB;
+
+  /* -------------------------------------------------- 4. TYPOGRAPHY SCALE */
+  /* Body floor is 16px on mobile (iOS auto-zooms anything smaller in inputs).
+     `xs`/`sm` are raised from Tailwind's defaults - the old UI used 12px and
+     even 9–11px as body copy, which is below the readable minimum. */
+  --text-2xs: 0.75rem;          /* 12px - micro labels / legal only, never prose */
+  --text-2xs--line-height: 1.45;
+  --text-xs: 0.8125rem;         /* 13px */
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.9375rem;         /* 15px */
+  --text-sm--line-height: 1.55;
+  --text-base: 1rem;            /* 16px - default body */
+  --text-base--line-height: 1.6;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.55;
+  --text-xl: 1.3125rem;
+  --text-xl--line-height: 1.45;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.3;
+  --text-2xl--letter-spacing: -0.011em;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.22;
+  --text-3xl--letter-spacing: -0.018em;
+  --text-4xl: 2.375rem;
+  --text-4xl--line-height: 1.14;
+  --text-4xl--letter-spacing: -0.024em;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.06;
+  --text-5xl--letter-spacing: -0.03em;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.02;
+  --text-6xl--letter-spacing: -0.034em;
+
+  /* -------------------------------------------------------- 5. RADIUS SCALE */
+  /* Organic geometry: generous, soft, consistent. Nothing sharper than 8px. */
+  --radius-xs: 0.5rem;      /* 8  - chips, tight inline tags */
+  --radius-sm: 0.625rem;    /* 10 */
+  --radius-md: 0.75rem;     /* 12 - inputs, small buttons */
+  --radius-lg: 1rem;        /* 16 - buttons, list rows */
+  --radius-xl: 1.25rem;     /* 20 - inner panels */
+  --radius-2xl: 1.5rem;     /* 24 - cards */
+  --radius-3xl: 1.75rem;    /* 28 - feature cards, sheets */
+  --radius-4xl: 2.25rem;    /* 36 - hero surfaces */
+
+  /* --------------------------------------------------- 6. ELEVATION SCALE */
+  /* Low-chroma, ink-tinted, two-layer. Elevation communicates hierarchy -
+     it is never decorative. */
+  --shadow-2xs: 0 1px 2px -1px rgb(27 36 51 / 0.06);
+  --shadow-xs:  0 1px 3px -1px rgb(27 36 51 / 0.07), 0 1px 2px -1px rgb(27 36 51 / 0.04);
+  --shadow-sm:  0 2px 6px -2px rgb(27 36 51 / 0.08), 0 1px 3px -1px rgb(27 36 51 / 0.05);
+  --shadow-md:  0 6px 16px -6px rgb(27 36 51 / 0.10), 0 2px 6px -2px rgb(27 36 51 / 0.06);
+  --shadow-lg:  0 12px 28px -10px rgb(27 36 51 / 0.13), 0 4px 10px -4px rgb(27 36 51 / 0.07);
+  --shadow-xl:  0 22px 48px -16px rgb(27 36 51 / 0.17), 0 6px 16px -8px rgb(27 36 51 / 0.08);
+  --shadow-2xl: 0 34px 68px -22px rgb(27 36 51 / 0.24), 0 10px 24px -12px rgb(27 36 51 / 0.10);
+  --shadow-glow-primary: 0 10px 30px -12px rgb(122 91 147 / 0.45);
+  --shadow-inset-soft: inset 0 1px 0 0 rgb(255 255 255 / 0.6);
+
+  /* ------------------------------------------------------ 7. MOTION TOKENS */
+  /* Durations. Exit is ~65% of enter (things should leave faster than arrive). */
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 340ms;
+  --duration-slower: 520ms;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.64, 1);
+
+  /* Named animations. `animate-fade-in` was used in 6 files but never defined. */
+  --animate-fade-in: fade-in var(--duration-slow) var(--ease-out-soft) both;
+  --animate-fade-in-up: fade-in-up var(--duration-slow) var(--ease-out-soft) both;
+  --animate-fade-in-down: fade-in-down var(--duration-slow) var(--ease-out-soft) both;
+  --animate-scale-in: scale-in var(--duration-base) var(--ease-out-quint) both;
+  --animate-slide-up: slide-up var(--duration-slow) var(--ease-out-quint) both;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-breathe: breathe 6s var(--ease-in-out-soft) infinite;
+  --animate-float: float 7s var(--ease-in-out-soft) infinite;
+  --animate-pulse-soft: pulse-soft 2.6s var(--ease-in-out-soft) infinite;
+  --animate-drift: drift 22s linear infinite;
+
+  --blur-xs: 4px;
 }
 
+/* ============================================================ ROOT VARIABLES */
 :root {
-  /* Safe Area variables for mobile devices */
+  /* Safe areas - Capacitor / notched devices. */
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
 
-  --radius: 0.625rem;
-  --sage: oklch(0.945 0.022 155);
-  --sage-foreground: oklch(0.45 0.055 155);
-  --surface-muted: oklch(0.985 0.004 120);
-
-  --background: var(--paper);
-  --foreground: var(--ink);
-  --card: var(--card);
-  --card-foreground: var(--ink);
-  --border: var(--line);
-
-  /* Reverted to original site background and text colors */
+  /* Brand primitives. Single source for the legacy aliases above. */
   --ink: #1B2433;
   --ink-soft: #4F596F;
   --paper: #F7F9F7;
@@ -74,111 +290,350 @@
   --coral: #C86B56;
   --sage-brand: #5B7861;
   --ember: #B3583E;
+
+  --radius: 1rem;
+  --sage: oklch(0.945 0.022 155);
+  --sage-foreground: oklch(0.45 0.055 155);
+  --surface-muted: oklch(0.985 0.004 120);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card-foreground: var(--ink);
+  --border: var(--line);
+
+  /* Z-index scale. Every fixed/absolute layer in the app must use one of these
+     six steps - no ad-hoc z-40-vs-z-30 collisions. */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-nav: 40;        /* bottom nav, sticky headers, FABs live at or below this */
+  --z-overlay: 100;   /* scrims, drawers */
+  --z-modal: 1000;    /* dialogs, sheets, toasts */
+
+  /* Ambient page grain. Set to 0 to disable globally. */
+  --grain-opacity: 0.4;
+
+  /* Fixed-chrome insets, so scroll containers can reserve space for the
+     mobile bottom nav without hardcoding pb-28 everywhere. */
+  --bottom-nav-height: 4.25rem;
 }
 
+/* ==================================================================== BASE */
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
   }
 
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: 1.6;
     position: relative;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
   }
 
+  /* Ambient paper grain. Purely decorative, never interactive. */
   body::before {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
-    opacity: 0.5;
+    z-index: var(--z-base);
+    opacity: var(--grain-opacity);
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+  }
+
+  /* Display face + optical tightening for every heading by default. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  /* Long prose gets a comfortable measure automatically. */
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Tabular figures for anything numeric - stops counters jittering. */
+  time, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* One visible, consistent focus ring across the whole app. Never removed. */
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+  }
+  /* Pointer users don't get the ring; keyboard users always do. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Inputs must never be below 16px on mobile or iOS zooms the viewport. */
+  input, textarea, select {
+    font-family: inherit;
+    font-size: max(1rem, var(--text-base));
+  }
+  @media (min-width: 640px) {
+    input, textarea, select {
+      font-size: var(--text-sm);
+    }
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-plum-300) 55%, transparent);
+    color: var(--color-ink-900);
   }
 }
 
-/* Capacitor Mobile Safe Area Utilities */
-.pt-safe {
-  padding-top: calc(var(--safe-area-top) + 0.5rem);
-}
-.pb-safe {
-  padding-bottom: calc(var(--safe-area-bottom) + 0.5rem);
-}
-.mt-safe {
-  margin-top: var(--safe-area-top);
-}
-.mb-safe {
-  margin-bottom: var(--safe-area-bottom);
-}
+/* =============================================================== UTILITIES */
 
-/* Optimize touch interaction for native mobile */
-button, a, [role="button"] {
+/* --- Safe-area helpers (Capacitor / notched devices) --------------------- */
+.pt-safe { padding-top: calc(var(--safe-area-top) + 0.5rem); }
+.pb-safe { padding-bottom: calc(var(--safe-area-bottom) + 0.5rem); }
+.mt-safe { margin-top: var(--safe-area-top); }
+.mb-safe { margin-bottom: var(--safe-area-bottom); }
+.pl-safe { padding-left: var(--safe-area-left); }
+.pr-safe { padding-right: var(--safe-area-right); }
+/* Reserve room for the fixed mobile bottom nav inside a scroll container. */
+.pb-nav { padding-bottom: calc(var(--bottom-nav-height) + var(--safe-area-bottom) + 1rem); }
+
+/* --- Touch behaviour ----------------------------------------------------- */
+button, a, [role="button"], summary {
   -webkit-tap-highlight-color: transparent;
 }
-body {
+/* Text stays selectable on the web (the previous global `user-select: none`
+   made the whole product feel broken in a browser). Chrome/labels opt out
+   individually with Tailwind's `select-none`. */
+button, [role="button"], nav, label:has(input) {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
-input, textarea {
-  -webkit-user-select: text;
-  user-select: text;
+
+/* Momentum scrolling + no rubber-band chaining inside panels. */
+@utility scroll-panel {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* TalkMindly Custom Font Overrides */
-.talkmindly-font-sans {
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+/* Horizontal snap rails (coach carousels, mood pickers, chip rows). */
+@utility snap-rail {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.snap-rail::-webkit-scrollbar { display: none; }
+
+/* Previously used in 3 files but never defined. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+/* Hide from sighted users, keep for assistive tech. */
+@utility sr-only-focusable {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.sr-only-focusable:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  white-space: normal;
 }
 
-.talkmindly-font-serif {
-  font-family: 'Lora', Georgia, serif !important;
+/* --- Legible measure ----------------------------------------------------- */
+/* 35–60ch on mobile, 60–75ch on desktop (per line-length-control). */
+@utility measure {
+  max-width: 60ch;
+}
+@utility measure-wide {
+  max-width: 72ch;
+}
+@utility measure-tight {
+  max-width: 46ch;
 }
 
-/* UI/UX Pro Max Glassmorphism & Micro-interaction Utilities */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.7);
+/* --- Surfaces ------------------------------------------------------------ */
+@utility glass-panel {
+  background: color-mix(in oklab, var(--color-surface) 85%, transparent);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid color-mix(in oklab, var(--color-line) 70%, transparent);
 }
 
-.glass-panel-dark {
-  background: rgba(27, 36, 51, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+@utility glass-panel-dark {
+  background: color-mix(in oklab, var(--color-ink-900) 85%, transparent);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.1);
 }
 
+/* Interactive card lift. Transform-only so it never triggers layout. */
 .bento-card {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    transform var(--duration-base) var(--ease-out-soft),
+    box-shadow var(--duration-base) var(--ease-out-soft),
+    border-color var(--duration-base) var(--ease-out-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .bento-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
 }
 
-.bento-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px -8px rgba(27, 36, 51, 0.08);
+/* Press feedback: 80–150ms, scale only, never shifts layout bounds. */
+.active-press {
+  transition: transform var(--duration-instant) var(--ease-out-soft);
+}
+.active-press:active {
+  transform: scale(0.97);
 }
 
-/* Custom Scrollbar for Chat & Dashboards */
+/* Soft radial wash used behind hero and pillar sections. */
+@utility aurora {
+  background-image:
+    radial-gradient(60% 70% at 12% 8%,  color-mix(in oklab, var(--color-plum-200) 55%, transparent) 0%, transparent 60%),
+    radial-gradient(55% 65% at 88% 14%, color-mix(in oklab, var(--color-teal-200) 45%, transparent) 0%, transparent 62%),
+    radial-gradient(70% 60% at 50% 100%, color-mix(in oklab, var(--color-gold-100) 60%, transparent) 0%, transparent 65%);
+}
+
+/* --- Legacy font overrides (TalkMindly). Kept for compatibility; new code
+       should use `font-display` / `font-reflective`. ------------------------ */
+.talkmindly-font-sans {
+  font-family: var(--font-display);
+}
+.talkmindly-font-serif {
+  font-family: var(--font-reflective);
+}
+
+/* --- Scrollbars ---------------------------------------------------------- */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(122, 91, 147, 0.25);
+  background: color-mix(in oklab, var(--color-plum-500) 26%, transparent);
   border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(122, 91, 147, 0.45);
+  background: color-mix(in oklab, var(--color-plum-500) 48%, transparent);
+  background-clip: content-box;
 }
 
-/* Touch active scaling utility */
-.active-press:active {
-  transform: scale(0.97);
+/* ============================================================== KEYFRAMES */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fade-in-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: none; }
+}
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+@keyframes breathe {
+  0%, 100% { transform: scale(1);    opacity: 0.55; }
+  50%      { transform: scale(1.08); opacity: 0.85; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+@keyframes drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  50%  { transform: translate3d(2%, -2%, 0) scale(1.04); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
 }
 
+/* Skeleton surface - pairs with animate-shimmer. */
+@utility skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-ink-100) 25%,
+    var(--color-ink-50) 37%,
+    var(--color-ink-100) 63%
+  );
+  background-size: 200% 100%;
+  border-radius: var(--radius-md);
+}
 
+/* ========================================================= REDUCED MOTION */
+/* Honoured app-wide. Framer Motion is separately gated via <MotionConfig>. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Opacity-only entrances stay legible; movement is removed, not the content. */
+  .bento-card:hover,
+  .active-press:active {
+    transform: none;
+  }
+}
+
+/* ============================================================ PRINT / HC */
+@media (prefers-contrast: more) {
+  :root {
+    --line: #9AA6B6;
+    --ink-soft: #33405A;
+  }
+}

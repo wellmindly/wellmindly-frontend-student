@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
+import { moodByRating } from "../lib/mood";
 
 import {
   TESTS,
@@ -22,22 +23,38 @@ export interface DiscoverResultData {
   aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } | null;
 }
 
+/**
+ * `?tab=` accepts a couple of shorthands that aren't tabs in their own right:
+ * `phq9` means "the discover tab, with the PHQ-9 already running". Resolving
+ * them here is what keeps `activeTab` a value the dashboard can actually
+ * render - a cold load of `/dashboard?tab=phq9` previously set activeTab to the
+ * literal string "phq9", which matches no branch, and the page came up blank.
+ */
+function normalizeTab(tab: string | null | undefined): string {
+  if (!tab) return "overview";
+  if (tab === "phq9") return "discover";
+  return tab;
+}
+
 export function useDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ── UI state ──────────────────────────────────────────────
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, _setActiveTab] = useState<string>(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("tab") || "overview";
-  });
+  const [activeTab, _setActiveTab] = useState<string>(() =>
+    normalizeTab(new URLSearchParams(window.location.search).get("tab")),
+  );
 
-  const setActiveTab = useCallback((tab: string) => {
-    let targetTab = tab;
+  /**
+   * Applies a tab to local state *without* touching history. Shared by
+   * setActiveTab and by the back/forward sync effect, so a URL change and a
+   * click end up in exactly the same state.
+   */
+  const applyTab = useCallback((tab: string) => {
     if (tab === "checkin" || tab === "phq9") {
-      targetTab = tab === "checkin" ? "checkin" : "discover";
-      _setActiveTab(targetTab);
+      _setActiveTab(tab === "checkin" ? "checkin" : "discover");
       setCurDiscoverId(tab);
       setDiscoverQi(0);
       setDiscoverResp([]);
@@ -53,8 +70,28 @@ export function useDashboard() {
     } else {
       _setActiveTab(tab);
     }
-    navigate(`/dashboard?tab=${targetTab}`, { replace: true });
-  }, [navigate]);
+  }, []);
+
+  const setActiveTab = useCallback(
+    (tab: string) => {
+      applyTab(tab);
+      // Push rather than replace. Moving between dashboard sections is real
+      // navigation: browser back and the Android hardware back button should
+      // step through it instead of jumping straight out of the dashboard.
+      navigate(`/dashboard?tab=${normalizeTab(tab)}`);
+    },
+    [applyTab, navigate],
+  );
+
+  // Keep state in step with the URL whenever history moves under us -
+  // back/forward, or the Android back button. Pushing history without this
+  // would change the address bar while leaving the UI on the old tab.
+  const rawUrlTab = new URLSearchParams(location.search).get("tab");
+  const urlTab = normalizeTab(rawUrlTab);
+  useEffect(() => {
+    if (urlTab !== activeTab) applyTab(rawUrlTab ?? "overview");
+  }, [urlTab, rawUrlTab, activeTab, applyTab]);
+
   const [greeting] = useState(() => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -181,7 +218,7 @@ export function useDashboard() {
         const matches = resultsData.timeline.filter((r: any) => r.quizTitle === testDef.title);
         if (matches.length > 0) {
           const latest = matches[matches.length - 1];
-          
+
           // Reconstruct discoverResultData
           const data: DiscoverResultData = {
             resultId: latest.id,
@@ -208,12 +245,12 @@ export function useDashboard() {
               : undefined,
             aiFeedback: latest.aiFeedback,
           };
-          
+
           setCurDiscoverId(showResult);
           setDiscoverResultData(data);
           setDiscoverView("result");
           _setActiveTab(showResult === "checkin" ? "checkin" : "discover");
-          
+
           // Clean the query parameters
           navigate(showResult === "checkin" ? "/dashboard?tab=checkin" : "/dashboard?tab=discover", { replace: true });
         }
@@ -251,9 +288,9 @@ export function useDashboard() {
       const ranked = Object.entries(tally).sort((a, b) => b[1] - a[1]);
       const top = ranked.slice(0, 2).map((x) => x[0]);
       const summary = top.join(" + ");
-      
+
       const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { top, summary, responses });
-      
+
       saveResult(id, { t: Date.now(), summary, top, aiFeedback });
       setDiscoverResultData({ resultId, kind: "values", top, aiFeedback });
       setDiscoverView("result");
@@ -266,7 +303,7 @@ export function useDashboard() {
     if (test.kind === "rank") {
       const top = ranked.slice(0, test.topN).map((x) => x[0]);
       const summary = top.join(", ");
-      
+
       const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { scores, top, summary, responses });
 
       saveResult(id, { t: Date.now(), summary, scores, top, aiFeedback });
@@ -277,7 +314,7 @@ export function useDashboard() {
 
     if (test.kind === "type") {
       const top = ranked[0][0];
-      
+
       const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, top, { scores, top: [top], summary: top, responses });
 
       saveResult(id, { t: Date.now(), summary: top, scores, top: [top], aiFeedback });
@@ -290,7 +327,7 @@ export function useDashboard() {
     const summary = ranked[0][0] + " strongest";
     if (test.archetype) {
       const arch = pickArchetype(scores);
-      
+
       const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, arch.name, { scores, archetype: arch, responses });
 
       saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
@@ -308,7 +345,7 @@ export function useDashboard() {
         else if (sum <= 12) classText = "Moderate Stress";
         else classText = "Escalated Anxiety / Stress";
       }
-      
+
       const { resultId, aiFeedback } = await submitDiscoverToBackend(
         test.title,
         category,
@@ -356,7 +393,7 @@ export function useDashboard() {
     if (!curDiscoverId) return;
     const test = TESTS[curDiscoverId];
     const category = test.tag?.split(" · ")[0] || "General";
-    
+
     const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
 
     saveResult(curDiscoverId, { t: Date.now(), summary: opt.label, tone: opt.tone, label: opt.label, aiFeedback });
@@ -373,38 +410,10 @@ export function useDashboard() {
       await api.post("/students/me/daily-checkin", { rating });
       fetchCheckins();
 
-      const checkinConfigs: Record<number, { emoji: string; title: string; msg: string }> = {
-        1: {
-          emoji: "💜",
-          title: "Gentle Reminder",
-          msg: "It's okay to have tough days. Remember to take gentle breaths and reach out to campus resources or someone you trust.",
-        },
-        2: {
-          emoji: "🌿",
-          title: "Self-Care Moment",
-          msg: "Be gentle with yourself today. Taking a short break, walking in nature, or listening to a favorite song might help ease things.",
-        },
-        3: {
-          emoji: "🌱",
-          title: "Steady & Balanced",
-          msg: "A steady, balanced day. Keep taking it one step at a time!",
-        },
-        4: {
-          emoji: "☀️",
-          title: "Bright Energy",
-          msg: "Keep riding this positive wave. Try sharing some of your good energy with a friend or colleague today.",
-        },
-        5: {
-          emoji: "🎉",
-          title: "Thriving & Strong",
-          msg: "Your light is shining bright today. Celebrate this moment and keep doing what makes you thrive!",
-        },
-      };
-
-      const config = checkinConfigs[rating] || checkinConfigs[3];
-      setCheckinEmoji(config.emoji);
-      setCheckinMessage(config.msg);
-      setCheckinTitle(config.title);
+      const { emoji, title, message } = moodByRating(rating).affirmation;
+      setCheckinEmoji(emoji);
+      setCheckinMessage(message);
+      setCheckinTitle(title);
       setShowCheckinModal(true);
     } catch (err) {
       console.error("Failed to save daily check-in:", err);

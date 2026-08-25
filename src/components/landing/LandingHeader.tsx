@@ -1,117 +1,131 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AlertCircle, Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { NavLink, Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
-import logoPng from "../../assets/logo.png";
+import { cn } from "../../lib/cn";
+import { CrisisBanner, Logo, buttonClasses } from "../ui";
 
 interface LandingHeaderProps {
   onCrisisClick: () => void;
 }
 
+const navLinks = [
+  { label: "Explore", path: "/discover" },
+  { label: "Counselors", path: "/counselors" },
+  { label: "For Universities", path: "/university" },
+  { label: "About", path: "/about" },
+  { label: "Contact", path: "/contact" },
+];
+
 export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
-    { label: "About Us", path: "/about" },
-    { label: "Contact Us", path: "/contact" },
-    { label: "University", path: "/university" },
-    { label: "Counselors", path: "/counselors" },
-  ];
-
-  const handleNavClick = (path: string) => {
-    navigate(path);
+  // Close drawer on route change
+  useEffect(() => {
     setMobileMenuOpen(false);
-  };
+  }, [location.pathname]);
+
+  // Close drawer on Escape
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [mobileMenuOpen]);
 
   return (
     <>
+      {/* Skip to main content link for keyboard & a11y */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[var(--z-modal)] focus:rounded-lg focus:bg-plum-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:outline-2 focus:outline-offset-2 focus:outline-plum-300"
+      >
+        Skip to main content
+      </a>
+
       {/* Global Crisis Support Banner */}
-      <div className="w-full bg-paper-2 border-b border-line py-2.5 px-6 text-center text-xs font-semibold text-ember relative z-50">
-        <span className="inline-flex items-center gap-1.5">
-          <AlertCircle className="w-3.5 h-3.5 animate-pulse" />
-          Need help right now?
-          <button 
-            onClick={onCrisisClick} 
-            className="underline hover:text-coral transition-colors ml-1 font-bold cursor-pointer border-none bg-transparent p-0 text-[inherit]"
-          >
-            View support helplines &rarr;
-          </button>
-        </span>
-      </div>
+      <CrisisBanner onAction={onCrisisClick} />
 
       {/* Header Navigation */}
-      <motion.header 
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="sticky top-0 z-40 w-full border-b border-line bg-paper/85 backdrop-blur-md transition-all duration-300"
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div 
-            onClick={() => handleNavClick("/")}
-            className="flex items-center gap-2 cursor-pointer hover:opacity-85 select-none transition-opacity"
-            id="header-logo-container"
-          >
-            <img src={logoPng} alt="WellMindly Logo" className="h-8 w-auto block select-none" />
-          </div>
+      <header className="sticky top-0 z-[var(--z-nav)] w-full border-b border-ink-200/60 bg-paper/85 backdrop-blur-md pt-safe">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
+          <Logo size="md" />
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
             {navLinks.map((link) => (
-              <button
+              <NavLink
                 key={link.path}
-                onClick={() => handleNavClick(link.path)}
-                className="text-xs font-bold text-ink-soft hover:text-plum transition-colors cursor-pointer border-none bg-transparent p-0"
+                to={link.path}
+                className={({ isActive }) =>
+                  cn(
+                    "relative inline-flex items-center min-h-11 px-1 text-sm font-semibold transition-colors",
+                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-md",
+                    isActive
+                      ? "text-plum-700"
+                      : "text-ink-600 hover:text-plum-600",
+                  )
+                }
               >
-                {link.label}
-              </button>
+                {({ isActive }) => (
+                  <>
+                    {link.label}
+                    {isActive && (
+                      <span
+                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-plum-600 rounded-full"
+                        aria-hidden="true"
+                      />
+                    )}
+                  </>
+                )}
+              </NavLink>
             ))}
-            
-            <span className="text-line h-4 w-px block"></span>
+
+            <span className="h-4 w-px bg-ink-200 block" aria-hidden="true" />
 
             {user ? (
-              <button
-                onClick={() => handleNavClick("/dashboard")}
-                className="rounded-full bg-plum text-white px-5 py-2 text-xs font-bold hover:opacity-95 transition-all active:scale-95 cursor-pointer shadow-sm shadow-plum/20 border-none"
-              >
+              <Link to="/dashboard" className={buttonClasses("primary", "sm")}>
                 Go to Dashboard
-              </button>
+              </Link>
             ) : (
-              <button
-                onClick={() => handleNavClick("/login")}
-                className="rounded-full bg-navy text-white px-5 py-2 text-xs font-bold hover:opacity-95 transition-all active:scale-95 cursor-pointer shadow-sm border-none"
-              >
+              <Link to="/login" className={buttonClasses("secondary", "sm")}>
                 Sign In
-              </button>
+              </Link>
             )}
           </nav>
 
-          {/* Mobile Menu Button */}
-          <div className="flex md:hidden items-center gap-4">
+          {/* Mobile Menu Button & CTA */}
+          <div className="flex md:hidden items-center gap-3">
             {user ? (
-              <button
-                onClick={() => handleNavClick("/dashboard")}
-                className="rounded-full bg-plum text-white px-4 py-1.5 text-[11px] font-bold hover:opacity-95 transition-all active:scale-95 cursor-pointer shadow-sm shadow-plum/20 border-none"
-              >
+              <Link to="/dashboard" className={buttonClasses("primary", "xs")}>
                 Dashboard
-              </button>
+              </Link>
             ) : (
-              <button
-                onClick={() => handleNavClick("/login")}
-                className="rounded-full bg-navy text-white px-4 py-1.5 text-[11px] font-bold hover:opacity-95 transition-all active:scale-95 cursor-pointer shadow-sm border-none"
-              >
+              <Link to="/login" className={buttonClasses("secondary", "xs")}>
                 Sign In
-              </button>
+              </Link>
             )}
 
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1 text-ink hover:text-plum transition-colors cursor-pointer border-none bg-transparent"
-              aria-label="Toggle Menu"
+              type="button"
+              onClick={() => setMobileMenuOpen((v) => !v)}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="landing-mobile-nav"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-ink-700 hover:text-plum-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 cursor-pointer border-none bg-transparent"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" aria-hidden="true" />
+              ) : (
+                <Menu className="h-6 w-6" aria-hidden="true" />
+              )}
             </button>
           </div>
         </div>
@@ -120,28 +134,46 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
+              id="landing-mobile-nav"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden border-t border-line bg-paper overflow-hidden"
+              className="md:hidden border-t border-ink-200/60 bg-paper overflow-hidden"
             >
-              <div className="px-6 py-4 flex flex-col gap-4">
+              <nav className="px-6 py-4 flex flex-col gap-2" aria-label="Mobile navigation">
                 {navLinks.map((link) => (
-                  <button
+                  <NavLink
                     key={link.path}
-                    onClick={() => handleNavClick(link.path)}
-                    className="text-sm font-bold text-ink-soft hover:text-plum transition-colors text-left py-2 border-none bg-transparent cursor-pointer w-full"
+                    to={link.path}
+                    className={({ isActive }) =>
+                      cn(
+                        "relative flex items-center min-h-11 px-3 py-2 text-sm font-semibold rounded-lg transition-colors",
+                        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
+                        isActive
+                          ? "text-plum-700 bg-plum-50"
+                          : "text-ink-600 hover:text-plum-600 hover:bg-ink-50",
+                      )
+                    }
                   >
-                    {link.label}
-                  </button>
+                    {({ isActive }) => (
+                      <>
+                        {isActive && (
+                          <span
+                            className="absolute left-0 top-2 bottom-2 w-1 bg-plum-600 rounded-r-full"
+                            aria-hidden="true"
+                          />
+                        )}
+                        {link.label}
+                      </>
+                    )}
+                  </NavLink>
                 ))}
-              </div>
+              </nav>
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.header>
+      </header>
     </>
   );
 }
-

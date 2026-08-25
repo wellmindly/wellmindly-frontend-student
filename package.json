@@ -13,7 +13,9 @@
     "cap:sync": "npx cap sync",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",
-    "test": "vitest run"
+    "test": "vitest run",
+    "guard": "node scripts/guard.mjs",
+    "verify": "tsc -b && node scripts/guard.mjs && vitest run && vite build"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
@@ -23,15 +25,15 @@
     "@react-oauth/google": "^0.13.5",
     "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.16.1",
+    "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
-    "html2canvas": "^1.4.1",
-    "html2canvas-pro": "^2.0.4",
     "jspdf": "^4.2.1",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.16.0"
+    "react-router-dom": "^7.16.0",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

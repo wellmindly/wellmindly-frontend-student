@@ -64,7 +64,7 @@ export function ContactPage() {
     <div className="min-h-screen bg-paper flex flex-col font-sans">
       <LandingHeader onCrisisClick={handleCrisisClick} />
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
+      <main id="main-content" tabIndex={-1} className="flex-1 max-w-6xl mx-auto w-full px-6 py-12">
         {/* Page Title */}
         <div className="text-center mb-12">
           <motion.span 
