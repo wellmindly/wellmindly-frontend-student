@@ -105,14 +105,12 @@ export function useDashboard() {
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [showCheckinPopup, setShowCheckinPopup] = useState(false);
   const [checkinMessage, setCheckinMessage] = useState("");
-  const [checkinEmoji, setCheckinEmoji] = useState("");
   const [checkinTitle, setCheckinTitle] = useState("");
 
   // ── Quiz results / trajectory ────────────────────────────
   const [resultsData, setResultsData] = useState<any>(null);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [historyPage, setHistoryPage] = useState(1);
-  const [showScreening, setShowScreening] = useState(false);
 
   // ── Discover tab ─────────────────────────────────────────
   const [discoverView, setDiscoverView] = useState<"hub" | "test" | "result" | "results">(() => {
@@ -258,16 +256,6 @@ export function useDashboard() {
     }
   }, [resultsData, navigate]);
 
-  // ── Screening ────────────────────────────────────────────
-  const handleScreeningComplete = async (_score: number, answers?: Record<number, number>) => {
-    try {
-      await api.post("/quizzes/submit", { answers: answers || {} });
-      fetchResults();
-    } catch (err) {
-      console.error("Failed to submit baseline screening:", err);
-    }
-  };
-
   // ── Discover flow ────────────────────────────────────────
   const startDiscoverTest = (id: string) => {
     setCurDiscoverId(id);
@@ -410,8 +398,7 @@ export function useDashboard() {
       await api.post("/students/me/daily-checkin", { rating });
       fetchCheckins();
 
-      const { emoji, title, message } = moodByRating(rating).affirmation;
-      setCheckinEmoji(emoji);
+      const { title, message } = moodByRating(rating).affirmation;
       setCheckinMessage(message);
       setCheckinTitle(title);
       setShowCheckinModal(true);
@@ -450,7 +437,6 @@ export function useDashboard() {
     setShowCheckinModal,
     showCheckinPopup,
     setShowCheckinPopup,
-    checkinEmoji,
     checkinTitle,
     checkinMessage,
     historicalCheckins,
@@ -462,9 +448,6 @@ export function useDashboard() {
     setSelectedReport,
     historyPage,
     setHistoryPage,
-    showScreening,
-    setShowScreening,
-    handleScreeningComplete,
 
     // discover
     discoverView,

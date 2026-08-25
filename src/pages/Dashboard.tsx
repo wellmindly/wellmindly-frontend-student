@@ -135,7 +135,6 @@ export function Dashboard() {
       <CheckinModal
         show={db.showCheckinModal}
         onClose={() => db.setShowCheckinModal(false)}
-        emoji={db.checkinEmoji}
         title={db.checkinTitle}
         message={db.checkinMessage}
         mood={db.dailyMood}
