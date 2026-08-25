@@ -96,13 +96,7 @@ export function Dashboard() {
             discoverLoading={db.discoverLoading}
             onSwitchToAssessments={() => db.setActiveTab("assessments")}
             resultsData={db.resultsData}
-            onComingSoonClick={(feature) => {
-              if (feature === "talkmindly") {
-                db.setActiveTab("talkmindly");
-              } else {
-                setComingSoonFeature(feature);
-              }
-            }}
+            onComingSoonClick={openFeature}
             isCheckinMode={db.activeTab === "checkin"}
             onBackToOverview={() => db.setActiveTab("overview")}
           />

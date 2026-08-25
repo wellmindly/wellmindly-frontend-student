@@ -111,8 +111,12 @@ export function MoodMosaic({
                     activeSelection && dayKey(activeSelection.date) === currentDayKey;
 
                   let style: React.CSSProperties = {};
+                  // No `border-none` here: Tailwind's preflight already zeroes every
+                  // border width, and `.border-none` is emitted *after* `.border-dashed`
+                  // in the stylesheet — so it would silently win and erase today's
+                  // dashed outline below.
                   let className =
-                    "w-full aspect-square rounded-xl transition-all duration-200 relative flex items-center justify-center border-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 motion-reduce:transition-none ";
+                    "w-full aspect-square rounded-xl transition-all duration-200 relative flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 motion-reduce:transition-none ";
 
                   let ariaLabel = "";
 

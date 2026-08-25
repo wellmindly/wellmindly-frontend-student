@@ -78,13 +78,15 @@ export function NextStep({
             </div>
 
             <div>
-              <span
-                id="next-step-heading"
-                className="text-2xs font-bold uppercase tracking-widest text-ink-500 block mb-0.5"
-              >
+              <span className="text-2xs font-bold uppercase tracking-widest text-ink-500 block mb-0.5">
                 {eyebrow}
               </span>
-              <h2 className="text-base font-bold text-ink-900 leading-snug">
+              {/* The id sits on the h2, not the eyebrow: the landmark's name has to be
+                  the recommendation itself, not the word "Next". */}
+              <h2
+                id="next-step-heading"
+                className="text-base font-bold text-ink-900 leading-snug"
+              >
                 {title}
               </h2>
               <p className="text-xs text-ink-600 mt-1 leading-relaxed max-w-xl">

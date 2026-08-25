@@ -2,8 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Card, Badge } from "../../ui";
 import { MoodFace } from "../../ui/MoodFace";
-import { MOODS, moodByRating, type MoodRating } from "../../../lib/mood";
-import { formatFullDate, formatRelative } from "../../../lib/format";
+import { MOODS, moodByRating } from "../../../lib/mood";
+import { formatFullDate, formatRelative, dayKey } from "../../../lib/format";
 import { spring } from "../../../lib/motion";
 import { cn } from "../../../lib/cn";
 import type { DailyCheckinRow, LatestResult } from "../../../types/student";
@@ -27,13 +27,20 @@ export function TodayCard({
 }: TodayCardProps) {
   const [editing, setEditing] = useState(false);
 
-  const todayStr = new Date().toDateString();
-  const lastCheckin = historicalCheckins.find(
-    (c) => new Date(c.createdAt).toDateString() !== todayStr
-  );
+  // `GET /me/daily-checkins` orders `createdAt: 'asc'` (backend/src/routes/students.ts:73),
+  // so the rows arrive oldest-first and the most recent one is at the end. Scanning
+  // forwards here would label a four-week-old row as the last check-in.
+  const todayKey = dayKey(new Date());
+  let lastCheckin: DailyCheckinRow | undefined;
+  for (let i = historicalCheckins.length - 1; i >= 0; i--) {
+    if (dayKey(historicalCheckins[i].createdAt) !== todayKey) {
+      lastCheckin = historicalCheckins[i];
+      break;
+    }
+  }
 
-  const isCheckedIn = dailyMood !== null && !editing;
-  const currentMood = dailyMood ? moodByRating(dailyMood) : null;
+  const currentMood = dailyMood !== null ? moodByRating(dailyMood) : null;
+  const isCheckedIn = currentMood !== null && !editing;
 
   return (
     <section aria-labelledby="today-heading">
@@ -66,7 +73,7 @@ export function TodayCard({
                   currentMood.text
                 )}
               >
-                <MoodFace rating={dailyMood as MoodRating} className="h-7 w-7" />
+                <MoodFace rating={currentMood.rating} className="h-7 w-7" />
               </span>
 
               <div className="space-y-1">
