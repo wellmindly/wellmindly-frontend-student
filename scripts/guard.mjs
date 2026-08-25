@@ -71,7 +71,7 @@ const ERRORS = [
     // problem the redesign exists to kill. Our ramps: ink, plum, teal, coral,
     // gold, rose, sage (all 50→900). Anything else is drift.
     // `emerald` shipped in ExploreToolsSection before this rule existed.
-    re: /(?<![\w-])(?:bg|text|border|from|to|via|ring|outline|fill|stroke|divide|shadow|decoration|accent|caret|placeholder)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|cyan|sky|blue|indigo|violet|purple|fuchsia|pink)-(?:50|[1-9]00|950)(?![\w-])/,
+    re: /(?<![\w-])(?:bg|text|border|from|to|via|ring-offset|ring|outline|fill|stroke|divide|shadow|decoration|accent|caret|placeholder)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|cyan|sky|blue|indigo|violet|purple|fuchsia|pink)-(?:50|[1-9]00|950)(?![\w-])/,
     msg: "Off-system Tailwind palette. Use an @theme ramp: ink, plum, teal, coral, gold, rose, sage. (green → sage, slate/gray → ink, amber → gold, red → coral.)",
   },
   {
@@ -79,7 +79,8 @@ const ERRORS = [
     // Surfaces come from --color-paper / --color-paper-2 / --color-card; light
     // foreground on a brand fill comes from that ramp's 50 step. Raw white is
     // a token bypass, and there were 16 of them on the landing page.
-    re: /(?<![\w-])(?:bg|text|border|from|to|via|ring|outline|fill|stroke|divide|decoration|placeholder)-white(?:\/\d{1,3})?(?![\w-])/,
+    // `ring-offset` is listed before `ring` so the longer prefix wins.
+    re: /(?<![\w-])(?:bg|text|border|from|to|via|ring-offset|ring|outline|fill|stroke|divide|decoration|placeholder)-white(?:\/\d{1,3})?(?![\w-])/,
     msg: "Raw `white` bypasses the token system. Surface → bg-card / bg-paper. Text on a brand fill → that ramp's 50 step (e.g. text-plum-50).",
   },
   {
@@ -110,11 +111,15 @@ const ERRORS = [
 const WARNINGS = [
   {
     id: "outline-none-no-ring",
-    // Killing the outline is only OK when a ring replaces it. Line-scoped, so
-    // it can false-positive when the ring sits on the next line — check, then
-    // ignore. A tabpanel shipped with a bare outline-none before this existed.
-    re: /(?<![\w-])(?:focus|focus-visible|active):outline-none(?![\w-])(?!.*\bring-)/,
-    msg: "outline-none with no ring on the same line. Focusable elements need a visible indicator (WCAG 2.4.7).",
+    // Killing the outline is only OK when a ring (or an explicit outline width)
+    // replaces it. v1 was single-line and false-positived on every multi-line
+    // class list — Field.tsx puts outline-none and focus:ring-4 on adjacent
+    // lines. `clearedBy` + `window` look ahead instead.
+    // A tabpanel shipped with a bare outline-none before this rule existed.
+    re: /(?<![\w-])(?:focus|focus-visible|active):outline-none(?![\w-])/,
+    clearedBy: /\b(?:focus|focus-visible|active):(?:ring|outline)-(?!none\b)/,
+    window: 3,
+    msg: "outline-none with no replacement ring nearby. Focusable elements need a visible indicator (WCAG 2.4.7).",
   },
   {
     id: "animate-height",
@@ -235,9 +240,11 @@ for (const file of files) {
       }
       lines.forEach((line, i) => {
         if (line.includes("guard-ignore")) return;
-        if (rule.re.test(line)) {
-          found[bucket].push({ rel, line: i + 1, id: rule.id, msg: rule.msg });
-        }
+        if (!rule.re.test(line)) return;
+        // Some rules can only decide by looking at the following lines — a
+        // focus ring is routinely on the next line of a wrapped class list.
+        if (rule.clearedBy && rule.clearedBy.test(lines.slice(i, i + (rule.window ?? 2)).join(" "))) return;
+        found[bucket].push({ rel, line: i + 1, id: rule.id, msg: rule.msg });
       });
     }
   }

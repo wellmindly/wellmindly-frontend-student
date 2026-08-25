@@ -94,19 +94,23 @@ The loop does not end until the refactor is 100% complete and I am satisfied wit
 | `README.md` | The builder's operating instructions. |
 | `phase-N-*/T-NNN-*.md` | One card per task. |
 
-**Card-writing rules I learned the hard way in pass 1:**
+**Card-writing rules I learned the hard way:**
 - **Never leave user-facing copy to the builder's judgement.** Six of eight S1 bugs in pass 1 were invented claims ("Delete anytime", "4 free sessions funded by your institution"). If a card doesn't supply the sentence, the builder writes one. Supply every sentence, or say explicitly that `BLOCKED` is the correct response.
 - **Verify API names before putting them in a card.** T-103 specified lucide brand icons that don't exist and blocked two tasks. Cost a whole round-trip.
 - **A mandated "Step-0 inventory in Notes" gets skipped** unless the Done-when checklist has a line item for it.
-- **Demand one commit per task.** Pass 1 arrived as one 45-file blob; per-task diffs were unrecoverable and I had to review whole files.
+- **Demand one commit per task.** Pass 1 arrived as one 45-file blob; per-task diffs were unrecoverable and I had to review whole files. Pass 2 gave 4 commits and was reviewable.
+- **Say how many sites a bug has, and make counting them a Done-when line.** Both pass-2 reopens were the same failure: a *correct* fix applied to part of the surface (1 of 4 redirect call sites; 3 UI states wired but 2 unreachable from the data layer). A bug that says "N places" gets N places fixed; a bug that says "this is wrong" gets one place fixed.
+- **`BUGS.md` must be append-only.** The builder replaced every bug body with a one-line status, so I could no longer diff a fix against the ask without `git log` — expensive when tokens are the constraint.
 
-### Current status (end of review pass 1)
+### Current status (end of review pass 2)
 
-`vite build` ✅ · `vitest` ✅ 3/3 · `tsc -b` ❌ (one pre-existing error in `Login.tsx`, filed as B-001)
+`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ · `guard` on the landing route ✅ **0 errors, 3 permitted warnings**
 
-Phase 1 + 2 built. **4 ACCEPTED** (T-101, T-102, T-107, T-201), **6 REVIEW-FAIL**, **24 bugs filed**, T-103 rewritten, T-207 added. The landing page is structurally right — `LandingPage.tsx` is 761→286 lines with four extracted sections, and T-204's care-path tablist is correct accessible work. What failed was copy honesty.
+Phase 1 + 2 are **essentially complete**: **12 ACCEPTED**, 1 REVIEW-FAIL (T-205), 20 of 24 bugs verified fixed. The public route — header, footer, hero, care-path tablist, coaching, trust, both legacy blocks — is structurally right, honest in its copy, and clean on every gate. `LandingPage.tsx` went 761→288 lines with four extracted sections.
 
-**Next for me:** re-review after the builder clears `BUGS.md` + T-103/T-105/T-207, then author **Phase 3** (starting T-301, `Login.tsx`, 890 lines).
+Open queue for the builder: **B-014** (reopened — open redirect at `Login.tsx` 141/185/355), **B-016** (reopened — `fetchCoaches` can't reach `ErrorState`/`EmptyState`), **B-025** (kit `TabPanel` strips its focus ring — B-007's root cause), **B-026**–**B-028**, then **T-108** (kit raw-`white` → tokens, 18 sites).
+
+**Next for me:** re-review that queue, then author **Phase 3** (T-301, `Login.tsx`, 890 lines, 44 guard errors). Note B-014's `resolveRedirect` helper lands in `Login.tsx` first — T-301 must build on it, not undo it.
 
 ### Design-system debt map (from `guard.mjs`, for phase planning)
 
@@ -129,7 +133,9 @@ Dominant rules are `off-system-palette` (166) and `raw-white` (147) — i.e. the
 
 Rules: `templated-class`, `phantom-z-utility`, `phantom-ink-950`, `micro-type`, `raw-hex`, `off-system-palette`, `raw-white`, `clickable-div`, `new-dependency` (errors); `outline-none-no-ring`, `animate-height`, `pulse-animation`, `emoji-glyph`, `icon-button-no-label`, `small-touch-target` (warnings).
 
-**When a review finds a class of defect the guard missed, add the rule.** Pass 1 added five.
+A rule may set `clearedBy` + `window` to look ahead N lines before firing — `outline-none-no-ring` needs it, because a focus ring is routinely on the next line of a wrapped class list. Without it the rule both false-positived on `Field.tsx:93` and missed the real hit in `SegmentedControl.tsx:274`.
+
+**When a review finds a class of defect the guard missed, add the rule.** Pass 1 added five; pass 2 fixed two.
 
 ---
 
@@ -152,8 +158,9 @@ Then **QA sweep** at 375 / 390 / 768 / 1024 / 1440 / large desktop.
 ## 8. Known issues & fix-don't-fabricate list
 
 **Fix (real endpoint exists or behavior is broken):**
-- `LandingPage.confirmBooking()` (L145) is **fake** - shows "Session booked with … · Thu 5:00pm" and calls no API. **Decision:** when landing is redesigned, route guests to `/login?redirect=...` (the real endpoint `/api/v1/students/sessions/book` is auth-only). Do not fake, do not gate the whole widget behind login yet.
+- ~~`LandingPage.confirmBooking()` is **fake**~~ — **DONE** (T-202, pass 2). The coach/slot picker is now labelled "Example slots" with a `Preview` badge and confirming routes to `/login?redirect=…`; the real endpoint `/api/v1/students/sessions/book` is auth-only. **`?redirect=` is now part of the normal product flow**, which is why the open-redirect hole in `Login.tsx` (B-014) matters.
 - No-op CTAs: TalkMindly "Close & Contact Support"; AssessmentWizard's 2 CTAs; `OverviewTab` Mood Mosaic silently calling `onDailyCheckin(3)` (~L248); CrisisPage crisis-scroll.
+- `LandingPage.fetchCoaches()` swallows both its error and its empty case into a hardcoded `DEFAULT_COACHES` roster, so real backend failures show placeholder people as bookable (B-016).
 
 **Flag - do NOT fabricate data to fill these:**
 - `AssessmentsTab` Sleep/Social/Study bars (invented); `ReportDetailModal` 6 hardcoded breakdowns; `WellbeingChart` Jan–Jun empty axis; `HeroSection`/`Login` "Today's tone" + "Coach Vinayak · Thu 5pm" mock cards; `UniversityPage` fabricated jsPDF report; `FeedbackForm` 6-answers-in-one-string; 3 divergent readings of `/students/hotlines`.
@@ -162,4 +169,4 @@ Then **QA sweep** at 375 / 390 / 768 / 1024 / 1440 / large desktop.
 
 ---
 
-*Last updated: 2026-08-25. Round completed: Phase 1 + 2 built by the builder, review pass 1 filed (24 bugs). Next: builder clears `tasks/BUGS.md`, then I author Phase 3.*
+*Last updated: 2026-08-25. Round completed: review pass 2 — Phase 1 + 2 accepted (12 ACCEPTED, 20/24 bugs verified), landing route clean on all gates. Next: builder clears the pass-2 queue (B-014, B-016, B-025–B-028, T-108), then I author Phase 3.*
