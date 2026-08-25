@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2, X } from "lucide-react";
+import { IconButton } from "../ui";
 
 export interface AuthAlertsProps {
   error: string | null;
@@ -18,17 +19,20 @@ export function AuthAlerts({ error, success, onClearError, onClearSuccess }: Aut
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute -top-4 left-0 right-0 lg:static lg:mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700 shadow-md z-20"
+            className="absolute -top-4 left-0 right-0 lg:static lg:mb-6 flex items-start gap-3 rounded-2xl border border-danger/20 bg-danger-soft p-4 text-sm font-medium text-danger shadow-md z-20"
           >
-            <AlertCircle className="h-5 w-5 shrink-0 text-red-500 mt-0.5" />
+            <AlertCircle className="h-5 w-5 shrink-0 text-danger mt-0.5" />
             <span className="flex-1">{error}</span>
-            <button
-              type="button"
-              onClick={onClearError}
-              className="rounded-lg p-1 hover:bg-red-100 transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            {onClearError && (
+              <IconButton
+                variant="ghost"
+                size="sm"
+                label="Dismiss error"
+                icon={<X className="h-4 w-4" />}
+                onClick={onClearError}
+                className="-mr-1.5 -mt-1.5 text-danger hover:bg-danger/10"
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -40,17 +44,20 @@ export function AuthAlerts({ error, success, onClearError, onClearSuccess }: Aut
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute -top-4 left-0 right-0 lg:static lg:mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800 shadow-md z-20"
+            className="absolute -top-4 left-0 right-0 lg:static lg:mb-6 flex items-start gap-3 rounded-2xl border border-success/20 bg-success-soft p-4 text-sm font-medium text-success shadow-md z-20"
           >
-            <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5" />
+            <CheckCircle2 className="h-5 w-5 shrink-0 text-success mt-0.5" />
             <span className="flex-1">{success}</span>
-            <button
-              type="button"
-              onClick={onClearSuccess}
-              className="rounded-lg p-1 hover:bg-emerald-100 transition-colors cursor-pointer border-none bg-transparent"
-            >
-              <X className="h-4 w-4 text-emerald-600" />
-            </button>
+            {onClearSuccess && (
+              <IconButton
+                variant="ghost"
+                size="sm"
+                label="Dismiss message"
+                icon={<X className="h-4 w-4" />}
+                onClick={onClearSuccess}
+                className="-mr-1.5 -mt-1.5 text-success hover:bg-success/10"
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

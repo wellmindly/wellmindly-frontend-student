@@ -1,7 +1,6 @@
 import type { FormEvent } from "react";
-import { motion } from "framer-motion";
-import { Mail, Lock, Shield, User, Loader2 } from "lucide-react";
-import { Input, PasswordInput } from "../ui";
+import { Mail, Lock, Shield, User } from "lucide-react";
+import { Button, Input, PasswordInput } from "../ui";
 
 export interface AuthFormProps {
   mode: "login" | "register" | "forgot-password";
@@ -132,78 +131,77 @@ export function AuthForm({
         )}
 
         {/* Submit Button */}
-        <motion.button
+        <Button
           type="submit"
-          disabled={submitting}
-          whileHover={{ scale: 1.01 }}
-          whileTap={{ scale: 0.99 }}
-          className="cursor-pointer mt-6 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-plum hover:bg-plum/90 py-3.5 text-sm font-extrabold text-white transition-all focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-60 shadow-lg shadow-plum/20"
+          size="lg"
+          fullWidth
+          loading={submitting}
+          loadingLabel="Working…"
+          className="mt-6"
         >
-          {submitting ? (
-            <>
-              <Loader2 className="h-4.5 w-4.5 animate-spin" />
-              Processing…
-            </>
-          ) : (
-            mode === 'login' 
-              ? "Sign In" 
-              : mode === 'register'
-                ? (otpSent ? "Verify & Sign Up" : "Send Verification Code")
-                : (resetOtpSent ? "Reset Password" : "Send Reset Code")
-          )}
-        </motion.button>
+          {mode === 'login' 
+            ? "Sign In" 
+            : mode === 'register'
+              ? (otpSent ? "Verify & Sign Up" : "Send Verification Code")
+              : (resetOtpSent ? "Reset Password" : "Send Reset Code")}
+        </Button>
       </form>
 
       {/* Mode Switcher Link */}
-      <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-semibold text-slate-400">
+      <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-ink-500">
         {mode === 'forgot-password' ? (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={() => onSwitchMode('login')}
-            className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent"
           >
             Back to Sign In
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={() => onSwitchMode(mode === 'login' ? 'register' : 'login')}
-            className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent"
           >
             {mode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
-          </button>
+          </Button>
         )}
         
         {mode === 'register' && otpSent && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={onSendOtp}
             disabled={submitting}
-            className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent disabled:opacity-50"
           >
             Resend Code
-          </button>
+          </Button>
         )}
 
         {mode === 'forgot-password' && resetOtpSent && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={onSendResetOtp}
             disabled={submitting}
-            className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent disabled:opacity-50"
           >
             Resend Code
-          </button>
+          </Button>
         )}
         
         {mode === 'login' && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="xs"
             onClick={() => onSwitchMode('forgot-password')}
-            className="transition-colors hover:text-slate-600 cursor-pointer border-none bg-transparent text-xs font-semibold text-slate-400"
           >
             Forgot password?
-          </button>
+          </Button>
         )}
       </div>
     </>

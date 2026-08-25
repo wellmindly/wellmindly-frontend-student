@@ -1,26 +1,14 @@
 import { motion } from "framer-motion";
-import { Heart } from "lucide-react";
+import { Logo } from "../ui";
 import studentLoginPortrait from "../../assets/student_login_portrait.png";
 
-export interface AuthBrandPanelProps {
-  onLogoClick: () => void;
-}
+export interface AuthBrandPanelProps {}
 
-export function AuthBrandPanel({ onLogoClick }: AuthBrandPanelProps) {
+export function AuthBrandPanel({}: AuthBrandPanelProps = {}) {
   return (
     <div className="hidden lg:flex relative w-[45%] flex-col justify-center items-center p-12 overflow-hidden bg-transparent">
       {/* Header Logo */}
-      <div 
-        onClick={onLogoClick}
-        className="absolute top-12 left-12 z-50 flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-plum shadow-lg border border-line/50">
-          <Heart className="h-7 w-7 fill-current" />
-        </div>
-        <span className="text-3xl font-black tracking-tight text-ink select-none">
-          WellMindly
-        </span>
-      </div>
+      <Logo size="md" className="absolute top-12 left-12 z-50" />
 
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
@@ -29,22 +17,22 @@ export function AuthBrandPanel({ onLogoClick }: AuthBrandPanelProps) {
         className="relative flex justify-center items-center w-full max-w-md mt-16"
       >
         {/* Soft background aura glow */}
-        <div className="absolute -inset-4 bg-gradient-to-tr from-sage-brand/10 to-coral/10 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
+        <div className="absolute -inset-4 bg-gradient-to-tr from-sage-500/10 to-coral-500/10 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
         
         {/* Interactive Floating Card 1: Today's Tone */}
         <motion.div
           whileHover={{ y: -5, scale: 1.02 }}
           animate={{ y: [0, -6, 0] }}
           transition={{ y: { duration: 5, repeat: Infinity, ease: "easeInOut" } }}
-          className="absolute bottom-8 -left-6 bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex flex-col gap-1 max-w-[200px] z-20 pointer-events-auto"
+          className="absolute bottom-8 -left-6 bg-card/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex flex-col gap-1 max-w-[200px] z-20 pointer-events-auto"
         >
-          <div className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Today's tone</div>
+          <div className="text-2xs text-ink-soft font-bold uppercase tracking-wider">Today's tone</div>
           <div className="text-sm font-serif font-semibold text-ink">Finding your footing</div>
           <div className="flex gap-1.5 mt-2">
-            <span className="w-2 h-2 rounded-full bg-teal" />
-            <span className="w-2 h-2 rounded-full bg-gold" />
-            <span className="w-2 h-2 rounded-full bg-rose opacity-40" />
-            <span className="w-2 h-2 rounded-full bg-plum opacity-40" />
+            <span className="w-2 h-2 rounded-full bg-teal-500" />
+            <span className="w-2 h-2 rounded-full bg-gold-500" />
+            <span className="w-2 h-2 rounded-full bg-rose-500 opacity-40" />
+            <span className="w-2 h-2 rounded-full bg-plum-500 opacity-40" />
           </div>
         </motion.div>
 
@@ -53,13 +41,13 @@ export function AuthBrandPanel({ onLogoClick }: AuthBrandPanelProps) {
           whileHover={{ y: -5, scale: 1.02 }}
           animate={{ y: [0, -8, 0] }}
           transition={{ y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 } }}
-          className="absolute top-12 -right-4 bg-white/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex items-center gap-3 max-w-[220px] z-20 pointer-events-auto"
+          className="absolute top-12 -right-4 bg-card/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex items-center gap-3 max-w-[220px] z-20 pointer-events-auto"
         >
-          <div className="w-7 h-7 bg-coral/15 text-coral rounded-lg flex items-center justify-center font-bold text-xs shrink-0 select-none">
+          <div className="w-7 h-7 bg-coral-500/15 text-coral-600 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 select-none">
             VK
           </div>
           <div>
-            <div className="text-[10px] text-ink-soft font-bold uppercase tracking-wider">Next Session</div>
+            <div className="text-2xs text-ink-soft font-bold uppercase tracking-wider">Next Session</div>
             <div className="text-xs font-bold text-ink">Coach Vinayak &middot; Thu 5pm</div>
           </div>
         </motion.div>

@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
-import { Heart } from "lucide-react";
 import type { CredentialResponse } from '@react-oauth/google';
 import { motion } from "framer-motion";
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { Logo } from '../components/ui';
 import { AuthBrandPanel, AuthAlerts, GoogleAuthButtons, AuthForm } from '../components/auth';
 
 /** Resolve the ?redirect= param to a safe in-app path, appending showResult if present. */
@@ -366,29 +366,19 @@ export function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex flex-col lg:flex-row bg-[#F7F9F7] font-sans overflow-hidden">
+    <main className="min-h-screen w-full flex flex-col lg:flex-row bg-paper font-sans overflow-hidden">
       {/* LEFT PANEL: Branding & Visuals (Hidden on small screens, full width on large) */}
-      <AuthBrandPanel onLogoClick={() => navigate("/")} />
+      <AuthBrandPanel />
 
       {/* RIGHT PANEL: Login/Signup Form */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 bg-[#F0F2F5] lg:bg-white relative">
+      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 bg-paper-2 lg:bg-card relative">
         {/* Mobile Header (Only visible on small screens) */}
-        <div 
-          onClick={() => navigate("/")}
-          className="lg:hidden flex items-center gap-3 absolute top-8 left-8 cursor-pointer hover:opacity-90 transition-opacity"
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-plum text-white shadow-lg">
-            <Heart className="h-5 w-5 fill-current" />
-          </div>
-          <span className="text-2xl font-black tracking-tight text-[#1B2433] select-none">
-            WellMindly
-          </span>
-        </div>
+        <Logo size="sm" className="lg:hidden absolute top-8 left-8" />
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-white lg:bg-transparent rounded-3xl lg:rounded-none shadow-xl lg:shadow-none border border-slate-200/60 lg:border-none p-8 lg:p-0 relative"
+          className="w-full max-w-md bg-card lg:bg-transparent rounded-3xl lg:rounded-none shadow-xl lg:shadow-none border border-line/60 lg:border-none p-8 lg:p-0 relative"
         >
           <AuthAlerts 
             error={globalError}
@@ -398,14 +388,14 @@ export function LoginPage() {
           />
 
           <div className="mb-8 text-center lg:text-left mt-8 lg:mt-0">
-            <h2 className="text-3xl font-black tracking-tight text-slate-900 mb-3">
+            <h2 className="text-3xl font-black tracking-tight text-ink-900 mb-3">
               {mode === 'login' 
                 ? "Welcome back" 
                 : mode === 'register' 
                   ? "Create your account" 
                   : "Reset your password"}
             </h2>
-            <p className="text-base text-slate-500 font-medium">
+            <p className="text-base text-ink-500 font-medium">
               {mode === 'login' 
                 ? "Access your Wellmindly wellness dashboard." 
                 : mode === 'register'
@@ -415,7 +405,7 @@ export function LoginPage() {
           </div>
 
           {/* Login Actions Card */}
-          <div className="bg-slate-50 lg:bg-[#F8FAFC] p-8 rounded-3xl border border-slate-100/80">
+          <div className="bg-paper p-5 sm:p-8 rounded-3xl border border-line-soft">
             <GoogleAuthButtons
               onWebSuccess={handleGoogleSuccess}
               onWebError={() => setGlobalError("Google login widget failed to load.")}
