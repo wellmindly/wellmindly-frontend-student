@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { AlertCircle, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import type { CredentialResponse } from '@react-oauth/google';
 import { motion } from "framer-motion";
 import api from '../services/api';
@@ -45,7 +45,6 @@ export function LoginPage() {
   const [password, setPassword] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; firstName?: string; lastName?: string; otp?: string }>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [globalSuccess, setGlobalSuccess] = useState<string | null>(null);
@@ -434,7 +433,6 @@ export function LoginPage() {
               otp={otp}
               otpSent={otpSent}
               resetOtpSent={resetOtpSent}
-              showPassword={showPassword}
               errors={errors}
               submitting={submitting}
               onFirstNameChange={(v) => { setFirstName(v); if (errors.firstName) setErrors((p) => ({ ...p, firstName: undefined })); clearGlobal(); }}
@@ -442,7 +440,6 @@ export function LoginPage() {
               onEmailChange={(v) => { setEmail(v); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); clearGlobal(); }}
               onPasswordChange={(v) => { setPassword(v); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); clearGlobal(); }}
               onOtpChange={(v) => { setOtp(v); if (errors.otp) setErrors((p) => ({ ...p, otp: undefined })); clearGlobal(); }}
-              onTogglePassword={() => setShowPassword((s) => !s)}
               onSubmit={handleSubmit}
               onSwitchMode={(target) => (target === 'forgot-password' || target === 'login') ? handleSwitchMode(target) : toggleMode()}
               onSendOtp={handleSendOtp}
@@ -452,58 +449,5 @@ export function LoginPage() {
         </motion.div>
       </div>
     </main>
-  );
-}
-
-export interface FieldProps {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  error?: string;
-  trailing?: React.ReactNode;
-  children: React.ReactNode;
-}
-
-export function Field({ id, label, icon, error, trailing, children }: FieldProps) {
-  const [isFocused, setIsFocused] = useState(false);
-
-  const borderColor = error ? "rgb(239 68 68)" : isFocused ? "var(--color-plum)" : "rgb(226, 232, 240)";
-  const ringColor = error ? "rgb(239 68 68 / 0.15)" : "color-mix(in srgb, var(--color-plum) 12%, transparent)";
-
-  return (
-    <div className="w-full text-left">
-      <label htmlFor={id} className="mb-2 block text-xs font-bold text-slate-500 tracking-wide uppercase">
-        {label}
-      </label>
-      <div
-        className="group relative rounded-2xl border transition-all duration-200"
-        style={{ 
-          borderColor, 
-          boxShadow: isFocused || error ? `0 0 0 4px ${ringColor}` : "none",
-          backgroundColor: isFocused ? "white" : "rgb(248, 250, 252)"
-        }}
-        onFocusCapture={() => setIsFocused(true)}
-        onBlurCapture={() => setIsFocused(false)}
-      >
-        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-slate-600 transition-colors">
-          {icon}
-        </div>
-        {children}
-        {trailing}
-      </div>
-
-      {error && (
-        <motion.p
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          id={`${id}-error`}
-          role="alert"
-          className="mt-1.5 flex items-center gap-1 text-xs font-bold text-red-500"
-        >
-          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-          {error}
-        </motion.p>
-      )}
-    </div>
   );
 }

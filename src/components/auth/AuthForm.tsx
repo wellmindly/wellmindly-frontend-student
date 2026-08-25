@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, Shield, User, Loader2 } from "lucide-react";
-import { Field } from "../../pages/Login";
+import { Mail, Lock, Shield, User, Loader2 } from "lucide-react";
+import { Input, PasswordInput } from "../ui";
 
 export interface AuthFormProps {
   mode: "login" | "register" | "forgot-password";
@@ -12,7 +12,6 @@ export interface AuthFormProps {
   otp: string;
   otpSent: boolean;
   resetOtpSent: boolean;
-  showPassword: boolean;
   errors: { email?: string; password?: string; firstName?: string; lastName?: string; otp?: string };
   submitting: boolean;
   onFirstNameChange: (v: string) => void;
@@ -20,7 +19,6 @@ export interface AuthFormProps {
   onEmailChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
   onOtpChange: (v: string) => void;
-  onTogglePassword: () => void;
   onSubmit: (ev: FormEvent) => void;
   onSwitchMode: (mode: "login" | "register" | "forgot-password") => void;
   onSendOtp?: () => void;
@@ -36,7 +34,6 @@ export function AuthForm({
   otp,
   otpSent,
   resetOtpSent,
-  showPassword,
   errors,
   submitting,
   onFirstNameChange,
@@ -44,7 +41,6 @@ export function AuthForm({
   onEmailChange,
   onPasswordChange,
   onOtpChange,
-  onTogglePassword,
   onSubmit,
   onSwitchMode,
   onSendOtp,
@@ -57,110 +53,82 @@ export function AuthForm({
         {/* Registration First/Last Name Inputs */}
         {mode === 'register' && (
           <div className="flex flex-col sm:flex-row gap-4">
-            <Field
-              id="firstName"
+            <Input
               label="First Name"
+              type="text"
+              autoComplete="given-name"
+              required
+              placeholder="Jane"
               icon={<User className="h-4.5 w-4.5" />}
               error={errors.firstName}
-            >
-              <input
-                id="firstName"
-                type="text"
-                required
-                placeholder="Jane"
-                value={firstName}
-                onChange={(e) => onFirstNameChange(e.target.value)}
-                className="w-full bg-transparent py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
-              />
-            </Field>
+              value={firstName}
+              onChange={(e) => onFirstNameChange(e.target.value)}
+              className="min-h-11"
+              containerClassName="flex-1"
+            />
 
-            <Field
-              id="lastName"
+            <Input
               label="Last Name"
+              type="text"
+              autoComplete="family-name"
+              required
+              placeholder="Doe"
               icon={<User className="h-4.5 w-4.5" />}
               error={errors.lastName}
-            >
-              <input
-                id="lastName"
-                type="text"
-                required
-                placeholder="Doe"
-                value={lastName}
-                onChange={(e) => onLastNameChange(e.target.value)}
-                className="w-full bg-transparent py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
-              />
-            </Field>
+              value={lastName}
+              onChange={(e) => onLastNameChange(e.target.value)}
+              className="min-h-11"
+              containerClassName="flex-1"
+            />
           </div>
         )}
 
         {/* Email Address Input */}
-        <Field
-          id="email"
+        <Input
           label="Student Email Address"
+          type="email"
+          autoComplete="email"
+          required
+          placeholder="name@wellmindly.com"
           icon={<Mail className="h-4.5 w-4.5" />}
           error={errors.email}
-        >
-          <input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            placeholder="name@wellmindly.com"
-            value={email}
-            onChange={(e) => onEmailChange(e.target.value)}
-            className="w-full bg-transparent py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
-          />
-        </Field>
+          value={email}
+          onChange={(e) => onEmailChange(e.target.value)}
+          className="min-h-11"
+        />
 
         {/* Password Input */}
         {(mode !== 'forgot-password' || resetOtpSent) && (
-          <Field
-            id="password"
+          <PasswordInput
             label={mode === 'forgot-password' ? "New Password" : "Password"}
+            autoComplete={mode === 'login' ? "current-password" : "new-password"}
+            required
+            placeholder={mode === 'forgot-password' ? "Enter new password" : "Enter your password"}
             icon={<Lock className="h-4.5 w-4.5" />}
             error={errors.password}
-            trailing={
-              <button
-                type="button"
-                onClick={onTogglePassword}
-                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-              >
-                {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
-              </button>
-            }
-          >
-            <input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete={mode === 'forgot-password' ? "new-password" : "current-password"}
-              required
-              placeholder={mode === 'forgot-password' ? "Enter new password" : "Enter your password"}
-              value={password}
-              onChange={(e) => onPasswordChange(e.target.value)}
-              className="w-full bg-transparent py-3 pl-11 pr-11 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
-            />
-          </Field>
+            value={password}
+            onChange={(e) => onPasswordChange(e.target.value)}
+            className="min-h-11"
+          />
         )}
 
         {/* OTP Input (Shown only when registering/resetting and code has been sent) */}
         {((mode === 'register' && otpSent) || (mode === 'forgot-password' && resetOtpSent)) && (
-          <Field
-            id="otp"
+          <Input
             label="Verification Code (6-digit OTP)"
+            type="text"
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            required
+            maxLength={6}
+            placeholder="123456"
             icon={<Shield className="h-4.5 w-4.5" />}
             error={errors.otp}
-          >
-            <input
-              id="otp"
-              type="text"
-              required
-              maxLength={6}
-              placeholder="123456"
-              value={otp}
-              onChange={(e) => onOtpChange(e.target.value)}
-              className="w-full bg-transparent py-3 pl-11 pr-4 text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none"
-            />
-          </Field>
+            value={otp}
+            onChange={(e) => onOtpChange(e.target.value)}
+            className="min-h-11"
+          />
         )}
 
         {/* Submit Button */}
