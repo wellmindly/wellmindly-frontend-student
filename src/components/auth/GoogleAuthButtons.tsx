@@ -45,7 +45,6 @@ export function GoogleAuthButtons({
           type="button"
           onClick={onNativeClick}
           disabled={submitting}
-          className="mb-4"
           leadingIcon={
             <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
               {/* Google's brand hexes are fixed by their sign-in branding guidelines — not ours to tokenise. */}
@@ -73,15 +72,13 @@ export function GoogleAuthButtons({
       )}
 
       {/* Divider */}
-      {!Capacitor.isNativePlatform() && (
-        <div className="my-6 flex items-center gap-3">
-          <span className="h-px flex-1 bg-line" />
-          <span className="text-2xs font-bold uppercase tracking-widest text-ink-400">
-            Or connect with
-          </span>
-          <span className="h-px flex-1 bg-line" />
-        </div>
-      )}
+      <div className="my-6 flex items-center gap-3">
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-2xs font-bold uppercase tracking-widest text-ink-400">
+          Or connect with
+        </span>
+        <span className="h-px flex-1 bg-line" />
+      </div>
     </>
   );
 }

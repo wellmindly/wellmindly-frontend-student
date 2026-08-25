@@ -195,6 +195,8 @@ export function LoginPage() {
 
   const handleSendOtp = async () => {
     setGlobalError(null);
+    setGlobalSuccess(null);
+    const isResend = otpSent;
     const next: { email?: string; password?: string; firstName?: string; lastName?: string } = {};
     if (!firstName.trim()) next.firstName = "First name is required.";
     if (!lastName.trim()) next.lastName = "Last name is required.";
@@ -216,6 +218,9 @@ export function LoginPage() {
     try {
       await api.post("/auth/send-otp", { email });
       setOtpSent(true);
+      if (isResend) {
+        setGlobalSuccess("A new code is on its way to " + email);
+      }
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to send verification code. Please try again.";
       setGlobalError(errorMsg);
@@ -244,6 +249,8 @@ export function LoginPage() {
 
   const handleSendResetOtp = async () => {
     setGlobalError(null);
+    setGlobalSuccess(null);
+    const isResend = resetOtpSent;
     const next: { email?: string } = {};
     const e = email.trim();
     if (!e) next.email = "Email is required.";
@@ -259,6 +266,9 @@ export function LoginPage() {
     try {
       await api.post("/auth/forgot-password", { email });
       setResetOtpSent(true);
+      if (isResend) {
+        setGlobalSuccess("A new code is on its way to " + email);
+      }
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to send reset code. Please try again.";
       setGlobalError(errorMsg);
