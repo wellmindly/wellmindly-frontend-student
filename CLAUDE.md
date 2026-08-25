@@ -101,31 +101,43 @@ The loop does not end until the refactor is 100% complete and I am satisfied wit
 - **Demand one commit per task.** Pass 1 arrived as one 45-file blob; per-task diffs were unrecoverable and I had to review whole files. Pass 2 gave 4 commits and was reviewable.
 - **Say how many sites a bug has, and make counting them a Done-when line.** Both pass-2 reopens were the same failure: a *correct* fix applied to part of the surface (1 of 4 redirect call sites; 3 UI states wired but 2 unreachable from the data layer). A bug that says "N places" gets N places fixed; a bug that says "this is wrong" gets one place fixed.
 - **`BUGS.md` must be append-only.** The builder replaced every bug body with a one-line status, so I could no longer diff a fix against the ask without `git log` — expensive when tokens are the constraint.
+- **Read the target component's real signature before specifying the migration.** Writing Phase 3 I had to check that `Logo` only offers `sm`/`md` (so the login brand mark necessarily shrinks — a visual decision the card must own rather than discover), that `Button`'s `loading` *hides* the label and shows an `sr-only` announcement (so "Processing…" stops being visible), and that kit `Input` already wires `aria-invalid`/`aria-describedby` (so the a11y card must say "verify", not "add"). A card written from memory of the kit specifies work that doesn't exist and misses work that does.
+- **When a legacy value is genuinely correct, authorise the escape hatch explicitly.** Google's sign-in mark uses fixed brand hexes that no token should ever match. If T-303 didn't name that and pre-approve four `guard-ignore`s, the builder would either retint Google's logo or never reach a clean gate.
 
-### Current status (end of review pass 2)
+### Current status (end of review pass 3)
 
-`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ · `guard` on the landing route ✅ **0 errors, 3 permitted warnings**
+`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ · `guard src/components/ui` ✅ **0 errors 0 warnings** · `guard` on the landing route ✅ 0 errors, 3 permitted warnings
 
-Phase 1 + 2 are **essentially complete**: **12 ACCEPTED**, 1 REVIEW-FAIL (T-205), 20 of 24 bugs verified fixed. The public route — header, footer, hero, care-path tablist, coaching, trust, both legacy blocks — is structurally right, honest in its copy, and clean on every gate. `LandingPage.tsx` went 761→288 lines with four extracted sections.
+**Phase 1 and Phase 2 are closed.** Every row `ACCEPTED`, every bug through B-028 `VERIFIED`, zero reopens and zero new bugs in pass 3. The public route — header, footer, hero, care-path tablist, coaching, trust, both legacy blocks — plus the entire 15-file UI kit are clean on all four gates. `LandingPage.tsx` went 761→288 lines.
 
-Open queue for the builder: **B-014** (reopened — open redirect at `Login.tsx` 141/185/355), **B-016** (reopened — `fetchCoaches` can't reach `ErrorState`/`EmptyState`), **B-025** (kit `TabPanel` strips its focus ring — B-007's root cause), **B-026**–**B-028**, then **T-108** (kit raw-`white` → tokens, 18 sites).
+**Phase 3 (auth) is fully carded and is the builder's current queue,** strictly in order:
 
-**Next for me:** re-review that queue, then author **Phase 3** (T-301, `Login.tsx`, 890 lines, 44 guard errors). Note B-014's `resolveRedirect` helper lands in `Login.tsx` first — T-301 must build on it, not undo it.
+| Card | What it does |
+|---|---|
+| T-301 | Mandatory Step-0 audit of all seven auth entry points, then a **mechanical** split of `Login.tsx` into `AuthBrandPanel`/`AuthForm`/`GoogleAuthButtons`/`AuthAlerts`. State stays in the parent. Guard must stay at *exactly* 44, redistributed. |
+| T-302 | Delete the local `Field` (`827-883`, inline `rgb()` styles) and move the five fields onto the kit `Input`/`PasswordInput`. Net deletion; `showPassword` disappears because `PasswordInput` owns the reveal toggle. |
+| T-303 | Kit `Logo`/`Button`/`IconButton` + the full token migration. Takes the route to **0 reported** guard errors, with four authorised `guard-ignore`s for Google's brand hexes (`#EA4335` etc. are mandated by Google's identity guidelines — no token should ever match them). Also fixes a real defect: `GoogleLogin width="320"` overflows a ~263px content box at 375px, inside `overflow-hidden`. |
+| T-304 | Replace the fabricated "Today's tone · Finding your footing" and "Coach Vinayak · Thu 5pm" cards. Copy supplied verbatim: "The daily check-in / Tap the face that fits. Nothing else to fill in." and a privacy card reusing the hero's approved "Never shared with your school" / "Private by default". Note `HeroSection` keeps its versions — T-203 legitimised them with `Preview` badges and real destinations; a login page has nowhere for them to go. |
+| T-305 | A11y: `<h2>`→`<h1>` (the route has **no** `<h1>`), two always-mounted live regions in `AuthAlerts` (assertive for errors, polite for success, no nested `role="alert"`), and focus-to-first-invalid-field keyed on a `failedAttempt` counter so it can't steal focus mid-typing. |
 
-### Design-system debt map (from `guard.mjs`, for phase planning)
+**Next for me:** review Phase 3 against T-301's Step-0 audit, then author Phase 4. Sequence the remaining phases off the debt map below.
 
-The guard's per-rule tally is a decent proxy for how much visual-drift work each remaining surface carries:
+### Design-system debt map (from `guard --all`, for phase planning)
+
+**913 errors across 76 files.** Dominant rules: `off-system-palette` 552, `raw-white` 233, `micro-type` 70, `raw-hex` 58 — i.e. the legacy tree mostly predates the ramp.
 
 | File | Guard errors | Note |
 |---|---|---|
-| `TalkMindlyTab.tsx` | 138 | worst offender — hard-coded dark theme |
+| `CounselorBookingView.tsx` | 183 | worst offender — overtook TalkMindly once the rules caught `ring-offset-*` |
+| `TalkMindlyTab.tsx` | 138 | hard-coded dark theme |
 | `OverviewTab.tsx` | 72 | |
-| `Login.tsx` | 44 | Phase 3 |
-| `CrisisPage.tsx` | 28 | |
-| `ComingSoonModal.tsx` | 22 | |
-| `UniversityPage.tsx` | 16 | |
+| `AssessmentsTab.tsx` | 63 | |
+| `ReportDetailModal.tsx` | 60 | |
+| `AssessmentWizard.tsx` | 53 | |
+| `ResultView.tsx` | 46 | |
+| `Login.tsx` | 44 | Phase 3 — carded |
 
-Dominant rules are `off-system-palette` (166) and `raw-white` (147) — i.e. the legacy tree mostly predates the ramp. Run `cd frontend-student && node scripts/guard.mjs --all` for the current picture.
+Run `cd frontend-student && node scripts/guard.mjs --all` for the current picture.
 
 ### `guard.mjs` — my review tooling
 
@@ -169,4 +181,4 @@ Then **QA sweep** at 375 / 390 / 768 / 1024 / 1440 / large desktop.
 
 ---
 
-*Last updated: 2026-08-25. Round completed: review pass 2 — Phase 1 + 2 accepted (12 ACCEPTED, 20/24 bugs verified), landing route clean on all gates. Next: builder clears the pass-2 queue (B-014, B-016, B-025–B-028, T-108), then I author Phase 3.*
+*Last updated: 2026-08-25. Round completed: review pass 3 — **Phases 1 and 2 closed** (every row ACCEPTED, every bug through B-028 VERIFIED, kit clean at 0/0), and **Phase 3 authored in full** (T-301 → T-305). Next: builder works Phase 3 in order; I review it against T-301's Step-0 audit, then author Phase 4 off the debt map.*
