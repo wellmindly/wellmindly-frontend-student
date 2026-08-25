@@ -21,7 +21,8 @@ export function LoginPage() {
       const safeRedirect = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
       const testIdParam = params.get("testId");
       if (raw && safeRedirect !== "/dashboard") {
-        const target = testIdParam ? `${safeRedirect}?showResult=${testIdParam}` : safeRedirect;
+        const sep = safeRedirect.includes("?") ? "&" : "?";
+        const target = testIdParam ? `${safeRedirect}${sep}showResult=${testIdParam}` : safeRedirect;
         navigate(target, { replace: true });
       } else if (safeRedirect === "/dashboard" && testIdParam && raw) {
         navigate(`${safeRedirect}?showResult=${testIdParam}`, { replace: true });
@@ -85,7 +86,7 @@ export function LoginPage() {
             }
             const range = maxPoints - minPoints || 1;
 
-            overallScore = Object.values(res.scores).reduce((sum: number, p: any) => {
+            overallScore = Object.values(res.scores as Record<string, unknown>).reduce<number>((sum, p) => {
               const rating = Math.round(Number(p) / 100 * range) + minPoints;
               return sum + rating;
             }, 0);

@@ -1,7 +1,5 @@
-import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
 import type { CoachItem } from "./types";
-import { buttonClasses } from "../../ui";
+import { Sheet, Button, Badge } from "../../ui";
 
 export interface CoachBookingModalProps {
   selectedCoach: CoachItem | null;
@@ -20,67 +18,55 @@ export function CoachBookingModal({
   onClose,
   onConfirm,
 }: CoachBookingModalProps) {
+  if (!selectedCoach) return null;
+
   return (
-    <AnimatePresence>
-      {selectedCoach && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.95, opacity: 0 }}
-            className="bg-paper border border-ink-200 rounded-3xl max-w-md w-full p-8 shadow-2xl relative"
+    <Sheet
+      open={selectedCoach !== null}
+      onClose={onClose}
+      title={`Book with ${selectedCoach.name.split(" ")[0]}`}
+      description={selectedCoach.role}
+      size="sm"
+    >
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <span className="text-xs font-bold text-ink-900 uppercase tracking-wider">
+          Example slots
+        </span>
+        <Badge tone="primary" size="sm">
+          Preview
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-6">
+        {bookingSlots.map((slot, idx) => (
+          <button
+            type="button"
+            key={slot}
+            onClick={() => onSelectSlot(idx)}
+            className={`px-3 py-3 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer min-h-11 ${
+              selectedSlot === idx
+                ? "bg-plum-600 border-plum-600 text-plum-50"
+                : "bg-card border-ink-200 text-ink-600 hover:border-ink-400 hover:text-ink-900"
+            }`}
           >
-            <button 
-              type="button"
-              onClick={onClose}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-ink-100/60 hover:bg-ink-200/80 transition-colors flex items-center justify-center text-ink-600 hover:text-ink-900 cursor-pointer border-none"
-              aria-label="Close modal"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            {slot}
+          </button>
+        ))}
+      </div>
 
-            <h3 className="font-serif text-2xl font-medium mb-1 text-ink-900">
-              Book with {selectedCoach.name.split(" ")[0]}
-            </h3>
-            <p className="text-xs text-ink-600 mb-6">
-              {selectedCoach.role} &middot; Your free university session
-            </p>
+      <p className="text-2xs text-ink-500 text-center mb-3">
+        Sign in to confirm — we'll bring your choice with you.
+      </p>
 
-            <div className="text-xs font-bold text-ink-900 uppercase tracking-wider mb-2.5">
-              Available slots
-            </div>
-            <div className="grid grid-cols-2 gap-2 mb-6">
-              {bookingSlots.map((slot, idx) => (
-                <button
-                  type="button"
-                  key={slot}
-                  onClick={() => onSelectSlot(idx)}
-                  className={`px-3 py-3 rounded-xl border text-xs font-semibold text-center transition-all cursor-pointer ${
-                    selectedSlot === idx 
-                      ? "bg-plum-600 border-plum-600 text-white"
-                      : "bg-white border-ink-200 text-ink-600 hover:border-ink-400 hover:text-ink-900"
-                  }`}
-                >
-                  {slot}
-                </button>
-              ))}
-            </div>
-
-            <p className="text-2xs text-ink-500 text-center mb-3">
-              Sign in to confirm — we'll bring your choice with you.
-            </p>
-
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={selectedSlot === null}
-              className={buttonClasses("primary", "lg", "w-full justify-center min-h-12 disabled:opacity-40 disabled:cursor-not-allowed")}
-            >
-              Sign in to book
-            </button>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+      <Button
+        variant="primary"
+        size="lg"
+        className="w-full justify-center min-h-12 disabled:opacity-40 disabled:cursor-not-allowed"
+        disabled={selectedSlot === null}
+        onClick={onConfirm}
+      >
+        Sign in to book
+      </Button>
+    </Sheet>
   );
 }

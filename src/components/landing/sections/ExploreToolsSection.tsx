@@ -35,7 +35,7 @@ const TABS: Array<{
     depth: "On your own",
     oneLine: "Get it out of your head in 60 seconds with private AI reflection.",
     icon: PenTool,
-    activeBg: "bg-teal-600 text-white",
+    activeBg: "bg-teal-600 text-teal-50",
     inactiveBg: "bg-teal-50 text-teal-700",
   },
   {
@@ -44,7 +44,7 @@ const TABS: Array<{
     depth: "Guided",
     oneLine: "Talk it through in anonymous, 24/7 moderated peer circles.",
     icon: MessageSquare,
-    activeBg: "bg-plum-600 text-white",
+    activeBg: "bg-plum-600 text-plum-50",
     inactiveBg: "bg-plum-50 text-plum-700",
   },
   {
@@ -53,7 +53,7 @@ const TABS: Array<{
     depth: "With a human",
     oneLine: "Book confidential 1-on-1 sessions with trained student mentors.",
     icon: Users,
-    activeBg: "bg-coral-600 text-white",
+    activeBg: "bg-coral-600 text-coral-50",
     inactiveBg: "bg-coral-50 text-coral-700",
   },
 ];
@@ -104,6 +104,10 @@ export function ExploreToolsSection({
     }
   };
 
+  const currentCoach = coaches.length > 0
+    ? coaches[Math.min(activePreviewCoachIndex, coaches.length - 1)]
+    : null;
+
   return (
     <section className="py-16 border-t border-ink-200/60" id="explore-tools">
       {/* Section Header */}
@@ -133,10 +137,10 @@ export function ExploreToolsSection({
         >
           <div
             className={cn(
-              "h-full transition-all duration-300",
-              activeIndex === 0 && "w-0 bg-teal-500",
-              activeIndex === 1 && "w-1/2 bg-plum-500",
-              activeIndex === 2 && "w-full bg-coral-500",
+              "h-full w-full origin-left transition-transform duration-300",
+              activeIndex === 0 && "scale-x-[0.16] bg-teal-500",
+              activeIndex === 1 && "scale-x-50 bg-plum-500",
+              activeIndex === 2 && "scale-x-100 bg-coral-500",
             )}
           />
         </div>
@@ -148,10 +152,10 @@ export function ExploreToolsSection({
         >
           <div
             className={cn(
-              "w-full transition-all duration-300",
-              activeIndex === 0 && "h-0 bg-teal-500",
-              activeIndex === 1 && "h-1/2 bg-plum-500",
-              activeIndex === 2 && "h-full bg-coral-500",
+              "h-full w-full origin-top transition-transform duration-300",
+              activeIndex === 0 && "scale-y-[0.16] bg-teal-500",
+              activeIndex === 1 && "scale-y-50 bg-plum-500",
+              activeIndex === 2 && "scale-y-100 bg-coral-500",
             )}
           />
         </div>
@@ -176,8 +180,8 @@ export function ExploreToolsSection({
                 "group relative flex lg:flex-col items-start lg:items-center text-left lg:text-center gap-4 lg:gap-3 p-5 rounded-3xl transition-all cursor-pointer border",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 min-h-12",
                 isSelected
-                  ? "bg-white border-ink-300 shadow-md ring-2 ring-plum-500/20"
-                  : "bg-white/60 hover:bg-white border-ink-100 hover:border-ink-200",
+                  ? "bg-card border-ink-300 shadow-md ring-2 ring-plum-500/20"
+                  : "bg-card/60 hover:bg-card border-ink-100 hover:border-ink-200",
               )}
             >
               {/* Node Circle */}
@@ -215,7 +219,7 @@ export function ExploreToolsSection({
         id="care-panel"
         aria-labelledby={`care-tab-${activeOfferTab}`}
         tabIndex={0}
-        className="rounded-3xl border border-ink-200 bg-white p-6 sm:p-8 min-h-[380px] shadow-sm mb-12 focus-visible:outline-none"
+        className="rounded-3xl border border-ink-200 bg-card p-6 sm:p-8 min-h-[380px] shadow-sm mb-12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-400 focus-visible:ring-offset-2"
       >
         <AnimatePresence mode="wait">
           {activeOfferTab === "writemindly" && (
@@ -245,7 +249,7 @@ export function ExploreToolsSection({
                   <div className="text-2xs font-bold text-ink-500 uppercase tracking-wider border-b border-ink-200 pb-2 flex justify-between items-center">
                     <span>Try AI Reflection</span>
                     <span className="flex items-center gap-1 text-teal-700 font-semibold">
-                      <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-teal-500" />
                       Live Demo
                     </span>
                   </div>
@@ -256,8 +260,8 @@ export function ExploreToolsSection({
                       className={cn(
                         "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                         mockWritePrompt === 0
-                          ? "bg-teal-600 border-teal-600 text-white shadow-sm"
-                          : "bg-white border-ink-200 text-ink-600 hover:text-ink-900",
+                          ? "bg-teal-600 border-teal-600 text-teal-50 shadow-sm"
+                          : "bg-card border-ink-200 text-ink-600 hover:text-ink-900",
                       )}
                     >
                       Academic Stress
@@ -268,14 +272,14 @@ export function ExploreToolsSection({
                       className={cn(
                         "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                         mockWritePrompt === 1
-                          ? "bg-teal-600 border-teal-600 text-white shadow-sm"
-                          : "bg-white border-ink-200 text-ink-600 hover:text-ink-900",
+                          ? "bg-teal-600 border-teal-600 text-teal-50 shadow-sm"
+                          : "bg-card border-ink-200 text-ink-600 hover:text-ink-900",
                       )}
                     >
                       Feeling Disconnected
                     </button>
                   </div>
-                  <div className="p-4 bg-white rounded-xl border border-ink-200 text-xs text-left leading-relaxed">
+                  <div className="p-4 bg-card rounded-xl border border-ink-200 text-xs text-left leading-relaxed">
                     <div className="font-bold text-ink-900 mb-1.5">
                       {mockWritePrompt === 0
                         ? "Student: I have 3 deadlines tomorrow and I can't start..."
@@ -336,8 +340,8 @@ export function ExploreToolsSection({
                       className={cn(
                         "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                         mockTalkTopic === "exam-stress"
-                          ? "bg-plum-600 border-plum-600 text-white shadow-sm"
-                          : "bg-white border-ink-200 text-ink-600 hover:text-ink-900",
+                          ? "bg-plum-600 border-plum-600 text-plum-50 shadow-sm"
+                          : "bg-card border-ink-200 text-ink-600 hover:text-ink-900",
                       )}
                     >
                       Burnout
@@ -348,14 +352,14 @@ export function ExploreToolsSection({
                       className={cn(
                         "flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                         mockTalkTopic === "social"
-                          ? "bg-plum-600 border-plum-600 text-white shadow-sm"
-                          : "bg-white border-ink-200 text-ink-600 hover:text-ink-900",
+                          ? "bg-plum-600 border-plum-600 text-plum-50 shadow-sm"
+                          : "bg-card border-ink-200 text-ink-600 hover:text-ink-900",
                       )}
                     >
                       Campus Life
                     </button>
                   </div>
-                  <div className="p-4 bg-white rounded-xl border border-ink-200 text-xs text-left leading-relaxed space-y-2">
+                  <div className="p-4 bg-card rounded-xl border border-ink-200 text-xs text-left leading-relaxed space-y-2">
                     {mockTalkTopic === "exam-stress" ? (
                       <>
                         <div className="text-ink-900">
@@ -418,12 +422,8 @@ export function ExploreToolsSection({
 
                 {/* Simulator */}
                 <div className="bg-ink-50 border border-ink-200/70 rounded-2xl p-4 text-xs space-y-3 mb-6 max-w-2xl">
-                  <div className="text-2xs font-bold text-ink-500 uppercase tracking-wider border-b border-ink-200 pb-2 flex justify-between items-center">
-                    <span>Available Wellbeing Coaches</span>
-                    <span className="text-emerald-700 font-bold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Active
-                    </span>
+                  <div className="text-2xs font-bold text-ink-500 uppercase tracking-wider border-b border-ink-200 pb-2">
+                    <span>Wellbeing coaches</span>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {coaches.map((c, idx) => (
@@ -434,28 +434,30 @@ export function ExploreToolsSection({
                         className={cn(
                           "px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer",
                           activePreviewCoachIndex === idx
-                            ? "bg-coral-600 border-coral-600 text-white shadow-sm"
-                            : "bg-white border-ink-200 text-ink-600 hover:text-ink-900",
+                            ? "bg-coral-600 border-coral-600 text-coral-50 shadow-sm"
+                            : "bg-card border-ink-200 text-ink-600 hover:text-ink-900",
                         )}
                       >
                         {c.name.split(" ")[0]}
                       </button>
                     ))}
                   </div>
-                  <div className="p-4 bg-white rounded-xl border border-ink-200 text-xs text-left leading-relaxed">
-                    <div className="font-bold text-ink-900">{coaches[activePreviewCoachIndex]?.name}</div>
-                    <div className="text-2xs text-ink-500 mb-2">{coaches[activePreviewCoachIndex]?.role}</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(coaches[activePreviewCoachIndex]?.specs || []).slice(0, 2).map((s) => (
-                        <span
-                          key={s}
-                          className="bg-ink-50 text-ink-700 text-2xs font-semibold px-2 py-0.5 rounded-md border border-ink-200"
-                        >
-                          {s}
-                        </span>
-                      ))}
+                  {currentCoach && (
+                    <div className="p-4 bg-card rounded-xl border border-ink-200 text-xs text-left leading-relaxed">
+                      <div className="font-bold text-ink-900">{currentCoach.name}</div>
+                      <div className="text-2xs text-ink-500 mb-2">{currentCoach.role}</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(currentCoach.specs || []).slice(0, 2).map((s) => (
+                          <span
+                            key={s}
+                            className="bg-ink-100 text-ink-700 text-2xs font-semibold px-2 py-0.5 rounded-md border border-ink-200"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -477,7 +479,7 @@ export function ExploreToolsSection({
       {/* Integrated Mobile Safety & Crisis Strip on Coral Ramp */}
       <div className="border border-coral-200 bg-coral-50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-coral-800 shadow-xs">
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="w-9 h-9 rounded-xl bg-coral-500 text-white flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-coral-500 text-coral-50 flex items-center justify-center shrink-0">
             <AlertCircle className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
@@ -487,7 +489,7 @@ export function ExploreToolsSection({
         </div>
         <Link
           to="/crisis"
-          className="w-full sm:w-auto px-4 py-2.5 bg-coral-600 hover:bg-coral-700 text-white text-xs font-bold rounded-xl transition-colors text-center shrink-0 min-h-11 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-600"
+          className="w-full sm:w-auto px-4 py-2.5 bg-coral-600 hover:bg-coral-700 text-coral-50 text-xs font-bold rounded-xl transition-colors text-center shrink-0 min-h-11 flex items-center justify-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-600"
         >
           Get immediate support
         </Link>

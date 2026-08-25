@@ -12,9 +12,8 @@ import studentPortraitClean from "../../assets/student_portrait_clean.png";
 
 interface HeroSectionProps {
   onCheckInClick?: () => void;
-  onStartDiscovery?: () => void;
   onBookCoachClick?: () => void;
-  onBubbleClick?: (question: string) => void;
+  onBubbleClick?: (bubbleId: "writemindly" | "talkmindly" | "blueprints") => void;
 }
 
 export function HeroSection({
@@ -29,9 +28,9 @@ export function HeroSection({
     setSelectedMood((prev) => (prev === rating ? null : rating));
   };
 
-  const handleBubble = (q: string) => {
+  const handleBubble = (bubbleId: "writemindly" | "talkmindly" | "blueprints") => {
     if (onBubbleClick) {
-      onBubbleClick(q);
+      onBubbleClick(bubbleId);
     } else {
       document.getElementById("explore-tools")?.scrollIntoView({ behavior: "smooth" });
     }
@@ -102,7 +101,7 @@ export function HeroSection({
           </div>
 
           {/* Interactive Live Mood Tap */}
-          <div className="mt-8 w-full rounded-2xl border border-ink-200/80 bg-white/70 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
+          <div className="mt-8 w-full rounded-2xl border border-ink-200/80 bg-card/70 backdrop-blur-sm p-4 sm:p-5 shadow-sm">
             <p className="text-sm font-semibold text-ink-700 mb-3">
               How are you right now?
             </p>
@@ -121,7 +120,7 @@ export function HeroSection({
                       "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
                       isSelected
                         ? cn(m.soft, m.text, "ring-2 ring-current")
-                        : "bg-white/80 hover:bg-white text-ink-600 hover:text-ink-900 border border-ink-100",
+                        : "bg-card/80 hover:bg-card text-ink-600 hover:text-ink-900 border border-ink-100",
                     )}
                   >
                     <MoodFace rating={m.rating} className="h-6 w-6" />
@@ -166,11 +165,7 @@ export function HeroSection({
             </span>
             <span className="flex items-center gap-1.5 font-medium">
               <Check className="w-4 h-4 text-teal-600" aria-hidden="true" />
-              Anonymous option
-            </span>
-            <span className="flex items-center gap-1.5 font-medium">
-              <Check className="w-4 h-4 text-teal-600" aria-hidden="true" />
-              Delete anytime
+              Private by default
             </span>
           </div>
         </motion.div>
@@ -184,7 +179,7 @@ export function HeroSection({
           <button
             type="button"
             onClick={onCheckInClick}
-            className="absolute bottom-6 -left-2 sm:-left-6 bg-white/95 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-[200px] sm:max-w-[220px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            className="absolute bottom-6 -left-2 sm:-left-6 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-[200px] sm:max-w-[220px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
             aria-label="Preview: Today's tone check-in card"
           >
             <div className="flex items-center justify-between w-full">
@@ -204,7 +199,7 @@ export function HeroSection({
           <button
             type="button"
             onClick={handleBook}
-            className="absolute top-8 -right-2 sm:-right-4 bg-white/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-[210px] sm:max-w-[230px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            className="absolute top-8 -right-2 sm:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-[210px] sm:max-w-[230px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
             aria-label="Preview: Next session with coach card"
           >
             <div className="w-8 h-8 bg-coral-100 text-coral-700 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 select-none">
@@ -224,28 +219,28 @@ export function HeroSection({
           {/* Floating Bubble 1: who even am I rn */}
           <button
             type="button"
-            onClick={() => handleBubble("who even am I rn")}
-            className="absolute top-4 -left-4 sm:-left-8 bg-white/90 backdrop-blur-md border border-ink-200 hover:border-teal-400 rounded-2xl px-3.5 py-2 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[160px] z-20 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            onClick={() => handleBubble("writemindly")}
+            className="absolute top-4 -left-4 sm:-left-8 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-teal-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[170px] z-20 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 flex items-center gap-1.5"
           >
-            💭 who even am I rn
+            <span aria-hidden="true">💭</span> who even am I rn
           </button>
 
           {/* Floating Bubble 2: is it just me or... */}
           <button
             type="button"
-            onClick={() => handleBubble("is it just me or...")}
-            className="absolute bottom-32 -right-4 sm:-right-6 bg-white/90 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl px-3.5 py-2 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[150px] z-20 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            onClick={() => handleBubble("talkmindly")}
+            className="absolute bottom-32 -right-4 sm:-right-6 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[160px] z-20 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 flex items-center gap-1.5"
           >
-            🗣️ is it just me or...
+            <span aria-hidden="true">🗣️</span> is it just me or...
           </button>
 
           {/* Floating Bubble 3: what am I actually good at? */}
           <button
             type="button"
-            onClick={() => handleBubble("what am I actually good at?")}
-            className="absolute -bottom-2 right-6 sm:right-12 bg-white/90 backdrop-blur-md border border-ink-200 hover:border-gold-400 rounded-2xl px-3.5 py-2 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[190px] z-20 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            onClick={() => handleBubble("blueprints")}
+            className="absolute -bottom-2 right-6 sm:right-12 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-gold-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[200px] z-20 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 flex items-center gap-1.5"
           >
-            ✨ what am I actually good at?
+            <span aria-hidden="true">✨</span> what am I actually good at?
           </button>
 
           {/* Main image container */}

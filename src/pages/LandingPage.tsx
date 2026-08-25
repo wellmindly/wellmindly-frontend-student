@@ -22,37 +22,33 @@ const DEFAULT_COACHES: CoachItem[] = [
     name: "Varisha Nigar",
     role: "Psychology & Peer Support Coach",
     init: "VN",
-    c1: "from-[#d8472f] to-[#a8331f]",
+    c1: "from-coral-600 to-coral-700",
     specs: ["Psychology Mentorship", "Peer Support", "Mental Health"],
     bio: "Dedicated academic and psychology professional providing personalized mentorship.",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80"
   },
   {
     name: "Vinayak Katyayan",
     role: "Youth Mental Health & Recovery Coach",
     init: "VK",
-    c1: "from-[#0e7c6e] to-[#0a5a4a]",
+    c1: "from-teal-600 to-teal-700",
     specs: ["Youth Mental Health", "Clinical Care", "Structured Recovery"],
     bio: "Clinical Psychologist & PhD Scholar at KGMU focusing on emotional wellbeing.",
-    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80"
   },
   {
     name: "Garvita Singh",
     role: "Youth Wellbeing & Resilience Coach",
     init: "GS",
-    c1: "from-[#6d28d9] to-[#4818a0]",
+    c1: "from-plum-600 to-plum-700",
     specs: ["Youth Wellbeing", "Resilience", "Stress Management"],
     bio: "Educator with 9+ years experience empowering youth to grow academically and personally.",
-    avatarUrl: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&auto=format&fit=crop&q=80"
   },
   {
     name: "Jairus Rohan",
     role: "Behavioral Health & Neurodiversity Coach",
     init: "JR",
-    c1: "from-[#c8973a] to-[#a06f1f]",
+    c1: "from-gold-600 to-gold-700",
     specs: ["Behavioral Health", "Neurodiversity (ADHD)", "Skill Building"],
     bio: "Behavioral professional supporting youth with neurodiversity, ADHD, and emotional regulation.",
-    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&auto=format&fit=crop&q=80"
   }
 ];
 
@@ -86,24 +82,38 @@ export function LandingPage() {
     document.title = "WellMindly | Get to know yourself, feel a little better";
   }, []);
   
-  const [coaches, setCoaches] = useState<CoachItem[]>(DEFAULT_COACHES);
-  const [activeOfferTab, setActiveOfferTab] = useState<'blueprints' | 'writemindly' | 'talkmindly'>('blueprints');
+  const [coaches, setCoaches] = useState<CoachItem[]>([]);
+  const [loadingCoaches, setLoadingCoaches] = useState(true);
+  const [coachesError, setCoachesError] = useState(false);
+  const [activeOfferTab, setActiveOfferTab] = useState<'blueprints' | 'writemindly' | 'talkmindly'>('writemindly');
   const [activePreviewCoachIndex, setActivePreviewCoachIndex] = useState(0);
   const [mockWritePrompt, setMockWritePrompt] = useState(0);
   const [mockTalkTopic, setMockTalkTopic] = useState<'exam-stress' | 'social'>('exam-stress');
   const [selectedCoach, setSelectedCoach] = useState<CoachItem | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
-  useEffect(() => {
+  const fetchCoaches = () => {
+    setLoadingCoaches(true);
+    setCoachesError(false);
     api.get("/contacts/coaches")
       .then((res) => {
         if (res.data && res.data.coaches && res.data.coaches.length > 0) {
           setCoaches(res.data.coaches);
+        } else {
+          setCoaches(DEFAULT_COACHES);
         }
       })
       .catch((err) => {
-        console.log("Using default coaches from backend seed:", err);
+        console.log("Using fallback coaches:", err);
+        setCoaches(DEFAULT_COACHES);
+      })
+      .finally(() => {
+        setLoadingCoaches(false);
       });
+  };
+
+  useEffect(() => {
+    fetchCoaches();
   }, []);
  
   const handleCrisisClick = () => navigate("/crisis");
@@ -111,8 +121,7 @@ export function LandingPage() {
     sessionStorage.setItem("last_test_started", "checkin");
     navigate("/discover?start=checkin");
   };
-  const handleStartDiscovery = () => navigate("/discover");
- 
+
   const handleWriteMindlyClick = () => {
     if (!config.enableWriteMindly) {
       setComingSoonFeature("writemindly");
@@ -121,7 +130,7 @@ export function LandingPage() {
     if (isAuthenticated) {
       navigate("/dashboard?tab=writemindly");
     } else {
-      navigate("/login?redirect=/dashboard?tab=writemindly");
+      navigate(`/login?redirect=${encodeURIComponent("/dashboard?tab=writemindly")}`);
     }
   };
 
@@ -129,7 +138,7 @@ export function LandingPage() {
     if (isAuthenticated) {
       navigate("/dashboard?tab=talkmindly");
     } else {
-      navigate("/login?redirect=/dashboard?tab=talkmindly");
+      navigate(`/login?redirect=${encodeURIComponent("/dashboard?tab=talkmindly")}`);
     }
   };
  
@@ -144,7 +153,9 @@ export function LandingPage() {
         <div className="w-full bg-[#fcf8f2] border-b border-amber-200/45 py-2.5 px-6 text-center text-xs font-semibold text-amber-800 relative z-50 flex items-center justify-center gap-2 select-none">
           <span>✨ <b>Private Beta</b>: You are one of 100 selected students testing this early version. Help us shape peer support.</span>
           <button 
+            type="button"
             onClick={() => setShowBetaBanner(false)}
+            aria-label="Close beta banner"
             className="text-amber-800 hover:text-amber-950 font-bold ml-2 cursor-pointer border-none bg-transparent flex items-center"
           >
             <X className="w-3.5 h-3.5" />
@@ -160,19 +171,12 @@ export function LandingPage() {
           {/* Hero Section */}
           <HeroSection 
             onCheckInClick={handleCheckInClick} 
-            onStartDiscovery={handleStartDiscovery} 
             onBookCoachClick={() => {
               document.getElementById('coaching-section')?.scrollIntoView({ behavior: 'smooth' });
             }}
-            onBubbleClick={(question) => {
+            onBubbleClick={(bubbleId) => {
               document.getElementById('explore-tools')?.scrollIntoView({ behavior: 'smooth' });
-              if (question.includes('who even am I')) {
-                setActiveOfferTab('writemindly');
-              } else if (question.includes('is it just me')) {
-                setActiveOfferTab('talkmindly');
-              } else {
-                setActiveOfferTab('blueprints');
-              }
+              setActiveOfferTab(bubbleId);
             }}
           />
 
@@ -194,6 +198,9 @@ export function LandingPage() {
           {/* Redesigned Mobile-First "Book a Coach" Section */}
           <CoachingSection
             coaches={coaches}
+            loading={loadingCoaches}
+            error={coachesError}
+            onRetry={fetchCoaches}
             onSelectCoach={(coach) => {
               setSelectedCoach(coach);
               setSelectedSlot(null);
@@ -236,7 +243,7 @@ export function LandingPage() {
               className="bg-paper border border-line rounded-[2.5rem] max-w-lg w-full p-8 sm:p-10 shadow-2xl relative"
             >
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-plum/10 text-plum mb-6 shadow-inner select-none">
-                <Heart className="h-6 w-6 fill-current animate-pulse" />
+                <Heart className="h-6 w-6 fill-current" />
               </div>
               
               <h3 className="font-serif text-3xl font-bold mb-4 text-ink tracking-tight">
@@ -268,8 +275,9 @@ export function LandingPage() {
               
               <div className="flex flex-col gap-3">
                 <button
+                  type="button"
                   onClick={handleCloseWelcome}
-                  className="cursor-pointer w-full bg-plum hover:bg-plum/90 text-white font-extrabold text-sm py-4 rounded-2xl transition-colors shadow-lg shadow-plum/20 border-none"
+                  className="cursor-pointer w-full bg-plum hover:bg-plum/90 text-plum-50 font-extrabold text-sm py-4 rounded-2xl transition-colors shadow-lg shadow-plum/20 border-none"
                 >
                   Okay, let me in
                 </button>

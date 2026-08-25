@@ -1,16 +1,22 @@
 import { motion } from "framer-motion";
 import { Users } from "lucide-react";
 import type { CoachItem } from "./types";
-import { Button, Card, Avatar, EmptyState } from "../../ui";
+import { Button, Card, Avatar, EmptyState, ErrorState, SkeletonCard } from "../../ui";
 
 export interface CoachingSectionProps {
   coaches: CoachItem[];
   onSelectCoach: (coach: CoachItem) => void;
+  loading?: boolean;
+  error?: boolean;
+  onRetry?: () => void;
 }
 
 export function CoachingSection({
   coaches,
   onSelectCoach,
+  loading = false,
+  error = false,
+  onRetry,
 }: CoachingSectionProps) {
   return (
     <section className="px-6 py-16 sm:py-20 mx-auto max-w-6xl border-t border-ink-200/60" id="coaching-section">
@@ -32,22 +38,20 @@ export function CoachingSection({
         </p>
       </motion.div>
 
-      {/* Free Sessions Banner */}
-      <div className="bg-teal-50/70 border border-teal-200/80 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-3 mb-8 text-xs font-medium">
-        <div className="flex items-center gap-3">
-          <span className="bg-coral-500 text-white font-bold text-2xs uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0">
-            Free
-          </span>
-          <span className="text-ink-800 text-left">
-            Everyone gets <b>4 free sessions</b> funded by your institution.
-          </span>
+      {error ? (
+        <ErrorState
+          title="We couldn't load coaches"
+          description="Check your connection and try again."
+          onRetry={onRetry}
+          className="my-8"
+        />
+      ) : loading ? (
+        <div aria-busy="true" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonCard key={i} className="h-64 rounded-3xl" />
+          ))}
         </div>
-        <span className="text-2xs font-bold text-teal-800 shrink-0">
-          No credit card required
-        </span>
-      </div>
-
-      {coaches.length === 0 ? (
+      ) : coaches.length === 0 ? (
         <EmptyState
           icon={<Users className="h-6 w-6" aria-hidden="true" />}
           title="No coaches available"

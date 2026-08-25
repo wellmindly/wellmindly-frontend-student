@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -22,18 +22,20 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
   const { user } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement | null>(null);
 
   // Close drawer on route change
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Close drawer on Escape
+  // Close drawer on Escape and return focus to toggle
   useEffect(() => {
     if (!mobileMenuOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setMobileMenuOpen(false);
+        toggleRef.current?.focus();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -45,7 +47,7 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
       {/* Skip to main content link for keyboard & a11y */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[var(--z-modal)] focus:rounded-lg focus:bg-plum-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white focus:outline-2 focus:outline-offset-2 focus:outline-plum-300"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[var(--z-modal)] focus:rounded-lg focus:bg-plum-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-plum-50 focus:outline-2 focus:outline-offset-2 focus:outline-plum-300"
       >
         Skip to main content
       </a>
@@ -114,6 +116,7 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
             )}
 
             <button
+              ref={toggleRef}
               type="button"
               onClick={() => setMobileMenuOpen((v) => !v)}
               aria-expanded={mobileMenuOpen}
@@ -135,10 +138,10 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
           {mobileMenuOpen && (
             <motion.div
               id="landing-mobile-nav"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
               className="md:hidden border-t border-ink-200/60 bg-paper overflow-hidden"
             >
               <nav className="px-6 py-4 flex flex-col gap-2" aria-label="Mobile navigation">
