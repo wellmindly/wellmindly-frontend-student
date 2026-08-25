@@ -50,10 +50,6 @@ export function LandingPage() {
   const [coaches, setCoaches] = useState<CoachItem[]>([]);
   const [loadingCoaches, setLoadingCoaches] = useState(true);
   const [coachesError, setCoachesError] = useState(false);
-  const [activeOfferTab, setActiveOfferTab] = useState<'blueprints' | 'writemindly' | 'talkmindly'>('writemindly');
-  const [activePreviewCoachIndex, setActivePreviewCoachIndex] = useState(0);
-  const [mockWritePrompt, setMockWritePrompt] = useState(0);
-  const [mockTalkTopic, setMockTalkTopic] = useState<'exam-stress' | 'social'>('exam-stress');
   const [selectedCoach, setSelectedCoach] = useState<CoachItem | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
@@ -86,6 +82,9 @@ export function LandingPage() {
     sessionStorage.setItem("last_test_started", "checkin");
     navigate("/discover?start=checkin");
   };
+
+  const handleCoachingScroll = () =>
+    document.getElementById("coaching-section")?.scrollIntoView({ behavior: "smooth" });
 
   const handleWriteMindlyClick = () => {
     if (!config.enableWriteMindly) {
@@ -139,28 +138,21 @@ export function LandingPage() {
           {/* Hero Section */}
           <HeroSection 
             onCheckInClick={handleCheckInClick} 
-            onBookCoachClick={() => {
-              document.getElementById('coaching-section')?.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onBookCoachClick={handleCoachingScroll}
             onBubbleClick={(bubbleId) => {
-              document.getElementById('explore-tools')?.scrollIntoView({ behavior: 'smooth' });
-              setActiveOfferTab(bubbleId);
+              const row = document.getElementById(`care-${bubbleId}`);
+              (row ?? document.getElementById("explore-tools"))?.scrollIntoView({
+                behavior: "smooth",
+                block: "center",
+              });
             }}
           />
 
-          {/* 3D Interactive Section: WHAT WE PROVIDE */}
+          {/* Care path: one question, three answers */}
           <ExploreToolsSection
-            activeOfferTab={activeOfferTab}
-            onOfferTabChange={setActiveOfferTab}
-            mockWritePrompt={mockWritePrompt}
-            onMockWritePromptChange={setMockWritePrompt}
-            mockTalkTopic={mockTalkTopic}
-            onTalkTopicChange={setMockTalkTopic}
-            coaches={coaches}
-            activePreviewCoachIndex={activePreviewCoachIndex}
-            onPreviewCoachChange={setActivePreviewCoachIndex}
             onWriteMindlyClick={handleWriteMindlyClick}
             onTalkMindlyClick={handleTalkMindlyClick}
+            onCoachingClick={handleCoachingScroll}
           />
 
           {/* Redesigned Mobile-First "Book a Coach" Section */}
