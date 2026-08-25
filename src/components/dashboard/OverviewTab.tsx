@@ -1,11 +1,5 @@
 import { WellbeingChart } from "./WellbeingChart";
-import {
-  WelcomeBanner,
-  LatestScoreCard,
-  MoodMosaic,
-  ScreeningCta,
-  QuickActions,
-} from "./overview";
+import { TodayCard, NextStep, MoodMosaic, QuickActions } from "./overview";
 import type { DailyCheckinRow, ResultsData } from "../../types/student";
 
 export interface OverviewTabProps {
@@ -34,16 +28,22 @@ export function OverviewTab({
   onComingSoonClick,
 }: OverviewTabProps) {
   return (
-    <div className="space-y-8">
-      <WelcomeBanner
+    <div className="space-y-6 sm:space-y-8">
+      <TodayCard
         greeting={greeting}
         firstName={firstName}
         dailyMood={dailyMood}
+        historicalCheckins={historicalCheckins}
+        latestResult={resultsData?.latestResult ?? null}
         onDailyCheckin={onDailyCheckin}
-        onExploreDiscover={onExploreDiscover}
       />
 
-      <LatestScoreCard latestResult={resultsData?.latestResult ?? null} />
+      <NextStep
+        dailyMood={dailyMood}
+        latestResult={resultsData?.latestResult ?? null}
+        onStartScreening={onStartScreening}
+        onExploreDiscover={onExploreDiscover}
+      />
 
       <WellbeingChart
         timeline={resultsData?.timeline}
@@ -54,8 +54,6 @@ export function OverviewTab({
         historicalCheckins={historicalCheckins}
         onDailyCheckin={onDailyCheckin}
       />
-
-      <ScreeningCta onStartScreening={onStartScreening} />
 
       <QuickActions onComingSoonClick={onComingSoonClick} />
     </div>

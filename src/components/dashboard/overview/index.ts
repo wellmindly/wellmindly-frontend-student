@@ -1,11 +1,9 @@
-export { WelcomeBanner } from "./WelcomeBanner";
-export { LatestScoreCard } from "./LatestScoreCard";
+export { TodayCard } from "./TodayCard";
+export { NextStep } from "./NextStep";
 export { MoodMosaic } from "./MoodMosaic";
-export { ScreeningCta } from "./ScreeningCta";
 export { QuickActions } from "./QuickActions";
 
-export type { WelcomeBannerProps } from "./WelcomeBanner";
-export type { LatestScoreCardProps } from "./LatestScoreCard";
+export type { TodayCardProps } from "./TodayCard";
+export type { NextStepProps } from "./NextStep";
 export type { MoodMosaicProps } from "./MoodMosaic";
-export type { ScreeningCtaProps } from "./ScreeningCta";
 export type { QuickActionsProps } from "./QuickActions";
