@@ -103,24 +103,50 @@ The loop does not end until the refactor is 100% complete and I am satisfied wit
 - **`BUGS.md` must be append-only.** The builder replaced every bug body with a one-line status, so I could no longer diff a fix against the ask without `git log` — expensive when tokens are the constraint.
 - **Read the target component's real signature before specifying the migration.** Writing Phase 3 I had to check that `Logo` only offers `sm`/`md` (so the login brand mark necessarily shrinks — a visual decision the card must own rather than discover), that `Button`'s `loading` *hides* the label and shows an `sr-only` announcement (so "Processing…" stops being visible), and that kit `Input` already wires `aria-invalid`/`aria-describedby` (so the a11y card must say "verify", not "add"). A card written from memory of the kit specifies work that doesn't exist and misses work that does.
 - **When a legacy value is genuinely correct, authorise the escape hatch explicitly.** Google's sign-in mark uses fixed brand hexes that no token should ever match. If T-303 didn't name that and pre-approve four `guard-ignore`s, the builder would either retint Google's logo or never reach a clean gate.
+- **For anything the client will look at, give her options with previews — never one proposal.** The user's standing constraint: she *"is way too moody, she herself doesn't know what she wants and always confuses me."* A single opinionated design guarantees a rejection round. Put 3 visually distinct directions in an `AskUserQuestion` with ASCII previews and let her pick; then write the chosen shape into the card as a **constraint**, with an explicit "do not substitute a different shape." That is how T-208 and T-209 were specified.
+- **Review the file's claims, not just the card's asks.** The TalkMindly simulator fabricated peer handles (Sage/Lotus/Fern/Tulip) with scripted dialogue labelled "● Live Demo", and it survived passes 1, 2 **and** 3 — because each pass checked whether the builder did what the card said, and no card ever said "don't invent students." §8's do-not-fabricate list has to be re-read against the diff, not just against the card.
+- **A card that asks for something elaborate will get it.** T-204 asked for "three visually connected pillars" and got 499 lines: a `role="tablist"` with roving tabindex, two scale-transform connectors, a `min-h-[380px]` panel, three duplicated fake simulators. The build was correct and the client rejected it as *"too many things, useless lines… doesn't make any sense at all."* The "useless lines" were the connectors **I specified.** When a card's Done-when list is long, that is a signal the design is too big, not that the spec is thorough.
 
-### Current status (end of review pass 3)
+### Current status (Phase 3 reviewed & accepted — review pass 4, 2026-08-25)
 
-`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ · `guard src/components/ui` ✅ **0 errors 0 warnings** · `guard` on the landing route ✅ 0 errors, 3 permitted warnings
+`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ · `guard src/components/ui` ✅ **0/0** · `guard` auth route ✅ **0/0** · landing route ✅ 0 errors, 3 permitted warnings
 
-**Phase 1 and Phase 2 are closed.** Every row `ACCEPTED`, every bug through B-028 `VERIFIED`, zero reopens and zero new bugs in pass 3. The public route — header, footer, hero, care-path tablist, coaching, trust, both legacy blocks — plus the entire 15-file UI kit are clean on all four gates. `LandingPage.tsx` went 761→288 lines.
+**Phase 3 (auth) is closed: all five cards `ACCEPTED`, zero reopens** — the first batch with none. `Login.tsx` 883 → 457 lines plus four components in `src/components/auth/` (`AuthBrandPanel`, `AuthForm`, `GoogleAuthButtons`, `AuthAlerts`), and 44 guard errors → 0/0. `pages/Login.tsx` has dropped off the debt map entirely.
 
-**Phase 3 (auth) is fully carded and is the builder's current queue,** strictly in order:
+Two things I verified rather than trusted, and both are worth repeating on future splits: **all seven auth paths diffed byte-for-byte** against the pre-split commit (`78f6dbe`) — every `api.post`, `navigate(`, `loginSuccess`, `GoogleAuth`, `sessionStorage` line — where the only disappearances were the two `<div onClick={() => navigate("/")}>` logos that became the kit `Logo`; and **the focus-to-first-error actually moves focus**, because `Field.tsx` genuinely `forwardRef`s onto the inner `<input>` (a `ref` on a kit component that swallows it would have made the whole a11y card cosmetic and every grep would still have passed).
+
+**Seven bugs came out of it (B-029 → B-035), and two are mine.** B-033 (the post-auth navigation block written out three times) and B-035 (`otpSent` not reset when the email changes) are pre-existing logic that T-301 correctly told the builder to move mechanically — I should have carded them in the first place. The builder's five: no divider on the native Google path, "Resend Code" announcing nothing, three decorative icons missing `aria-hidden`, a 700ms CSS scale with no `motion-reduce:`, and a redundant second mode-switch function.
+
+**Builder queue right now:** Phase 2R (T-208 → T-209 → T-210, still `TODO` — the landing page is the client's selling point and outranks bugs), then B-029 → B-035 in three grouped commits.
+
+**Next for me:** author **Phase 4 (dashboard home)** — T-401 `OverviewTab` redesign, T-402 the mood mosaic that silently calls `onDailyCheckin(3)`, T-403 `WellbeingChart`'s empty Jan–Jun axis, T-404 the three divergent quick-action card styles, T-405 `CheckinModal`/`ScreeningModal` onto `Sheet`. Then review 2R + the pass-4 bugs together.
+
+Candidate new guard rule, still unwritten: **`nested-gutter`** — a section re-applying its layout parent's `px-*` or `max-w-*`. T-210 is the test of whether it earns its place.
+
+**Deliberately not a database lookup:** the UI/UX Pro Max skill's search corpus is **not installed** in this environment — only `SKILL.md` is present, `scripts/search.py` does not exist. The design reasoning behind T-208/T-209 comes from the skill's priority table (accessibility → touch targets → layout/responsive → typography → animation) plus this app's own token system. Do not record it as a matched palette/style profile.
+
+### Previously (Phase 2R authored — client feedback round, 2026-08-25)
+
+**Phase 2R jumped the queue.** The client saw the landing page and rejected two things:
+
+1. **The care-path block, outright** — *"too many things, useless lines in it, this component doesn't make any sense at all, we need to make this simple, easy to understand and genzy style."* She is right. `ExploreToolsSection.tsx` is 499 lines — **37% of the whole landing route** — to say "there are three ways to get help": 11 props, a tablist with a full arrow-key handler, two connector hairlines, a `min-h-[380px]` reserved panel, and three structurally duplicated fake simulators. T-204 is `SUPERSEDED`, **not** `REVIEW-FAIL` — the build matched my card; the card was wrong.
+2. **The whole route on mobile** — *"rest of the landing page looks good, except on mobile… this is our selling point."*
 
 | Card | What it does |
 |---|---|
-| T-301 | Mandatory Step-0 audit of all seven auth entry points, then a **mechanical** split of `Login.tsx` into `AuthBrandPanel`/`AuthForm`/`GoogleAuthButtons`/`AuthAlerts`. State stays in the parent. Guard must stay at *exactly* 44, redistributed. |
-| T-302 | Delete the local `Field` (`827-883`, inline `rgb()` styles) and move the five fields onto the kit `Input`/`PasswordInput`. Net deletion; `showPassword` disappears because `PasswordInput` owns the reveal toggle. |
-| T-303 | Kit `Logo`/`Button`/`IconButton` + the full token migration. Takes the route to **0 reported** guard errors, with four authorised `guard-ignore`s for Google's brand hexes (`#EA4335` etc. are mandated by Google's identity guidelines — no token should ever match them). Also fixes a real defect: `GoogleLogin width="320"` overflows a ~263px content box at 375px, inside `overflow-hidden`. |
-| T-304 | Replace the fabricated "Today's tone · Finding your footing" and "Coach Vinayak · Thu 5pm" cards. Copy supplied verbatim: "The daily check-in / Tap the face that fits. Nothing else to fill in." and a privacy card reusing the hero's approved "Never shared with your school" / "Private by default". Note `HeroSection` keeps its versions — T-203 legitimised them with `Preview` badges and real destinations; a login page has nowhere for them to go. |
-| T-305 | A11y: `<h2>`→`<h1>` (the route has **no** `<h1>`), two always-mounted live regions in `AuthAlerts` (assertive for errors, polite for success, no nested `role="alert"`), and focus-to-first-invalid-field keyed on a `failedAttempt` counter so it can't steal focus mid-typing. |
+| T-208 | Rebuild the care path as **"one question, three answers"** — the shape the client chose from three previews. `<h2>` is the question "How much do you want to talk right now?", then three tappable rows (Not out loud / To people who get it / To a real person), then one quiet crisis line. 499→<200 lines, 11 props→3. Every string supplied. Kills the fabricated Sage/Lotus/Fern/Tulip peer handles. |
+| T-209 | Hero at 375–390px. Five `absolute` children **all at `z-20`** over a ~279px canvas: the top pair wants 380px, the bottom pair wants 400px, so they physically intersect and `truncate` produces `Coach Vinayak · T…`. Bubbles → `hidden sm:flex`; the two preview cards → a static 2-up row below the portrait via a `sm:contents` wrapper. **Desktop must stay pixel-identical.** |
+| T-210 | Route-wide mobile. `<main>` provides `px-6 max-w-6xl`; **three of four sections apply both again** → 48px gutters instead of 24 at 375px (a 15% width tax on the primary platform) and every `border-t` spanning a different width than its content. `ExploreToolsSection` is the one that got it right and is the reference. Plus the beta banner's dismiss button floating mid-paragraph at 375px. Ends with a measured 375/390 route walk. |
 
-**Next for me:** review Phase 3 against T-301's Step-0 audit, then author Phase 4. Sequence the remaining phases off the debt map below.
+**Next for me:** review Phase 2R's three commits **and** Phase 3 against T-301's Step-0 audit in one round, then author Phase 4 off the debt map. Candidate new guard rule from this round: **`nested-gutter`** — a section re-applying its layout parent's `px-*` or `max-w-*`. No gate catches it today.
+
+*(Phase 3 half of that has since been done — see the current-status block above. Phase 2R is still with the builder.)*
+
+### Previously (end of review pass 3)
+
+**Phases 1 and 2 closed** — every row `ACCEPTED`, every bug through B-028 `VERIFIED`, zero reopens and zero new bugs. The public route (header, footer, hero, care path, coaching, trust, both legacy blocks) plus the entire 15-file UI kit were clean on all four gates; `LandingPage.tsx` went 761→288 lines. One row of that has since been reopened by the client: **T-204 → `SUPERSEDED` by T-208** (see above). The gates themselves are unaffected — the rejection is about design, not correctness.
+
+Phase 3 was authored in full in the same round: T-301 (Step-0 audit + mechanical split into `AuthBrandPanel`/`AuthForm`/`GoogleAuthButtons`/`AuthAlerts`), T-302 (delete the local `Field`, move onto kit `Input`/`PasswordInput`), T-303 (kit `Logo`/`Button`/`IconButton` + full token migration + the four authorised Google-brand `guard-ignore`s, and the `GoogleLogin width="320"` overflow), T-304 (replace the fabricated brand-panel cards), T-305 (`<h1>`, two always-mounted live regions, focus-to-first-invalid-field on a `failedAttempt` counter). All five are `DONE` and awaiting review.
 
 ### Design-system debt map (from `guard --all`, for phase planning)
 
@@ -181,4 +207,4 @@ Then **QA sweep** at 375 / 390 / 768 / 1024 / 1440 / large desktop.
 
 ---
 
-*Last updated: 2026-08-25. Round completed: review pass 3 — **Phases 1 and 2 closed** (every row ACCEPTED, every bug through B-028 VERIFIED, kit clean at 0/0), and **Phase 3 authored in full** (T-301 → T-305). Next: builder works Phase 3 in order; I review it against T-301's Step-0 audit, then author Phase 4 off the debt map.*
+*Last updated: 2026-08-25. Round completed: **review pass 4 — Phase 3 (auth) closed.** All five cards `ACCEPTED`, zero reopens, `Login.tsx` 883 → 457 lines, auth route 44 guard errors → 0/0. Seven bugs filed (B-029 → B-035); two of them are mine, not the builder's. Next: builder finishes Phase 2R then works the bugs in three grouped commits; I author Phase 4 (dashboard home) and review 2R + the bugs together.*
