@@ -57,7 +57,7 @@ export function AuthBrandPanel({}: AuthBrandPanelProps = {}) {
           <img 
             src={studentLoginPortrait} 
             alt="Smiling, warm university student portrait" 
-            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 motion-reduce:transition-none"
           />
         </div>
       </motion.div>

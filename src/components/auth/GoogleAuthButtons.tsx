@@ -46,7 +46,7 @@ export function GoogleAuthButtons({
           onClick={onNativeClick}
           disabled={submitting}
           leadingIcon={
-            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               {/* Google's brand hexes are fixed by their sign-in branding guidelines — not ours to tokenise. */}
               <path
                 fill="#EA4335" // guard-ignore
