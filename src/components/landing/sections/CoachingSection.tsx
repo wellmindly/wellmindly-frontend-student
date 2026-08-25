@@ -19,7 +19,7 @@ export function CoachingSection({
   onRetry,
 }: CoachingSectionProps) {
   return (
-    <section className="px-6 py-16 sm:py-20 mx-auto max-w-6xl border-t border-ink-200/60" id="coaching-section">
+    <section className="py-16 sm:py-20 border-t border-ink-200/60" id="coaching-section">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}

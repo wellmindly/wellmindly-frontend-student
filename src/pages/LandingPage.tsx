@@ -119,16 +119,20 @@ export function LandingPage() {
 
         {/* Private Beta Banner (renders after header so skip link is first tab stop) */}
         {showBetaBanner && (
-          <div className="w-full bg-gold-50 border-b border-gold-200 py-2.5 px-6 text-center text-xs font-semibold text-gold-800 relative z-[var(--z-nav)] flex items-center justify-center gap-2 select-none">
-            <Sparkles className="h-4 w-4 shrink-0 text-gold-700" aria-hidden="true" />
-            <span><b>Private Beta</b>: You are one of 100 selected students testing this early version. Help us shape peer support.</span>
+          <div className="relative z-[var(--z-nav)] w-full select-none border-b border-gold-200 bg-gold-50 py-2.5 pl-6 pr-14 text-xs font-semibold text-gold-800 sm:px-14 sm:text-center">
+            <div className="flex items-start gap-2 sm:items-center sm:justify-center">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-gold-700 sm:mt-0" aria-hidden="true" />
+              <span className="text-left sm:text-center">
+                <b>Private Beta</b>: You are one of 100 selected students testing this early version. Help us shape peer support.
+              </span>
+            </div>
             <IconButton 
               label="Dismiss beta notice"
               size="sm"
               variant="ghost"
               icon={<X className="h-4 w-4" />}
               onClick={() => setShowBetaBanner(false)}
-              className="text-gold-800 hover:text-gold-900 ml-2"
+              className="absolute right-2 top-1.5 text-gold-800 hover:text-gold-900"
             />
           </div>
         )}

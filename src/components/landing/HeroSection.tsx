@@ -45,7 +45,7 @@ export function HeroSection({
   };
 
   return (
-    <section className="px-6 pt-10 pb-16 sm:pt-16 sm:pb-24 mx-auto max-w-6xl">
+    <section className="pt-10 pb-16 sm:pt-16 sm:pb-24">
       <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-center lg:gap-16 gap-12">
         {/* Left Column: Typography, CTAs, Live Mood Tap */}
         <motion.div

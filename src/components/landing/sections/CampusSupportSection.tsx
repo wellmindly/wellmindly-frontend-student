@@ -9,7 +9,7 @@ export interface CampusSupportSectionProps {
 export function CampusSupportSection({ className }: CampusSupportSectionProps) {
   return (
     <section
-      className={`px-6 py-16 sm:py-20 mx-auto max-w-6xl border-t border-ink-200 ${className || ""}`}
+      className={`py-16 sm:py-20 border-t border-ink-200 ${className || ""}`}
       id="campus-support"
     >
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
