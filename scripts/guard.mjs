@@ -106,6 +106,33 @@ const ERRORS = [
         .map((d) => ({ line: 0, msg: `New runtime dependency "${d}" added. The brief forbids unnecessary deps — get this approved first.` }));
     },
   },
+  {
+    id: "nested-gutter",
+    files: /^src\/components\/.*\.tsx$/,
+    // A component whose root element is a <section> is nested inside a layout
+    // parent that already owns the route's horizontal gutter and max width
+    // (LandingPage's <main>, DashboardLayout's content box). Re-applying
+    // px-*/mx-auto/max-w-* on the section root doubles the gutter silently:
+    // T-210 found 3 of 4 landing sections doing it, spending 48px of a 375px
+    // viewport on padding and leaving 279px of content where 327px was
+    // available. Nothing else in the toolchain can see this — it type-checks,
+    // it builds, and it only shows up as "feels cramped on mobile".
+    // A section that genuinely needs its own narrower box: guard-ignore on the
+    // <section tag line. Inner wrappers are unaffected; only the root counts.
+    custom: (text) => {
+      const m = text.match(/return\s*\(\s*<section\b([^>]*)>/);
+      if (!m) return [];
+      const tag = m[0];
+      if (tag.includes("guard-ignore")) return [];
+      const bad = tag.match(/(?<![\w-])(?:px-\d[\d.]*|mx-auto|max-w-(?:xs|sm|md|lg|\d?xl|screen-\w+|\[[^\]]+\]))(?![\w-])/g);
+      if (!bad) return [];
+      const line = text.slice(0, m.index + m[0].indexOf("<section")).split("\n").length;
+      return [{
+        line,
+        msg: `Root <section> re-applies its layout parent's gutter (${[...new Set(bad)].join(", ")}). The page's <main> already owns px-* and max-w-* — duplicating them here doubles the mobile gutter. Keep vertical padding and the border only.`,
+      }];
+    },
+  },
 ];
 
 const WARNINGS = [
