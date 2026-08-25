@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Shield } from "lucide-react";
 import { Logo } from "../ui";
 import studentLoginPortrait from "../../assets/student_login_portrait.png";
 
@@ -19,36 +20,35 @@ export function AuthBrandPanel({}: AuthBrandPanelProps = {}) {
         {/* Soft background aura glow */}
         <div className="absolute -inset-4 bg-gradient-to-tr from-sage-500/10 to-coral-500/10 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
         
-        {/* Interactive Floating Card 1: Today's Tone */}
+        {/* Floating card 1: what the product actually asks of you */}
         <motion.div
           whileHover={{ y: -5, scale: 1.02 }}
           animate={{ y: [0, -6, 0] }}
           transition={{ y: { duration: 5, repeat: Infinity, ease: "easeInOut" } }}
-          className="absolute bottom-8 -left-6 bg-card/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex flex-col gap-1 max-w-[200px] z-20 pointer-events-auto"
+          className="absolute bottom-8 -left-6 bg-card/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex flex-col gap-1 max-w-[200px] z-20"
         >
-          <div className="text-2xs text-ink-soft font-bold uppercase tracking-wider">Today's tone</div>
-          <div className="text-sm font-serif font-semibold text-ink">Finding your footing</div>
-          <div className="flex gap-1.5 mt-2">
+          <div className="text-2xs text-ink-500 font-bold uppercase tracking-wider">The daily check-in</div>
+          <div className="text-sm font-semibold text-ink-900">Tap the face that fits. Nothing else to fill in.</div>
+          <div className="flex gap-1.5 mt-2" aria-hidden="true">
             <span className="w-2 h-2 rounded-full bg-teal-500" />
-            <span className="w-2 h-2 rounded-full bg-gold-500" />
-            <span className="w-2 h-2 rounded-full bg-rose-500 opacity-40" />
-            <span className="w-2 h-2 rounded-full bg-plum-500 opacity-40" />
+            <span className="w-2 h-2 rounded-full bg-gold-400" />
+            <span className="w-2 h-2 rounded-full bg-rose-400 opacity-60" />
+            <span className="w-2 h-2 rounded-full bg-plum-400 opacity-60" />
           </div>
         </motion.div>
 
-        {/* Interactive Floating Card 2: Next Session with Coach */}
+        {/* Floating card 2: the privacy promise, same words as the hero trust strip */}
         <motion.div
           whileHover={{ y: -5, scale: 1.02 }}
           animate={{ y: [0, -8, 0] }}
           transition={{ y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 } }}
-          className="absolute top-12 -right-4 bg-card/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex items-center gap-3 max-w-[220px] z-20 pointer-events-auto"
+          className="absolute top-12 -right-4 bg-card/95 backdrop-blur-md border border-line rounded-2xl p-4 shadow-xl flex items-start gap-3 max-w-[220px] z-20"
         >
-          <div className="w-7 h-7 bg-coral-500/15 text-coral-600 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 select-none">
-            VK
-          </div>
-          <div>
-            <div className="text-2xs text-ink-soft font-bold uppercase tracking-wider">Next Session</div>
-            <div className="text-xs font-bold text-ink">Coach Vinayak &middot; Thu 5pm</div>
+          <Shield className="h-5 w-5 shrink-0 text-teal-600 mt-0.5" aria-hidden="true" />
+          <div className="min-w-0">
+            <div className="text-2xs text-ink-500 font-bold uppercase tracking-wider">Your privacy</div>
+            <div className="text-xs font-bold text-ink-900">Never shared with your school</div>
+            <div className="text-2xs text-ink-500 font-medium mt-0.5">Private by default</div>
           </div>
         </motion.div>
 
