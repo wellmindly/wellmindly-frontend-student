@@ -50,3 +50,6 @@ export type { LogoProps } from "./Logo";
 
 export { CrisisBanner } from "./CrisisBanner";
 export type { CrisisBannerProps } from "./CrisisBanner";
+
+export { SocialLinks } from "./SocialLinks";
+export type { SocialLinksProps, SocialPlatform } from "./SocialLinks";
