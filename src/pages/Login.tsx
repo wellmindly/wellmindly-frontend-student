@@ -9,6 +9,14 @@ import { useNavigate } from 'react-router-dom';
 import studentLoginPortrait from '../assets/student_login_portrait.png';
 import { Capacitor } from '@capacitor/core';
 
+/** Resolve the ?redirect= param to a safe in-app path, appending showResult if present. */
+function resolveRedirect(params: URLSearchParams, testIdParam: string | null): string {
+  const raw = params.get("redirect");
+  const safe = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
+  if (!testIdParam) return safe;
+  return `${safe}${safe.includes("?") ? "&" : "?"}showResult=${testIdParam}`;
+}
+
 export function LoginPage() {
   const { loginSuccess, user } = useAuth();
   const navigate = useNavigate();
@@ -17,18 +25,8 @@ export function LoginPage() {
   useEffect(() => {
     if (user) {
       const params = new URLSearchParams(window.location.search);
-      const raw = params.get("redirect");
-      const safeRedirect = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
       const testIdParam = params.get("testId");
-      if (raw && safeRedirect !== "/dashboard") {
-        const sep = safeRedirect.includes("?") ? "&" : "?";
-        const target = testIdParam ? `${safeRedirect}${sep}showResult=${testIdParam}` : safeRedirect;
-        navigate(target, { replace: true });
-      } else if (safeRedirect === "/dashboard" && testIdParam && raw) {
-        navigate(`${safeRedirect}?showResult=${testIdParam}`, { replace: true });
-      } else {
-        navigate(safeRedirect, { replace: true });
-      }
+      navigate(resolveRedirect(params, testIdParam), { replace: true });
     }
   }, [user, navigate]);
   
@@ -135,11 +133,9 @@ export function LoginPage() {
       await syncGuestResults(token);
       
       const params = new URLSearchParams(window.location.search);
-      const redirectParam = params.get("redirect");
       const testIdParam = params.get("testId");
-      if (redirectParam) {
-        const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
-        navigate(target);
+      if (params.has("redirect")) {
+        navigate(resolveRedirect(params, testIdParam));
       } else {
         const pendingTest = sessionStorage.getItem("last_test_started");
         if (pendingTest === "checkin") {
@@ -179,11 +175,9 @@ export function LoginPage() {
         await syncGuestResults(token);
         
         const params = new URLSearchParams(window.location.search);
-        const redirectParam = params.get("redirect");
         const testIdParam = params.get("testId");
-        if (redirectParam) {
-          const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
-          navigate(target);
+        if (params.has("redirect")) {
+          navigate(resolveRedirect(params, testIdParam));
         } else {
           const pendingTest = sessionStorage.getItem("last_test_started");
           if (pendingTest === "checkin") {
@@ -349,11 +343,9 @@ export function LoginPage() {
       await syncGuestResults(token);
       
       const params = new URLSearchParams(window.location.search);
-      const redirectParam = params.get("redirect");
       const testIdParam = params.get("testId");
-      if (redirectParam) {
-        const target = testIdParam ? `${redirectParam}?showResult=${testIdParam}` : redirectParam;
-        navigate(target);
+      if (params.has("redirect")) {
+        navigate(resolveRedirect(params, testIdParam));
       } else {
         const pendingTest = sessionStorage.getItem("last_test_started");
         if (pendingTest === "checkin") {

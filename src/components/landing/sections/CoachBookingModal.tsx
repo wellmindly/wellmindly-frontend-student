@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { CoachItem } from "./types";
 import { Sheet, Button, Badge } from "../../ui";
 
@@ -18,14 +19,18 @@ export function CoachBookingModal({
   onClose,
   onConfirm,
 }: CoachBookingModalProps) {
-  if (!selectedCoach) return null;
+  const lastCoachRef = useRef<CoachItem | null>(null);
+  if (selectedCoach) {
+    lastCoachRef.current = selectedCoach;
+  }
+  const coach = selectedCoach ?? lastCoachRef.current;
 
   return (
     <Sheet
       open={selectedCoach !== null}
       onClose={onClose}
-      title={`Book with ${selectedCoach.name.split(" ")[0]}`}
-      description={selectedCoach.role}
+      title={coach ? `Book with ${coach.name.split(" ")[0]}` : "Book Session"}
+      description={coach?.role}
       size="sm"
     >
       <div className="flex items-center justify-between gap-2 mb-3">

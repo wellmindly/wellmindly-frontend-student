@@ -37,7 +37,7 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
               <a
                 href="https://www.linkedin.com/in/jai-malani"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="underline hover:text-plum-600 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-sm"
               >
                 Jai Malani
@@ -68,7 +68,7 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
             <div className="flex items-start gap-2 text-sm text-ink-600 leading-relaxed">
               <ShieldCheck className="h-4 w-4 shrink-0 text-sage-600 mt-0.5" aria-hidden="true" />
               <span>
-                We do not share your details with your university. You are in control of your data, always.
+                We do not share your details with your university. Your check-ins and messages are yours.
               </span>
             </div>
 

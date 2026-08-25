@@ -17,41 +17,6 @@ import api from "../services/api";
 
 export type { CoachItem } from "../components/landing/sections/types";
 
-const DEFAULT_COACHES: CoachItem[] = [
-  {
-    name: "Varisha Nigar",
-    role: "Psychology & Peer Support Coach",
-    init: "VN",
-    c1: "from-coral-600 to-coral-700",
-    specs: ["Psychology Mentorship", "Peer Support", "Mental Health"],
-    bio: "Dedicated academic and psychology professional providing personalized mentorship.",
-  },
-  {
-    name: "Vinayak Katyayan",
-    role: "Youth Mental Health & Recovery Coach",
-    init: "VK",
-    c1: "from-teal-600 to-teal-700",
-    specs: ["Youth Mental Health", "Clinical Care", "Structured Recovery"],
-    bio: "Clinical Psychologist & PhD Scholar at KGMU focusing on emotional wellbeing.",
-  },
-  {
-    name: "Garvita Singh",
-    role: "Youth Wellbeing & Resilience Coach",
-    init: "GS",
-    c1: "from-plum-600 to-plum-700",
-    specs: ["Youth Wellbeing", "Resilience", "Stress Management"],
-    bio: "Educator with 9+ years experience empowering youth to grow academically and personally.",
-  },
-  {
-    name: "Jairus Rohan",
-    role: "Behavioral Health & Neurodiversity Coach",
-    init: "JR",
-    c1: "from-gold-600 to-gold-700",
-    specs: ["Behavioral Health", "Neurodiversity (ADHD)", "Skill Building"],
-    bio: "Behavioral professional supporting youth with neurodiversity, ADHD, and emotional regulation.",
-  }
-];
-
 const BOOKING_SLOTS = ["Mon 4:00pm", "Tue 10:00am", "Wed 6:30pm", "Thu 5:00pm", "Sat 9:00am", "Sun 11:00am"];
 
 export function LandingPage() {
@@ -97,15 +62,15 @@ export function LandingPage() {
     setCoachesError(false);
     api.get("/contacts/coaches")
       .then((res) => {
-        if (res.data && res.data.coaches && res.data.coaches.length > 0) {
+        if (res.data && Array.isArray(res.data.coaches) && res.data.coaches.length > 0) {
           setCoaches(res.data.coaches);
         } else {
-          setCoaches(DEFAULT_COACHES);
+          setCoaches([]);
         }
       })
       .catch((err) => {
-        console.log("Using fallback coaches:", err);
-        setCoaches(DEFAULT_COACHES);
+        console.error("Failed to fetch coaches:", err);
+        setCoachesError(true);
       })
       .finally(() => {
         setLoadingCoaches(false);

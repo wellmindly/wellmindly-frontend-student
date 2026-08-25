@@ -271,7 +271,10 @@ export function TabPanel({
       aria-labelledby={labelledBy}
       // Focusable so keyboard users can Tab from the tab into the panel content.
       tabIndex={0}
-      className={cn("focus-visible:outline-none", className)}
+      className={cn(
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum-400 focus-visible:ring-offset-2",
+        className,
+      )}
     >
       {children}
     </div>
