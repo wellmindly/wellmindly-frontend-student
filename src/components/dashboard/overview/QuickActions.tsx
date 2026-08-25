@@ -1,93 +1,112 @@
-import { motion } from "framer-motion";
+import {
+  MessagesSquare,
+  CalendarCheck,
+  NotebookPen,
+  ArrowRight,
+} from "lucide-react";
+import { ActionCard, Badge } from "../../ui";
+import { cn } from "../../../lib/cn";
+import { config } from "../../../config";
 
 export interface QuickActionsProps {
   onComingSoonClick?: (feature: "writemindly" | "talkmindly" | "sessionbooking") => void;
 }
 
+const ACTIONS = [
+  {
+    id: "talkmindly" as const,
+    tone: "gold" as const,
+    icon: MessagesSquare,
+    iconClass: "bg-gold-100 text-gold-700",
+    ctaClass: "text-gold-700",
+    eyebrow: "Peer board",
+    title: "TalkMindly Space",
+    body: "Post under a nickname and read what other students are going through. Other students see the nickname, not your name.",
+    cta: "Open the board",
+  },
+  {
+    id: "sessionbooking" as const,
+    tone: "teal" as const,
+    icon: CalendarCheck,
+    iconClass: "bg-teal-100 text-teal-700",
+    ctaClass: "text-teal-700",
+    eyebrow: "1-on-1",
+    title: "Book a Session",
+    body: "Pick a time with a counselor from the list. You get a meeting link once it's confirmed.",
+    cta: "See available slots",
+  },
+  {
+    id: "writemindly" as const,
+    tone: "primary" as const,
+    icon: NotebookPen,
+    iconClass: "bg-plum-100 text-plum",
+    ctaClass: "text-plum",
+    eyebrow: "Journal",
+    title: "WriteMindly Journal",
+    body: "Guided prompts for writing about your day, one question at a time.",
+    cta: config.enableWriteMindly ? "Start writing" : "Join the waitlist",
+  },
+];
+
 export function QuickActions({ onComingSoonClick }: QuickActionsProps) {
   return (
-    <section aria-labelledby="quick-actions-heading" className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <section aria-labelledby="quick-actions-heading">
       <h2 id="quick-actions-heading" className="sr-only">
         Quick Support Actions
       </h2>
 
-      {/* TalkMindly Card */}
-      <motion.div
-        whileHover={{ y: -4 }}
-        onClick={() => onComingSoonClick?.("talkmindly")}
-        className="bg-gradient-to-br from-ink-900 to-ink-800 text-ink-50 rounded-[2rem] p-6 shadow-md border border-ink-700 flex flex-col justify-between cursor-pointer group min-h-[180px]"
-      >
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-2xs font-bold text-gold-400 uppercase tracking-widest bg-gold-400/10 px-2.5 py-1 rounded-full border border-gold-400/20">
-              Peer Board
-            </span>
-            <span className="text-xs text-ink-400 font-semibold">24/7 Support</span>
-          </div>
-          <h3 className="text-xl font-bold font-serif mb-1 group-hover:text-gold-300 transition-colors">
-            TalkMindly Space
-          </h3>
-          <p className="text-xs text-ink-300 leading-relaxed font-medium">
-            Share your thoughts anonymously or respond to fellow students safely.
-          </p>
-        </div>
-        <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-gold-400">
-          Open peer board &rarr;
-        </div>
-      </motion.div>
+      <ul role="list" className="grid gap-4 sm:gap-6 md:grid-cols-3">
+        {ACTIONS.map((action) => {
+          const isWriteMindlyComingSoon =
+            action.id === "writemindly" && !config.enableWriteMindly;
+          const badgeTone = isWriteMindlyComingSoon ? "neutral" : action.tone;
+          const eyebrowText = isWriteMindlyComingSoon ? "Coming soon" : action.eyebrow;
 
-      {/* Book Session Card */}
-      <motion.div
-        whileHover={{ y: -4 }}
-        onClick={() => onComingSoonClick?.("sessionbooking")}
-        className="bg-card text-ink-900 rounded-[2rem] p-6 shadow-sm border border-ink-200/80 flex flex-col justify-between cursor-pointer group min-h-[180px]"
-      >
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-2xs font-bold text-teal uppercase tracking-widest bg-teal/10 px-2.5 py-1 rounded-full border border-teal/20">
-              1-on-1 Support
-            </span>
-            <span className="text-xs text-success font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-              Free
-            </span>
-          </div>
-          <h3 className="text-xl font-bold font-serif mb-1 group-hover:text-teal transition-colors">
-            Book a Coach Session
-          </h3>
-          <p className="text-xs text-ink-500 leading-relaxed font-medium">
-            Connect 1-on-1 with verified academic and peer wellbeing coaches.
-          </p>
-        </div>
-        <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-teal">
-          Browse available slots &rarr;
-        </div>
-      </motion.div>
+          return (
+            <li key={action.id} className="h-full">
+              <ActionCard
+                tone="default"
+                padding="md"
+                onClick={() => onComingSoonClick?.(action.id)}
+                className="flex h-full min-h-[11rem] flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div
+                      className={cn(
+                        "h-10 w-10 rounded-xl flex items-center justify-center",
+                        action.iconClass
+                      )}
+                    >
+                      <action.icon className="h-5 w-5" aria-hidden="true" />
+                    </div>
+                    <Badge tone={badgeTone} size="sm">
+                      {eyebrowText}
+                    </Badge>
+                  </div>
 
-      {/* WriteMindly Card */}
-      <motion.div
-        whileHover={{ y: -4 }}
-        onClick={() => onComingSoonClick?.("writemindly")}
-        className="bg-card text-ink-900 rounded-[2rem] p-6 shadow-sm border border-ink-200/80 flex flex-col justify-between cursor-pointer group min-h-[180px]"
-      >
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-2xs font-bold text-plum uppercase tracking-widest bg-plum/10 px-2.5 py-1 rounded-full border border-plum/20">
-              AI Companion
-            </span>
-            <span className="text-xs text-ink-400 font-semibold">Guided</span>
-          </div>
-          <h3 className="text-xl font-bold font-serif mb-1 group-hover:text-plum transition-colors">
-            WriteMindly Journal
-          </h3>
-          <p className="text-xs text-ink-500 leading-relaxed font-medium">
-            Reflect on your day with guided AI prompts tailored to your mood.
-          </p>
-        </div>
-        <div className="mt-4 flex items-center gap-1.5 text-xs font-bold text-plum">
-          Start writing &rarr;
-        </div>
-      </motion.div>
+                  <h3 className="text-lg font-bold font-serif text-ink-900 mb-1">
+                    {action.title}
+                  </h3>
+                  <p className="text-sm text-ink-600 leading-relaxed">
+                    {action.body}
+                  </p>
+                </div>
+
+                <div
+                  className={cn(
+                    "mt-4 flex items-center gap-1.5 text-sm font-semibold",
+                    action.ctaClass
+                  )}
+                >
+                  <span>{action.cta}</span>
+                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </div>
+              </ActionCard>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

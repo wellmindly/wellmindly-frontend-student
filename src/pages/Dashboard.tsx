@@ -11,6 +11,7 @@ import { ComingSoonModal } from "../components/dashboard/ComingSoonModal";
 import { WriteMindlyTab } from "../components/dashboard/WriteMindlyTab";
 import { TalkMindlyTab } from "../components/dashboard/TalkMindlyTab";
 import { CounselorBookingView } from "../components/booking/CounselorBookingView";
+import { config } from "../config";
 
 export function Dashboard() {
   const db = useDashboard();
@@ -20,6 +21,15 @@ export function Dashboard() {
   useEffect(() => {
     document.title = "Student Dashboard | WellMindly";
   }, []);
+
+  const openFeature = (feature: "writemindly" | "talkmindly" | "sessionbooking") => {
+    // WriteMindly is the only flagged surface; DashboardLayout:77 gates it the same way.
+    if (feature === "writemindly" && !config.enableWriteMindly) {
+      setComingSoonFeature(feature);
+      return;
+    }
+    db.setActiveTab(feature);
+  };
 
   return (
     <>
@@ -34,15 +44,7 @@ export function Dashboard() {
         initials={db.initials}
         logout={db.logout}
         onLogoClick={() => db.navigate("/")}
-        onComingSoonClick={(feature) => {
-          if (feature === "talkmindly") {
-            db.setActiveTab("talkmindly");
-          } else if (feature === "sessionbooking") {
-            db.setActiveTab("sessionbooking");
-          } else {
-            setComingSoonFeature(feature);
-          }
-        }}
+        onComingSoonClick={openFeature}
       >
         {/* ---------- DASHBOARD HOME VIEW ---------- */}
         {db.activeTab === "overview" && (
@@ -57,15 +59,7 @@ export function Dashboard() {
             onExploreDiscover={() => db.setActiveTab("discover")}
             onViewAssessments={() => db.setActiveTab("assessments")}
             onStartScreening={() => db.setActiveTab("checkin")}
-            onComingSoonClick={(feature) => {
-              if (feature === "talkmindly") {
-                db.setActiveTab("talkmindly");
-              } else if (feature === "sessionbooking") {
-                db.setActiveTab("sessionbooking");
-              } else {
-                setComingSoonFeature(feature);
-              }
-            }}
+            onComingSoonClick={openFeature}
           />
         )}
 
