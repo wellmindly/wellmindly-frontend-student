@@ -53,6 +53,7 @@ export function Dashboard() {
             historicalCheckins={db.historicalCheckins}
             resultsData={db.resultsData}
             onDailyCheckin={db.handleDailyCheckin}
+            onRequestCheckin={() => db.setShowCheckinPopup(true)}
             onExploreDiscover={() => db.setActiveTab("discover")}
             onViewAssessments={() => db.setActiveTab("assessments")}
             onStartScreening={() => db.setActiveTab("checkin")}

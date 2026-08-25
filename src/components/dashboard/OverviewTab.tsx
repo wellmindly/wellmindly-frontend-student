@@ -9,6 +9,7 @@ export interface OverviewTabProps {
   historicalCheckins?: DailyCheckinRow[];
   resultsData: ResultsData | null;
   onDailyCheckin: (rating: number) => void;
+  onRequestCheckin: () => void;
   onExploreDiscover: () => void;
   onViewAssessments: () => void;
   onStartScreening: () => void;
@@ -22,6 +23,7 @@ export function OverviewTab({
   historicalCheckins = [],
   resultsData,
   onDailyCheckin,
+  onRequestCheckin,
   onExploreDiscover,
   onViewAssessments,
   onStartScreening,
@@ -52,7 +54,7 @@ export function OverviewTab({
 
       <MoodMosaic
         historicalCheckins={historicalCheckins}
-        onDailyCheckin={onDailyCheckin}
+        onRequestCheckin={onRequestCheckin}
       />
 
       <QuickActions onComingSoonClick={onComingSoonClick} />
