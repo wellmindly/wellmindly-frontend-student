@@ -115,26 +115,29 @@ export function LoginPage() {
     }
   };
 
+  const navigateAfterAuth = () => {
+    const params = new URLSearchParams(window.location.search);
+    const testIdParam = params.get("testId");
+    if (params.has("redirect")) {
+      navigate(resolveRedirect(params, testIdParam));
+    } else {
+      const pendingTest = sessionStorage.getItem("last_test_started");
+      if (pendingTest === "checkin") {
+        sessionStorage.removeItem("last_test_started");
+        navigate("/dashboard?tab=checkin");
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  };
+
   const handleGoogleSuccess = async (response: CredentialResponse) => {
     try {
       const res = await api.post('/auth/google/callback', { idToken: response.credential });
       const { token, user } = res.data;
       loginSuccess(token, user);
       await syncGuestResults(token);
-      
-      const params = new URLSearchParams(window.location.search);
-      const testIdParam = params.get("testId");
-      if (params.has("redirect")) {
-        navigate(resolveRedirect(params, testIdParam));
-      } else {
-        const pendingTest = sessionStorage.getItem("last_test_started");
-        if (pendingTest === "checkin") {
-          sessionStorage.removeItem("last_test_started");
-          navigate("/dashboard?tab=checkin");
-        } else {
-          navigate('/dashboard');
-        }
-      }
+      navigateAfterAuth();
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Google Authentication failed.";
       setGlobalError(errorMsg);
@@ -158,20 +161,7 @@ export function LoginPage() {
         const { token, user } = res.data;
         loginSuccess(token, user);
         await syncGuestResults(token);
-        
-        const params = new URLSearchParams(window.location.search);
-        const testIdParam = params.get("testId");
-        if (params.has("redirect")) {
-          navigate(resolveRedirect(params, testIdParam));
-        } else {
-          const pendingTest = sessionStorage.getItem("last_test_started");
-          if (pendingTest === "checkin") {
-            sessionStorage.removeItem("last_test_started");
-            navigate("/dashboard?tab=checkin");
-          } else {
-            navigate('/dashboard');
-          }
-        }
+        navigateAfterAuth();
       } else {
         throw new Error("No ID Token returned from Google Sign-In.");
       }
@@ -346,20 +336,7 @@ export function LoginPage() {
       const { token, user } = response.data;
       loginSuccess(token, user);
       await syncGuestResults(token);
-      
-      const params = new URLSearchParams(window.location.search);
-      const testIdParam = params.get("testId");
-      if (params.has("redirect")) {
-        navigate(resolveRedirect(params, testIdParam));
-      } else {
-        const pendingTest = sessionStorage.getItem("last_test_started");
-        if (pendingTest === "checkin") {
-          sessionStorage.removeItem("last_test_started");
-          navigate("/dashboard?tab=checkin");
-        } else {
-          navigate('/dashboard');
-        }
-      }
+      navigateAfterAuth();
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Authentication failed. Please verify credentials.";
       setGlobalError(errorMsg);
@@ -368,14 +345,9 @@ export function LoginPage() {
     }
   };
 
-  const clearGlobal = () => globalError && setGlobalError(null);
-
-  const toggleMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
-    setOtpSent(false);
-    setOtp("");
-    setErrors({});
-    setGlobalError(null);
+  const clearGlobal = () => {
+    if (globalError) setGlobalError(null);
+    if (globalSuccess) setGlobalSuccess(null);
   };
 
   const handleSwitchMode = (targetMode: 'login' | 'register' | 'forgot-password') => {
@@ -386,6 +358,7 @@ export function LoginPage() {
     setPassword("");
     setErrors({});
     setGlobalError(null);
+    setGlobalSuccess(null);
   };
 
   return (
@@ -451,11 +424,11 @@ export function LoginPage() {
               failedAttempt={failedAttempt}
               onFirstNameChange={(v) => { setFirstName(v); if (errors.firstName) setErrors((p) => ({ ...p, firstName: undefined })); clearGlobal(); }}
               onLastNameChange={(v) => { setLastName(v); if (errors.lastName) setErrors((p) => ({ ...p, lastName: undefined })); clearGlobal(); }}
-              onEmailChange={(v) => { setEmail(v); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); clearGlobal(); }}
+              onEmailChange={(v) => { setEmail(v); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); if (otpSent) setOtpSent(false); if (resetOtpSent) setResetOtpSent(false); clearGlobal(); }}
               onPasswordChange={(v) => { setPassword(v); if (errors.password) setErrors((p) => ({ ...p, password: undefined })); clearGlobal(); }}
               onOtpChange={(v) => { setOtp(v); if (errors.otp) setErrors((p) => ({ ...p, otp: undefined })); clearGlobal(); }}
               onSubmit={handleSubmit}
-              onSwitchMode={(target) => (target === 'forgot-password' || target === 'login') ? handleSwitchMode(target) : toggleMode()}
+              onSwitchMode={handleSwitchMode}
               onSendOtp={handleSendOtp}
               onSendResetOtp={handleSendResetOtp}
             />
