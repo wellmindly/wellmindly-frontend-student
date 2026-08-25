@@ -49,6 +49,7 @@ export function LoginPage() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [globalSuccess, setGlobalSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [failedAttempt, setFailedAttempt] = useState(0);
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -206,7 +207,10 @@ export function LoginPage() {
     else if (password.length < 8) next.password = "Password must be at least 8 characters.";
     
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(next).length > 0) {
+      setFailedAttempt((n) => n + 1);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -246,7 +250,10 @@ export function LoginPage() {
     else if (!EMAIL_RE.test(e)) next.email = "Enter a valid email address.";
 
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(next).length > 0) {
+      setFailedAttempt((n) => n + 1);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -273,7 +280,10 @@ export function LoginPage() {
     if (!otp.trim()) next.otp = "Verification code is required.";
 
     setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    if (Object.keys(next).length > 0) {
+      setFailedAttempt((n) => n + 1);
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -310,7 +320,10 @@ export function LoginPage() {
       return;
     }
 
-    if (!validate()) return;
+    if (!validate()) {
+      setFailedAttempt((n) => n + 1);
+      return;
+    }
     
     setSubmitting(true);
     try {
@@ -388,13 +401,13 @@ export function LoginPage() {
           />
 
           <div className="mb-8 text-center lg:text-left mt-8 lg:mt-0">
-            <h2 className="text-3xl font-black tracking-tight text-ink-900 mb-3">
+            <h1 className="text-3xl font-black tracking-tight text-ink-900 mb-3">
               {mode === 'login' 
                 ? "Welcome back" 
                 : mode === 'register' 
                   ? "Create your account" 
                   : "Reset your password"}
-            </h2>
+            </h1>
             <p className="text-base text-ink-500 font-medium">
               {mode === 'login' 
                 ? "Access your Wellmindly wellness dashboard." 
@@ -425,6 +438,7 @@ export function LoginPage() {
               resetOtpSent={resetOtpSent}
               errors={errors}
               submitting={submitting}
+              failedAttempt={failedAttempt}
               onFirstNameChange={(v) => { setFirstName(v); if (errors.firstName) setErrors((p) => ({ ...p, firstName: undefined })); clearGlobal(); }}
               onLastNameChange={(v) => { setLastName(v); if (errors.lastName) setErrors((p) => ({ ...p, lastName: undefined })); clearGlobal(); }}
               onEmailChange={(v) => { setEmail(v); if (errors.email) setErrors((p) => ({ ...p, email: undefined })); clearGlobal(); }}

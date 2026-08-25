@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import type { FormEvent } from "react";
 import { Mail, Lock, Shield, User } from "lucide-react";
 import { Button, Input, PasswordInput } from "../ui";
@@ -13,6 +14,7 @@ export interface AuthFormProps {
   resetOtpSent: boolean;
   errors: { email?: string; password?: string; firstName?: string; lastName?: string; otp?: string };
   submitting: boolean;
+  failedAttempt: number;
   onFirstNameChange: (v: string) => void;
   onLastNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
@@ -23,6 +25,8 @@ export interface AuthFormProps {
   onSendOtp?: () => void;
   onSendResetOtp?: () => void;
 }
+
+const FIELD_ORDER = ["firstName", "lastName", "email", "password", "otp"] as const;
 
 export function AuthForm({
   mode,
@@ -35,6 +39,7 @@ export function AuthForm({
   resetOtpSent,
   errors,
   submitting,
+  failedAttempt,
   onFirstNameChange,
   onLastNameChange,
   onEmailChange,
@@ -45,6 +50,23 @@ export function AuthForm({
   onSendOtp,
   onSendResetOtp,
 }: AuthFormProps) {
+  const refs = {
+    firstName: useRef<HTMLInputElement>(null),
+    lastName: useRef<HTMLInputElement>(null),
+    email: useRef<HTMLInputElement>(null),
+    password: useRef<HTMLInputElement>(null),
+    otp: useRef<HTMLInputElement>(null),
+  };
+
+  // Depends on failedAttempt alone: re-running on `errors` would steal focus back
+  // to the first error while the student is fixing the second.
+  useEffect(() => {
+    if (failedAttempt === 0) return;
+    const first = FIELD_ORDER.find((k) => errors[k]);
+    if (first) refs[first].current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [failedAttempt]);
+
   return (
     <>
       {/* Email & Password Form */}
@@ -53,6 +75,7 @@ export function AuthForm({
         {mode === 'register' && (
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
+              ref={refs.firstName}
               label="First Name"
               type="text"
               autoComplete="given-name"
@@ -67,6 +90,7 @@ export function AuthForm({
             />
 
             <Input
+              ref={refs.lastName}
               label="Last Name"
               type="text"
               autoComplete="family-name"
@@ -84,6 +108,7 @@ export function AuthForm({
 
         {/* Email Address Input */}
         <Input
+          ref={refs.email}
           label="Student Email Address"
           type="email"
           autoComplete="email"
@@ -99,6 +124,7 @@ export function AuthForm({
         {/* Password Input */}
         {(mode !== 'forgot-password' || resetOtpSent) && (
           <PasswordInput
+            ref={refs.password}
             label={mode === 'forgot-password' ? "New Password" : "Password"}
             autoComplete={mode === 'login' ? "current-password" : "new-password"}
             required
@@ -114,6 +140,7 @@ export function AuthForm({
         {/* OTP Input (Shown only when registering/resetting and code has been sent) */}
         {((mode === 'register' && otpSent) || (mode === 'forgot-password' && resetOtpSent)) && (
           <Input
+            ref={refs.otp}
             label="Verification Code (6-digit OTP)"
             type="text"
             autoComplete="one-time-code"
@@ -122,6 +149,7 @@ export function AuthForm({
             required
             maxLength={6}
             placeholder="123456"
+            hint="6 digits, from the email we just sent."
             icon={<Shield className="h-4.5 w-4.5" />}
             error={errors.otp}
             value={otp}
