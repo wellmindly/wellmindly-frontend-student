@@ -1,6 +1,14 @@
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ClipboardList, Clock, Info, Sparkles, AlertCircle } from "lucide-react";
+import {
+  bandForResult,
+  isWellbeingCheckin,
+  frequencyLabel,
+  displayQuizTitle,
+  displayClassification,
+} from "../../lib/wellbeing";
 
 interface ReportDetailModalProps {
   report: any | null;
@@ -38,19 +46,22 @@ function DimensionBar({
 function renderBreakdownForTitle(report: any) {
   const title = report?.quizTitle || "";
   const t = title.toLowerCase();
-  const score = report?.score || 0;
   const scores = report?.answers?.scores || report?.scores;
 
   if (scores) {
-    const isPhq9 = t.includes("phq") || t.includes("screening");
-    const isCheckin = t.includes("check-in") || t.includes("checkin");
-    
+    // `isWellbeingCheckin` rather than `t.includes("phq")`: the instrument is
+    // now titled "Wellbeing check-in", which would otherwise fall through to
+    // the generic check-in branch and relabel a 0-3 frequency scale as
+    // "Stable / Moderate / Needs Focus". Legacy titles still match.
+    const isPhq9 = isWellbeingCheckin(title);
+    const isCheckin = !isPhq9 && (t.includes("check-in") || t.includes("checkin"));
+
     return (
       <div className="space-y-4">
         {Object.entries(scores).map(([label, val]: [string, any]) => {
           const value = Number(val);
           const status = isPhq9
-            ? (value >= 75 ? 'Nearly every day' : value >= 55 ? 'More than half the days' : value >= 35 ? 'Several days' : 'Not at all')
+            ? frequencyLabel(value)
             : isCheckin
               ? (value >= 70 ? 'Stable' : value >= 45 ? 'Moderate' : 'Needs Focus')
               : (value >= 75 ? 'Dominant Strength' : value >= 55 ? 'Strong' : value >= 35 ? 'Developing' : 'Room to grow');
@@ -110,7 +121,9 @@ function renderBreakdownForTitle(report: any) {
     );
   }
 
-  if (t.includes("check-in") || t.includes("checkin")) {
+  // Guarded: without this, the renamed "Wellbeing check-in" would match here
+  // and render four invented bars instead of falling through.
+  if (!isWellbeingCheckin(title) && (t.includes("check-in") || t.includes("checkin"))) {
     return (
       <div className="space-y-4">
         <DimensionBar label="Good Spirits & Cheerfulness" status="Stable (70%)" statusColor="text-plum" barColor="bg-plum" width="70%" />
@@ -130,30 +143,25 @@ function renderBreakdownForTitle(report: any) {
     );
   }
 
-  // Default (clinical / PHQ-9)
+  // Fallback when the stored result has no per-question `scores` object.
+  //
+  // This used to invent three bars: "Sleep Quality & Sleep Latency",
+  // "Social Connectedness & Support" (a flat 78% with no input at all) and
+  // "Study Concentration & Cognitive Load" - all derived from the single total
+  // score, presented to the student as measurements. Nothing in the payload
+  // supports any of them, so they are gone rather than restyled.
+  //
+  // The five other fabricated breakdowns above (strengths / personality /
+  // values / check-in / mood) are the same defect and are still on the
+  // do-not-fabricate list for the Phase 9 redesign of this modal; they are left
+  // alone here because they are not reachable from this instrument.
   return (
-    <div className="space-y-4">
-      <DimensionBar
-        label="Sleep Quality & Sleep Latency"
-        status={score > 9 ? "Needs Focus (Restless)" : "Healthy (Deep)"}
-        statusColor={score > 9 ? "text-amber-600" : "text-emerald-600"}
-        barColor={score > 9 ? "bg-amber-500" : "bg-emerald-500"}
-        width={`${score > 9 ? 45 : 82}%`}
-      />
-      <DimensionBar
-        label="Social Connectedness & Support"
-        status="Stable"
-        statusColor="text-emerald-600"
-        barColor="bg-emerald-500"
-        width="78%"
-      />
-      <DimensionBar
-        label="Study Concentration & Cognitive Load"
-        status={score > 12 ? "High Stress (Scattered)" : score > 5 ? "Moderate" : "Focused"}
-        statusColor={score > 5 ? "text-blue-600" : "text-emerald-600"}
-        barColor={`${score > 12 ? "bg-rose-500" : score > 5 ? "bg-blue-500" : "bg-emerald-500"}`}
-        width={`${score > 12 ? 35 : score > 5 ? 60 : 88}%`}
-      />
+    <div className="flex gap-3 rounded-2xl border border-ink-200/70 bg-ink-50 p-4">
+      <Info className="h-4 w-4 shrink-0 text-ink-400 mt-0.5" aria-hidden="true" />
+      <p className="text-xs font-medium leading-relaxed text-ink-600">
+        This report was saved without a per-question breakdown, so there is
+        nothing to chart here. Your total score and what it means are above.
+      </p>
     </div>
   );
 }
@@ -198,47 +206,32 @@ function renderNarrative(title: string, classification: string, score: number) {
     );
   }
   
-  // Default / PHQ-9 (clinical-grade)
-  const isSevere = classification.toLowerCase().includes("severe") || score > 12;
-  const isModerate = classification.toLowerCase().includes("moderate") || (score > 7 && score <= 12);
-  const isMild = classification.toLowerCase().includes("mild") || (score > 4 && score <= 7);
-
-  if (isSevere) {
-    return (
-      <div className="space-y-3">
-        <p className="text-sm text-slate-600 leading-relaxed font-medium">
-          Based on your score classification of <span className="font-semibold text-rose-600">{classification}</span>, you are carrying a heavy load right now. This index indicates significant well-being strain.
-        </p>
-        <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex gap-3 text-red-800">
-          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-          <p className="text-xs font-semibold leading-relaxed">
-            <b>Action Advised</b>: We strongly encourage you to connect with a campus counselor or professional support services. Remember, reaching out is a strength, and you do not have to carry this alone. Refer to the crisis links banner in your dashboard if you need immediate hotlines.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isModerate) {
-    return (
-      <p className="text-sm text-slate-600 leading-relaxed font-medium">
-        Based on your score classification of <span className="font-semibold text-amber-600">{classification}</span>, we recommend booking a free session with one of our wellbeing coaches. A coach can help you talk through what's heavy and map out small, practical steps for balance.
-      </p>
-    );
-  }
-
-  if (isMild) {
-    return (
-      <p className="text-sm text-slate-600 leading-relaxed font-medium">
-        Based on your score classification of <span className="font-semibold text-blue-600">{classification}</span>, we suggest prioritizing self-care, scheduling structured breaks, and tracking your check-ins daily. Exploring the signature strengths or core values tests in the Discover tab will help bring focus.
-      </p>
-    );
-  }
+  // Default — the five-question wellbeing check-in.
+  // The band comes from lib/wellbeing.ts rather than the `score > 12 / > 7 / > 4`
+  // ladder that used to live here: that was the third hard-coded copy of the
+  // same cut points, and its labels ("Severe", diagnosis-shaped) were a claim
+  // this product cannot make. `bandForResult` also reads historical rows that
+  // still hold the old strings, so old reports stay coherent.
+  const band = bandForResult(score, classification);
 
   return (
-    <p className="text-sm text-slate-600 leading-relaxed font-medium">
-      Based on your score classification of <span className="font-semibold text-emerald-600">{classification}</span>, your well-being indices look steady and balanced. Keep checking in regularly to continue building your private mosaic moodboard pattern!
-    </p>
+    <div className="space-y-3">
+      <p className="text-sm text-ink-600 leading-relaxed font-medium">
+        Your score of {score} sits in <span className="font-semibold text-plum">{band.label}</span>. {band.support}
+      </p>
+      {band.showCrisisLink && (
+        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200/70 flex gap-3 text-rose-800">
+          <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" aria-hidden="true" />
+          <p className="text-xs font-semibold leading-relaxed">
+            If you need to talk to someone now,{" "}
+            <Link to="/crisis" className="underline font-bold hover:text-rose-900">
+              crisis support and hotlines are here
+            </Link>
+            . Reaching out is a strength, and you do not have to carry this alone.
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -281,7 +274,7 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
                 </div>
                 <div>
                   <h3 className="text-2xl font-black text-slate-900 leading-tight">
-                    {report.quizTitle || "Well-being Assessment"}
+                    {displayQuizTitle(report.quizTitle) || "Well-being check-in"}
                   </h3>
                   <p className="text-slate-500 font-medium text-xs mt-1.5 flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5" /> Completed on{" "}
@@ -309,18 +302,26 @@ export function ReportDetailModal({ report, onClose }: ReportDetailModalProps) {
                     <span className="text-xl font-bold text-slate-400">/ {report.maxScore}</span>
                   </div>
                   <p className="text-xs text-slate-500 font-medium mt-4 leading-relaxed">
-                    This score measures cumulative wellness indices across sleep quality, focus
-                    dynamics, and stress triggers.
+                    Your total across the questions you answered. It is one number,
+                    not a measurement of separate areas of your life.
                   </p>
                 </div>
 
-                {/* Classification Section */}
+                {/* What the score suggests.
+                    Heading was "Severity Evaluation" and the value was the raw
+                    stored string, so rows written before lib/wellbeing.ts - and
+                    every row prisma/seed.js creates - still printed a diagnosis
+                    here. `displayClassification` maps them onto the shared bands. */}
                 <div className="bg-plum/5 rounded-3xl p-6 border border-plum/10 flex flex-col justify-center">
                   <h4 className="text-[10px] font-black text-plum/70 uppercase tracking-widest mb-2.5">
-                    Severity Evaluation
+                    What this suggests
                   </h4>
                   <span className="text-2xl font-black text-plum leading-tight mb-4">
-                    {report.classification}
+                    {displayClassification(
+                      report.quizTitle,
+                      report.classification,
+                      report.score
+                    )}
                   </span>
                   <div className="w-full bg-plum/10 h-3 rounded-full overflow-hidden">
                     <div

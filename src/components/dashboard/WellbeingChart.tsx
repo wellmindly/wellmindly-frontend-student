@@ -2,6 +2,7 @@ import { LineChart } from "lucide-react";
 import { Card, Button, EmptyState } from "../ui";
 import { formatDayMonth, formatFullDate } from "../../lib/format";
 import { cn } from "../../lib/cn";
+import { displayQuizTitle } from "../../lib/wellbeing";
 import type { TimelinePoint } from "../../types/student";
 
 export interface WellbeingChartProps {
@@ -58,7 +59,7 @@ export function WellbeingChart({ timeline, onViewDetails }: WellbeingChartProps)
   }
 
   const uniqueTitles = Array.from(
-    new Set((timeline || []).map((t) => t.quizTitle).filter(Boolean))
+    new Set((timeline || []).map((t) => displayQuizTitle(t.quizTitle)).filter(Boolean))
   ).sort();
 
   return (
@@ -230,7 +231,7 @@ export function WellbeingChart({ timeline, onViewDetails }: WellbeingChartProps)
                 {points.map((p, i) => (
                   <tr key={p.id || i}>
                     <td>{formatFullDate(p.date)}</td>
-                    <td>{p.quizTitle}</td>
+                    <td>{displayQuizTitle(p.quizTitle)}</td>
                     <td>{p.percentage}%</td>
                   </tr>
                 ))}

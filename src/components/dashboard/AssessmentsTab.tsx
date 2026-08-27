@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
+import { displayQuizTitle, displayClassification } from "../../lib/wellbeing";
 
 interface AssessmentsTabProps {
   resultsData: any;
@@ -27,12 +28,14 @@ export function AssessmentsTab({
   onStartScreening,
 }: AssessmentsTabProps) {
   const latestResult = resultsData?.latestResult;
-  const latestMaxScore = latestResult?.maxScore ?? (latestResult?.quizTitle?.includes("PHQ-9") ? 15 : 27);
+  // `maxScore` is a non-nullable column, so the old
+  // `?? (quizTitle.includes("PHQ-9") ? 15 : 27)` fallback could never
+  // legitimately fire - it existed only to paper over a second, five-question
+  // instrument mislabelled "PHQ-9". See lib/wellbeing.ts.
+  const latestMaxScore = latestResult?.maxScore ?? 0;
   const latestScore = latestResult?.score ?? 0;
 
   const pct = latestMaxScore > 0 ? latestScore / latestMaxScore : 0;
-  const sleepNeedsFocus = pct > 0.33;
-  const studyStatus = pct > 0.44 ? "High Stress (Scattered)" : pct > 0.18 ? "Moderate" : "Focused";
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -53,7 +56,7 @@ export function AssessmentsTab({
           className="bg-plum hover:bg-plum/90 text-white rounded-2xl px-6 py-3.5 font-bold text-sm transition-all duration-300 shadow-sm hover:shadow flex items-center gap-2 outline-none cursor-pointer border-none"
         >
           <Activity className="h-4 w-4" />
-          Start New Assessment
+          Start the check-in
         </button>
       </div>
 
@@ -69,14 +72,14 @@ export function AssessmentsTab({
                 No Assessments Completed Yet
               </h3>
               <p className="text-slate-500 font-medium text-sm max-w-sm mx-auto mb-8 leading-relaxed">
-                Complete our baseline screening PHQ-9 quiz to receive your initial clinical-grade
-                well-being score.
+                Take the five-question wellbeing check-in to start tracking how your
+                weeks are going. It's a reflection tool, not a diagnosis.
               </p>
               <button
                 onClick={onStartScreening}
                 className="bg-plum hover:bg-plum/90 text-white font-bold text-sm px-8 py-4 rounded-full transition-all cursor-pointer border-none shadow-md shadow-plum/15"
               >
-                Take Baseline Screening
+                Take the wellbeing check-in
               </button>
             </div>
           ) : (
@@ -92,7 +95,7 @@ export function AssessmentsTab({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
                     <div>
                       <h3 className="text-2xl font-black text-slate-900">
-                        {resultsData.latestResult.quizTitle}
+                        {displayQuizTitle(resultsData.latestResult.quizTitle)}
                       </h3>
                       <p className="text-slate-500 font-medium mt-2 flex items-center gap-2">
                         <Clock className="h-4 w-4" /> Completed on{" "}
@@ -122,17 +125,21 @@ export function AssessmentsTab({
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 font-medium mt-4 leading-relaxed">
-                        This score represents baseline well-being indexes. Click details to check
-                        full dimensional breakdowns.
+                        Your total across the five questions. Higher means more of
+                        these turned up for you over the last two weeks.
                       </p>
                     </div>
 
                     <div className="bg-plum/5 rounded-2xl p-8 border border-plum/10 flex flex-col justify-center">
                       <h4 className="text-xs font-black text-plum/70 uppercase tracking-widest mb-3">
-                        Classification
+                        What this suggests
                       </h4>
                       <span className="text-2xl font-black text-plum leading-tight">
-                        {resultsData.latestResult.classification}
+                        {displayClassification(
+                          resultsData.latestResult.quizTitle,
+                          resultsData.latestResult.classification,
+                          latestScore
+                        )}
                       </span>
                       <div className="mt-6 w-full bg-plum-200/50 h-3 rounded-full overflow-hidden">
                         <motion.div
@@ -149,82 +156,26 @@ export function AssessmentsTab({
                 </div>
               </div>
 
-              {/* Breakdown Insights */}
+              {/* Breakdown Insights
+                  ----------------------------------------------------------
+                  This used to be three bars - "Sleep Quality", "Social
+                  Connections" and "Study Focus" - presented to the student as
+                  measurements. None of them was measured. Sleep and Study were
+                  thresholds on the single total score (`pct > 0.33`, `> 0.44`)
+                  with hardcoded bar widths, and Social Connections was a flat
+                  "Stable / 78%" with no input at all. The instrument asks five
+                  questions about interest, mood, sleep, energy and appetite; it
+                  does not measure social connection or study focus, and it
+                  cannot separate one dimension from the total.
+                  The real per-question breakdown lives in the report modal,
+                  which renders it only when the stored row actually has one. */}
               <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/60">
-                <h3 className="text-xl font-black text-slate-900 mb-6">Detailed Insights</h3>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between font-bold mb-2">
-                      <span className="text-slate-700">Sleep Quality</span>
-                      <span
-                        className={
-                          sleepNeedsFocus
-                            ? "text-amber-600"
-                            : "text-emerald-600"
-                        }
-                      >
-                        {sleepNeedsFocus
-                          ? "Needs Focus (Restless)"
-                          : "Healthy (Deep)"}
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          sleepNeedsFocus ? "bg-amber-500" : "bg-emerald-500"
-                        }`}
-                        style={{
-                          width: `${sleepNeedsFocus ? 45 : 82}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between font-bold mb-2">
-                      <span className="text-slate-700">Social Connections</span>
-                      <span className="text-emerald-600">Stable</span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div className="bg-emerald-500 h-full w-[78%]" />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between font-bold mb-2">
-                      <span className="text-slate-700">Study Focus</span>
-                      <span
-                        className={
-                          pct > 0.44
-                            ? "text-rose-600"
-                            : pct > 0.18
-                              ? "text-blue-600"
-                              : "text-emerald-600"
-                        }
-                      >
-                        {studyStatus}
-                      </span>
-                    </div>
-                    <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${
-                          pct > 0.44
-                            ? "bg-rose-500"
-                            : pct > 0.18
-                              ? "bg-blue-500"
-                              : "bg-emerald-500"
-                        }`}
-                        style={{
-                          width: `${
-                            pct > 0.44
-                              ? 35
-                              : pct > 0.18
-                                ? 60
-                                : 88
-                          }%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-xl font-black text-slate-900 mb-2">Detailed Insights</h3>
+                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+                  Open any result below to see your answer to each question and what
+                  the total suggests. This check-in reports one overall score - it
+                  doesn't break your weeks down into separate areas.
+                </p>
               </div>
             </>
           )}
@@ -269,12 +220,16 @@ export function AssessmentsTab({
                               </div>
                               <div>
                                 <h4 className="font-bold text-slate-800 leading-snug group-hover:text-plum transition-colors">
-                                  {report.quizTitle}
+                                  {displayQuizTitle(report.quizTitle)}
                                 </h4>
                                 <p className="text-xs text-slate-400 font-medium mt-1">
                                   Completed on {dateStr} ·{" "}
                                   <span className="font-semibold text-slate-500">
-                                    {report.classification}
+                                    {displayClassification(
+                                      report.quizTitle,
+                                      report.classification,
+                                      report.score
+                                    )}
                                   </span>
                                 </p>
                               </div>

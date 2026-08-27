@@ -6,6 +6,7 @@ import { MOODS, moodByRating } from "../../../lib/mood";
 import { formatFullDate, formatRelative, dayKey } from "../../../lib/format";
 import { spring } from "../../../lib/motion";
 import { cn } from "../../../lib/cn";
+import { displayQuizTitle, displayClassification } from "../../../lib/wellbeing";
 import type { DailyCheckinRow, LatestResult } from "../../../types/student";
 
 export interface TodayCardProps {
@@ -158,13 +159,19 @@ export function TodayCard({
             {latestResult ? (
               <>
                 <span className="text-ink-500 font-medium">
-                  {latestResult.quizTitle}
+                  {displayQuizTitle(latestResult.quizTitle)}
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-ink-700">
                     {latestResult.score}/{latestResult.maxScore}
                   </span>
-                  <Badge tone="primary">{latestResult.classification}</Badge>
+                  <Badge tone="primary">
+                    {displayClassification(
+                      latestResult.quizTitle,
+                      latestResult.classification,
+                      latestResult.score
+                    )}
+                  </Badge>
                 </div>
               </>
             ) : (

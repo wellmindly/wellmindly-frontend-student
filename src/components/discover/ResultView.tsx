@@ -1,6 +1,15 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { LifeBuoy } from "lucide-react";
 import { rankDims, shade, toneWord, VALUE_DESC } from "./types";
+import {
+  bandForResult,
+  isWellbeingCheckin,
+  displayClassification,
+  WELLBEING_MAX_SCORE,
+  WELLBEING_TITLE,
+} from "../../lib/wellbeing";
 import type { TestDef, PictureOption } from "./types";
 import { FeedbackForm } from "./FeedbackForm";
 
@@ -40,11 +49,18 @@ export function ResultView({
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const ranked = data.scores ? rankDims(data.scores) : [];
 
-  // Filter and sort historical attempts for this test
+  // Filter and sort historical attempts for this test.
+  // An exact `r.quizTitle === cur.title` match would have dropped every attempt
+  // a student made before the rename - their stored rows still say
+  // "PHQ-9 screening" - which would have emptied the score, the band and the
+  // trend on this screen. `isWellbeingCheckin` spans both titles.
   const historyAttempts = useMemo(() => {
     if (!resultsData?.timeline) return [];
+    const matchesThisTest = isWellbeingCheckin(cur.title)
+      ? (r: any) => isWellbeingCheckin(r.quizTitle)
+      : (r: any) => r.quizTitle === cur.title;
     return resultsData.timeline
-      .filter((r: any) => r.quizTitle === cur.title)
+      .filter(matchesThisTest)
       .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [resultsData, cur.title]);
 
@@ -228,37 +244,55 @@ export function ResultView({
       );
     }
 
-    // 6. PHQ-9 wellness assessment report layout
+    // 6. Wellbeing check-in report layout.
+    // `kind` stays "phq9" because it is a persisted discriminant (see the note
+    // on TESTS.phq9 in types.ts); nothing here says PHQ-9 to the student.
     if (data.kind === 'phq9' && data.scores) {
       const currentAttempt = historyAttempts[historyAttempts.length - 1];
-      const severityLabel = currentAttempt?.classification || "Wellness Assessment Completed";
       const totalScore = currentAttempt?.score ?? 0;
-      
+      const band = bandForResult(totalScore, currentAttempt?.classification);
+
       return (
         <div className="space-y-5">
-          <div className="flex justify-between items-end bg-slate-50 border border-slate-200/80 rounded-2xl p-5 shadow-sm">
+          <div className="flex justify-between items-end bg-ink-50 border border-ink-200/70 rounded-2xl p-5 shadow-sm">
             <div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
-                Current Status
+              <span className="text-2xs font-black text-ink-400 uppercase tracking-widest block mb-1.5">
+                Where this sits
               </span>
-              <span className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-xl border text-plum bg-plum/5 border-plum/10">
-                {severityLabel}
+              <span className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-xl border text-plum bg-plum-50 border-plum-200/70">
+                {band.label}
               </span>
             </div>
             <div className="text-right">
               <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-slate-900 tracking-tighter">{totalScore}</span>
-                <span className="text-sm font-bold text-slate-400">/ 15</span>
+                <span className="text-4xl font-black text-ink-900 tracking-tighter">{totalScore}</span>
+                <span className="text-sm font-bold text-ink-400">/ {WELLBEING_MAX_SCORE}</span>
               </div>
             </div>
           </div>
 
           <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : "Wellness Assessment"}
+            {data.aiFeedback ? data.aiFeedback.headline : WELLBEING_TITLE}
           </h2>
           <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : "This screening is a baseline to monitor your emotional well-being. Regular checks help highlight trends and identify when to seek extra care."}
+            {data.aiFeedback ? data.aiFeedback.narrative : band.support}
           </p>
+
+          {/* Top band only. Before this there was no crisis path wired to a
+              score anywhere in the app - a student could be handed the highest
+              result the instrument produces and offered nothing. */}
+          {band.showCrisisLink && (
+            <div className="flex gap-3 rounded-2xl border border-rose-200/70 bg-rose-50 p-4 text-rose-800">
+              <LifeBuoy className="h-5 w-5 shrink-0 mt-0.5" aria-hidden="true" />
+              <p className="text-xs font-semibold leading-relaxed">
+                If you want to talk to someone right now,{" "}
+                <Link to="/crisis" className="underline font-bold hover:text-rose-900">
+                  crisis support and hotlines are here
+                </Link>
+                . You can also book a session with a counselor from your dashboard.
+              </p>
+            </div>
+          )}
 
           <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
             <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">Your dimensions</p>
@@ -369,7 +403,12 @@ export function ResultView({
                 ? att.score - prevAtt.score
                 : null;
               
-              const isPhq9 = cur.title.toLowerCase().includes("phq");
+              // Direction matters: on this instrument a LOWER score is the
+              // better week, the opposite of every other test here. This read
+              // `cur.title.includes("phq")`, which the rename turns false - and
+              // a false value silently flips the arrow, so a student getting
+              // worse would have been shown "improving".
+              const isPhq9 = isWellbeingCheckin(cur.title);
               const isImprovement = diff !== null && (isPhq9 ? diff < 0 : diff > 0);
               const isWorse = diff !== null && (isPhq9 ? diff > 0 : diff < 0);
               return (
@@ -380,7 +419,8 @@ export function ResultView({
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-[13.5px] font-extrabold text-ink leading-tight">
-                        {att.classification || 'Completed'}
+                        {displayClassification(att.quizTitle, att.classification, att.score) ||
+                          'Completed'}
                         {isLatest && <span className="ml-2.5 text-[9px] bg-plum text-white px-2 py-0.5 rounded-full uppercase font-black tracking-wider">Latest</span>}
                       </p>
                       <p className="text-[11px] text-ink-soft opacity-70 font-semibold mt-0.5">

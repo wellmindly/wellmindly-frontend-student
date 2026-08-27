@@ -33,15 +33,21 @@ export interface SavedResult { t: number; summary: string; scores?: Record<strin
 
 // ─── Test Data ──────────────────────────────────────────────────
 export const TESTS: Record<string, TestDef> = {
-  phq9: { 
-    title: "PHQ-9 screening", 
-    accent: "#50718F", 
-    icon: "clipboard", 
-    blurb: "A five-question baseline health questionnaire to screen and monitor your wellness levels.", 
-    kind: "profile", 
-    overall: true, 
-    tag: "Self-check · 2 min", 
-    intro: "Over the last two weeks, how often have you been bothered by any of the following problems?", 
+  // The key stays `phq9` on purpose even though nothing user-facing says PHQ-9
+  // any more: it is a saved-result localStorage key and a `?tab=phq9` deep link
+  // that `normalizeTab` handles (useDashboard.ts:35), so renaming it would
+  // orphan every student's stored result and break existing links. The five
+  // items below are PHQ-9 items 1-5 and nothing here is the PHQ-9 - see
+  // lib/wellbeing.ts for why the title and bands are what they are.
+  phq9: {
+    title: "Wellbeing check-in",
+    accent: "#50718F",
+    icon: "clipboard",
+    blurb: "Five questions on how the last two weeks have felt. A reflection tool, not a diagnosis.",
+    kind: "profile",
+    overall: true,
+    tag: "Self-check · 2 min",
+    intro: "Over the last two weeks, how often have you been bothered by any of the following problems?",
     items: [
       { q: "Little interest or pleasure in doing things?", d: "Interest" }, 
       { q: "Feeling down, depressed, or hopeless?", d: "Mood" }, 

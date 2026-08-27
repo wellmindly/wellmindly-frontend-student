@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { moodByRating } from "../lib/mood";
+import { bandFor } from "../lib/wellbeing";
 
 import {
   TESTS,
@@ -25,7 +26,8 @@ export interface DiscoverResultData {
 
 /**
  * `?tab=` accepts a couple of shorthands that aren't tabs in their own right:
- * `phq9` means "the discover tab, with the PHQ-9 already running". Resolving
+ * `phq9` means "the discover tab, with the wellbeing check-in already running".
+ * Resolving
  * them here is what keeps `activeTab` a value the dashboard can actually
  * render - a cold load of `/dashboard?tab=phq9` previously set activeTab to the
  * literal string "phq9", which matches no branch, and the page came up blank.
@@ -328,10 +330,12 @@ export function useDashboard() {
 
       let classText = "Strongest: " + ranked[0][0];
       if (id === "phq9") {
-        if (sum <= 4) classText = "Minimal Stress";
-        else if (sum <= 8) classText = "Mild Stress";
-        else if (sum <= 12) classText = "Moderate Stress";
-        else classText = "Escalated Anxiety / Stress";
+        // One band table, shared with ReportDetailModal and mirrored in
+        // backend/src/routes/quizzes.ts. This used to read
+        // "Escalated Anxiety / Stress" at 13+ while the server wrote
+        // "Severe Depression" for the same score - a diagnosis neither side
+        // was in a position to make. See lib/wellbeing.ts.
+        classText = bandFor(sum).label;
       }
 
       const { resultId, aiFeedback } = await submitDiscoverToBackend(
