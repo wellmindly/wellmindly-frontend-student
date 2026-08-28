@@ -2,11 +2,15 @@ import { motion } from "framer-motion";
 import { BookOpen, ArrowRight, Loader2 } from "lucide-react";
 import type { TalkRoom, TalkProfile } from "./types";
 import { getAvatarEmoji } from "./types";
+import { EmptyState, ErrorState } from "../ui";
 
 interface TalkRoomListProps {
   profile: TalkProfile | null;
   rooms: TalkRoom[];
   loadingRooms: boolean;
+  /** Set when the rooms request failed. Distinct from "loaded, and there are none". */
+  roomsError?: boolean;
+  onRetryRooms?: () => void;
   onSelectRoom: (room: TalkRoom) => void;
 }
 
@@ -14,6 +18,8 @@ export function TalkRoomList({
   profile,
   rooms,
   loadingRooms,
+  roomsError = false,
+  onRetryRooms,
   onSelectRoom,
 }: TalkRoomListProps) {
   return (
@@ -42,6 +48,21 @@ export function TalkRoomList({
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 text-plum-600 animate-spin" />
           </div>
+        ) : roomsError ? (
+          <ErrorState
+            title="We couldn't load the rooms"
+            description="This is on our side, not yours. Nothing you've written anywhere is affected."
+            onRetry={onRetryRooms}
+          />
+        ) : rooms.length === 0 ? (
+          /* A room list is opened by staff, so a student cannot fill this themselves —
+             the honest empty state says who does and offers no action that would fail. */
+          <EmptyState
+            icon={<BookOpen className="h-6 w-6" />}
+            title="No rooms are open yet"
+            description="TalkRooms open when your campus turns them on. When one does, it shows up here and you can read before you write anything."
+            tone="primary"
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {rooms.map((room) => (

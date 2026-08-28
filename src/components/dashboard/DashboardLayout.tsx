@@ -88,7 +88,12 @@ export function DashboardLayout(props: DashboardLayoutProps) {
   /* ---------------------------------------------------- immersive (chat) mode */
   if (immersiveTabs.has(activeTab)) {
     return (
-      <div className="flex min-h-dvh flex-col bg-ink-900 text-ink-50">
+      // h-dvh, not min-h-dvh: this is a fixed-viewport app shell whose <main> is
+      // overflow-hidden and whose children own their own scrolling. With min-h-dvh the
+      // container height stays indefinite, so `h-full` on a child resolves to auto and
+      // the child's own background collapses to content height — which is how the
+      // TalkRooms list ended up as a strip of paper on top of the dark shell.
+      <div className="flex h-dvh flex-col bg-ink-900 text-ink-50">
         <header className="z-[var(--z-nav)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-700 bg-ink-800 px-4 pt-safe sm:px-6">
           <div className="flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum-500 text-plum-50">

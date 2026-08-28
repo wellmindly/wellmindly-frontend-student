@@ -28,6 +28,7 @@ export function TalkMindlyTab() {
   const [rooms, setRooms] = useState<TalkRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<TalkRoom | null>(null);
   const [loadingRooms, setLoadingRooms] = useState(false);
+  const [roomsError, setRoomsError] = useState(false);
   const [notes, setNotes] = useState<TalkNote[]>([]);
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recent" | "interactive">("recent");
@@ -87,8 +88,13 @@ export function TalkMindlyTab() {
   const fetchRooms = async () => {
     try {
       setLoadingRooms(true);
+      setRoomsError(false);
       const response = await api.get("/talk/rooms");
-      const roomList = response.data || [];
+      // The route returns a bare array; tolerate a wrapped shape rather than handing a
+      // non-array to the list, which would throw on .map instead of showing a state.
+      const roomList: TalkRoom[] = Array.isArray(response.data)
+        ? response.data
+        : response.data?.rooms || [];
       setRooms(roomList);
       if (roomList.length > 0) {
         setSelectedRoom(roomList[0]);
@@ -96,6 +102,8 @@ export function TalkMindlyTab() {
       }
     } catch (err) {
       console.error("Failed to load rooms:", err);
+      setRooms([]);
+      setRoomsError(true);
     } finally {
       setLoadingRooms(false);
     }
@@ -383,6 +391,8 @@ export function TalkMindlyTab() {
         profile={profile}
         rooms={rooms}
         loadingRooms={loadingRooms}
+        roomsError={roomsError}
+        onRetryRooms={fetchRooms}
         onSelectRoom={handleSelectRoom}
       />
     );
