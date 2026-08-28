@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Check } from "lucide-react";
+import { Shield, Check, MessageCircleQuestion, MessagesSquare, Sparkles } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { MOODS, moodByRating } from "../../lib/mood";
 import type { MoodRating } from "../../lib/mood";
 import { MoodFace } from "../ui/MoodFace";
 import { buttonClasses, Badge } from "../ui";
 import { cn } from "../../lib/cn";
-import studentPortraitClean from "../../assets/student_portrait_clean.png";
+import studentPortraitClean from "../../assets/student_portrait_clean.webp";
 
 interface HeroSectionProps {
   onCheckInClick?: () => void;
@@ -234,7 +234,7 @@ export function HeroSection({
             onClick={() => handleBubble("writemindly")}
             className="hidden sm:flex absolute top-4 sm:-left-8 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-teal-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[170px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
           >
-            <span aria-hidden="true">💭</span> who even am I rn
+            <MessageCircleQuestion className="h-3.5 w-3.5" aria-hidden="true" /> who even am I rn
           </button>
 
           {/* Floating Bubble 2: is it just me or... */}
@@ -243,7 +243,7 @@ export function HeroSection({
             onClick={() => handleBubble("talkmindly")}
             className="hidden sm:flex absolute bottom-32 sm:-right-6 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[160px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
           >
-            <span aria-hidden="true">🗣️</span> is it just me or...
+            <MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" /> is it just me or...
           </button>
 
           {/* Floating Bubble 3: what am I actually good at? */}
@@ -252,7 +252,7 @@ export function HeroSection({
             onClick={() => handleBubble("blueprints")}
             className="hidden sm:flex absolute -bottom-2 sm:right-12 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-gold-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[200px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
           >
-            <span aria-hidden="true">✨</span> what am I actually good at?
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" /> what am I actually good at?
           </button>
         </div>
       </div>

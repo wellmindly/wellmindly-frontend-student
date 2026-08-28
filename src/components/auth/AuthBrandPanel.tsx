@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Shield } from "lucide-react";
 import { Logo } from "../ui";
-import studentLoginPortrait from "../../assets/student_login_portrait.png";
+import studentLoginPortrait from "../../assets/student_login_portrait.webp";
 
 export interface AuthBrandPanelProps {}
 
