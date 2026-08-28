@@ -62,7 +62,7 @@ export function NextStep({
     support = "Quizzes, journalling and peer circles are all in Discover whenever you want them.";
     ctaLabel = "Explore Discover";
     onCtaClick = onExploreDiscover;
-    icon = <Compass className="h-5 w-5 text-sage" aria-hidden="true" />;
+    icon = <Compass className="h-5 w-5 text-sage-600" aria-hidden="true" />;
     iconBg = "bg-sage-100";
   }
 

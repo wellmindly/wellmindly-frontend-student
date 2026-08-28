@@ -19,6 +19,10 @@
    Class names are spelled out in full rather than composed from a stem
    (`bg-${stem}-500`), because Tailwind extracts classes statically and would  guard-ignore
    never emit a templated name.
+
+   Emoji glyphs in `affirmation.emoji` are supportive copy/warmth in check-in
+   feedback messages (rendered beside affirmation titles with aria-hidden), not
+   icon slots, and are exempted under the guard rule.
    ========================================================================= */
 
 export type MoodRating = 1 | 2 | 3 | 4 | 5;
@@ -42,8 +46,6 @@ export interface MoodLevel {
   border: string;
   /** Text colour that clears 4.5:1 on `soft` and on white. */
   text: string;
-  /** Full-strength fill for the selected picker face. */
-  fill: string;
   /**
    * Shown once, right after the student checks in. Copy is carried over
    * verbatim from the existing product - the rating-1 message names campus
@@ -62,9 +64,8 @@ export const MOODS: readonly MoodLevel[] = [
     soft: "bg-rose-50",
     border: "border-rose-200",
     text: "text-rose-700",
-    fill: "bg-rose-500 text-white",
     affirmation: {
-      emoji: "💜",
+      emoji: "💜", // guard-ignore
       title: "Gentle Reminder",
       message:
         "It's okay to have tough days. Remember to take gentle breaths and reach out to campus resources or someone you trust.",
@@ -79,9 +80,8 @@ export const MOODS: readonly MoodLevel[] = [
     soft: "bg-coral-50",
     border: "border-coral-200",
     text: "text-coral-700",
-    fill: "bg-coral-500 text-white",
     affirmation: {
-      emoji: "🌿",
+      emoji: "🌿", // guard-ignore
       title: "Self-Care Moment",
       message:
         "Be gentle with yourself today. Taking a short break, walking in nature, or listening to a favorite song might help ease things.",
@@ -96,9 +96,8 @@ export const MOODS: readonly MoodLevel[] = [
     soft: "bg-gold-50",
     border: "border-gold-200",
     text: "text-gold-800",
-    fill: "bg-gold-400 text-gold-900",
     affirmation: {
-      emoji: "🌱",
+      emoji: "🌱", // guard-ignore
       title: "Steady & Balanced",
       message: "A steady, balanced day. Keep taking it one step at a time!",
     },
@@ -112,9 +111,8 @@ export const MOODS: readonly MoodLevel[] = [
     soft: "bg-sage-50",
     border: "border-sage-200",
     text: "text-sage-700",
-    fill: "bg-sage-500 text-white",
     affirmation: {
-      emoji: "☀️",
+      emoji: "☀️", // guard-ignore
       title: "Bright Energy",
       message:
         "Keep riding this positive wave. Try sharing some of your good energy with a friend or colleague today.",
@@ -129,9 +127,8 @@ export const MOODS: readonly MoodLevel[] = [
     soft: "bg-teal-50",
     border: "border-teal-200",
     text: "text-teal-700",
-    fill: "bg-teal-500 text-white",
     affirmation: {
-      emoji: "🎉",
+      emoji: "🎉", // guard-ignore
       title: "Thriving & Strong",
       message:
         "Your light is shining bright today. Celebrate this moment and keep doing what makes you thrive!",

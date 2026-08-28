@@ -91,10 +91,10 @@ export function DashboardLayout(props: DashboardLayoutProps) {
       <div className="flex min-h-dvh flex-col bg-ink-900 text-ink-50">
         <header className="z-[var(--z-nav)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-700 bg-ink-800 px-4 pt-safe sm:px-6">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum-500 text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum-500 text-plum-50">
               <MessageSquare className="h-4 w-4" />
             </span>
-            <span className="font-display text-lg font-semibold text-white">
+            <span className="font-display text-lg font-semibold text-ink-50">
               {activeTab === "talkmindly" ? "TalkMindly" : "WellMindly"}
             </span>
           </div>
@@ -111,7 +111,10 @@ export function DashboardLayout(props: DashboardLayoutProps) {
             Dashboard
           </button>
         </header>
-        <main className="relative flex-1 overflow-hidden">{children}</main>
+        <main className="relative flex-1 overflow-hidden">
+          <h1 className="sr-only">{activeTab === "talkmindly" ? "TalkMindly" : "WellMindly"}</h1>
+          {children}
+        </main>
       </div>
     );
   }
@@ -120,7 +123,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
   return (
     <div className="flex min-h-dvh bg-paper text-ink-800">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 z-[var(--z-raised)] hidden h-dvh w-72 shrink-0 flex-col border-r border-ink-200/60 bg-white lg:flex">
+      <aside className="sticky top-0 z-[var(--z-raised)] hidden h-dvh w-72 shrink-0 flex-col border-r border-ink-200/60 bg-card lg:flex">
         <button
           type="button"
           onClick={props.onLogoClick}
@@ -172,7 +175,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={spring.soft}
-              className="fixed inset-y-0 left-0 z-[var(--z-overlay)] flex w-[82%] max-w-xs flex-col bg-white shadow-2xl lg:hidden"
+              className="fixed inset-y-0 left-0 z-[var(--z-overlay)] flex w-[82%] max-w-xs flex-col bg-card shadow-2xl lg:hidden"
               aria-label="Menu"
             >
               <div className="flex shrink-0 items-center justify-between border-b border-ink-100 px-5 pt-safe pb-4">
@@ -240,7 +243,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
         />
 
         {/* Top bar */}
-        <header className="sticky top-0 z-[var(--z-sticky)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-200/50 bg-white/85 px-4 backdrop-blur-md sm:h-20 sm:px-8">
+        <header className="sticky top-0 z-[var(--z-sticky)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-200/50 bg-card/85 px-4 backdrop-blur-md sm:h-20 sm:px-8">
           <div className="flex items-center gap-3 lg:hidden">
             <IconButton
               label="Open menu"
@@ -263,7 +266,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
             type="button"
             onClick={props.logout}
             className={cn(
-              "ml-auto hidden items-center gap-2 rounded-full border border-ink-200 bg-white px-5 py-2.5",
+              "ml-auto hidden items-center gap-2 rounded-full border border-ink-200 bg-card px-5 py-2.5",
               "text-sm font-semibold text-ink-700 transition-colors hover:border-ink-300 hover:bg-ink-50",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 sm:flex",
             )}
@@ -275,6 +278,9 @@ export function DashboardLayout(props: DashboardLayoutProps) {
 
         {/* Scroll area */}
         <main className="relative flex-1 px-4 py-5 pb-nav sm:px-6 sm:py-6 lg:px-10 lg:py-8 lg:pb-10">
+          <h1 className="sr-only">
+            {menuItems.find((m) => m.id === activeTab)?.label ?? "Dashboard"}
+          </h1>
           <div className="mx-auto max-w-6xl">
             <AnimatePresence mode="wait">
               <motion.div
@@ -294,7 +300,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
       {/* Mobile bottom nav */}
       <nav
         aria-label="Primary"
-        className="fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex items-stretch justify-around border-t border-ink-200/70 bg-white/95 px-1 pb-[calc(0.375rem+var(--safe-area-bottom))] pt-1.5 backdrop-blur-md lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-[var(--z-nav)] flex items-stretch justify-around border-t border-ink-200/70 bg-card/95 px-1 pb-[calc(0.375rem+var(--safe-area-bottom))] pt-1.5 backdrop-blur-md lg:hidden"
       >
         {menuItems
           .filter((item) => bottomNavIds.includes(item.id))

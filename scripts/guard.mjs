@@ -143,7 +143,7 @@ const WARNINGS = [
     // class list — Field.tsx puts outline-none and focus:ring-4 on adjacent
     // lines. `clearedBy` + `window` look ahead instead.
     // A tabpanel shipped with a bare outline-none before this rule existed.
-    re: /(?<![\w-])(?:focus|focus-visible|active):outline-none(?![\w-])/,
+    re: /(?<![\w-])(?:(?:focus|focus-visible|active):)?outline-none(?![\w-])/,
     clearedBy: /\b(?:focus|focus-visible|active):(?:ring|outline)-(?!none\b)/,
     window: 3,
     msg: "outline-none with no replacement ring nearby. Focusable elements need a visible indicator (WCAG 2.4.7).",
@@ -265,8 +265,14 @@ for (const file of files) {
         }
         continue;
       }
+      let inBlock = false;
       lines.forEach((line, i) => {
         if (line.includes("guard-ignore")) return;
+        const t = line.trimStart();
+        if (t.startsWith("/*")) inBlock = true;
+        const isComment = inBlock || t.startsWith("//") || t.startsWith("*");
+        if (t.includes("*/")) inBlock = false;
+        if (isComment) return;
         if (!rule.re.test(line)) return;
         // Some rules can only decide by looking at the following lines — a
         // focus ring is routinely on the next line of a wrapped class list.

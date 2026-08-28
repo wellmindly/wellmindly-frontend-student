@@ -48,7 +48,7 @@ export function DailyCheckinPopup({ show, onClose, onSelect }: DailyCheckinPopup
             transition={spring.snappy}
             className={cn(
               "flex min-h-[5.25rem] cursor-pointer flex-col items-center justify-center gap-1.5",
-              "rounded-2xl border bg-white px-0.5 py-2.5 transition-colors",
+              "rounded-2xl border bg-card px-0.5 py-2.5 transition-colors",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
               mood.border,
               "hover:border-plum-300",
