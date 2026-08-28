@@ -62,7 +62,7 @@ export function AboutPage() {
               transition={{ delay: 0.2 }}
               className="text-lg text-ink-600 max-w-2xl mx-auto leading-relaxed mb-8"
             >
-              WellMindly is an accessible, evidence-informed mental health self-discovery platform tailored for modern university students.
+              WellMindly is a private, evidence-backed self-discovery space designed for university students.
             </motion.p>
           </div>
         </section>
@@ -74,7 +74,7 @@ export function AboutPage() {
               What Drives Our Mission
             </h2>
             <p className="text-sm text-ink-600 mt-2">
-              Built to empower proactive student self-care before clinical intervention is needed.
+              Built to give students private, practical self-care tools before stress turns into crisis.
             </p>
           </div>
 

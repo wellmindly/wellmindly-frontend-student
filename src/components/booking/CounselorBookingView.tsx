@@ -427,7 +427,7 @@ export function CounselorBookingView() {
             <div className="relative z-10 max-w-3xl space-y-4">
               <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-card/10 backdrop-blur-md border border-card/15 text-plum-200 text-xs font-medium tracking-wide">
                 <Sparkles className="w-3.5 h-3.5 text-plum-300" />
-                <span>Dedicated Peer Counseling & Guidance</span>
+                <span>Dedicated Peer Counseling and Guidance</span>
               </div>
 
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight font-display text-ink-50 leading-tight">
@@ -440,7 +440,7 @@ export function CounselorBookingView() {
             </div>
           </div>
 
-          {/* Category Filter Pills & Search Bar */}
+          {/* Category Filter Pills and Search Bar */}
           <div className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
               {/* Search Box */}
@@ -467,9 +467,9 @@ export function CounselorBookingView() {
               <div className="flex items-center space-x-2 overflow-x-auto pb-1 md:pb-0 no-scrollbar">
                 {[
                   { id: 'all', label: 'All Counselors' },
-                  { id: 'youth', label: 'Youth & Students' },
-                  { id: 'stress', label: 'Stress & Load' },
-                  { id: 'anxiety', label: 'Anxiety & Mood' },
+                  { id: 'youth', label: 'Youth and Students' },
+                  { id: 'stress', label: 'Stress and Workload' },
+                  { id: 'anxiety', label: 'Anxiety and Mood' },
                   { id: 'coaching', label: 'Mindset Coaching' },
                   { id: 'behavioral', label: 'Specialized Care' },
                 ].map((cat) => (
@@ -557,14 +557,14 @@ export function CounselorBookingView() {
               )}
             </div>
 
-            {/* Right 5 Columns: Interactive Date & Time Picker Panel */}
+            {/* Right 5 Columns: Interactive Date and Time Picker Panel */}
             <div className="lg:col-span-5 bg-card rounded-3xl border border-ink-200/90 p-6 sm:p-7 shadow-lg shadow-ink-100 space-y-6 lg:sticky lg:top-8">
               {/* Header */}
               <div className="flex justify-between items-start border-b border-ink-100 pb-4">
                 <div>
                   <h3 className="font-bold text-ink-900 text-lg font-display flex items-center space-x-2">
                     <CalendarIcon className="w-5 h-5 text-plum-600" />
-                    <span>Select Date & Time</span>
+                    <span>Select Date and Time</span>
                   </h3>
                   <p className="text-ink-500 text-xs mt-0.5">
                     {selectedCounselor ? (

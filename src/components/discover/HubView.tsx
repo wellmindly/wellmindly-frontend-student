@@ -91,7 +91,7 @@ export function HubView({ startTest, goTo, as = "h1" }: HubViewProps) {
       </motion.div>
 
       <div className="text-2xs text-ink-soft bg-paper-2/60 rounded-2xl p-4.5 border border-line mt-8 leading-relaxed font-semibold">
-        WellMindly is a non-clinical self-reflection &amp; self-discovery tool, not a medical or psychological assessment. It doesn't diagnose anything. If something feels heavy, talking to a counsellor or someone you trust can help.
+        WellMindly is a non-clinical self-reflection and self-discovery tool, not a medical or psychological assessment. It doesn't diagnose anything. If something feels heavy, talking to a counsellor or someone you trust can help.
       </div>
     </div>
   );

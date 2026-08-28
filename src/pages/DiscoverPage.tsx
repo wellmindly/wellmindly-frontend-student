@@ -291,7 +291,7 @@ export function DiscoverPage() {
           </div>
         </div>
         <p className="text-2xs text-center mt-5 max-w-[70ch] mx-auto opacity-85 leading-relaxed font-semibold">
-          WellMindly is a non-clinical self-reflection &amp; self-discovery tool, not a diagnosis. If you&rsquo;re going through something heavy, please reach out to a qualified professional or someone you trust.
+          WellMindly is a non-clinical self-reflection and self-discovery tool, not a diagnosis. If you&rsquo;re going through something heavy, please reach out to a qualified professional or someone you trust.
         </p>
       </footer>
     </div>

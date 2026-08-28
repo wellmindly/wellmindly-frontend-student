@@ -47,7 +47,7 @@ export function CounselorBioModal({
           </div>
 
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-ink-500 uppercase tracking-wider">Clinical Background & Bio</h4>
+            <h4 className="text-xs font-bold text-ink-500 uppercase tracking-wider">Background and Bio</h4>
             <p className="text-ink-700 text-sm leading-relaxed whitespace-pre-line bg-paper p-4 rounded-2xl border border-ink-100">
               {bioModalCounselor.bio}
             </p>

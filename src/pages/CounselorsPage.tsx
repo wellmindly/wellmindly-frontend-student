@@ -72,7 +72,7 @@ export function CounselorsPage() {
     {
       icon: <Heart className="w-8 h-8 text-rose" />,
       title: "Support Student Success",
-      description: "Directly impact Gen Z students by helping them untangle their daily emotional loads. Provide feedback and preventive guidance early in their journey.",
+      description: "Help students navigate everyday academic pressure and emotional load. Provide thoughtful feedback and preventive guidance early on.",
     },
     {
       icon: <UserPlus className="w-8 h-8 text-plum" />,
@@ -101,7 +101,7 @@ export function CounselorsPage() {
               animate={{ opacity: 1, y: 0 }}
               className="text-4xl md:text-5xl font-extrabold font-display leading-tight mb-6"
             >
-              Join Our Panel of Counselors & Student Coaches
+              Join Our Panel of Counselors and Student Coaches
             </motion.h1>
             <motion.p 
               initial={{ opacity: 0, y: 15 }}

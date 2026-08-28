@@ -170,7 +170,7 @@ export function AuthForm({
           {mode === 'login' 
             ? "Sign In" 
             : mode === 'register'
-              ? (otpSent ? "Verify & Sign Up" : "Send Verification Code")
+              ? (otpSent ? "Verify and Sign Up" : "Send Verification Code")
               : (resetOtpSent ? "Reset Password" : "Send Reset Code")}
         </Button>
       </form>

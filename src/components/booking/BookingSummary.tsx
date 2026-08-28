@@ -58,7 +58,7 @@ export function BookingSummary({
         onClick={onBookSession}
         className="w-full py-4 bg-ink-900 hover:bg-ink-800 text-ink-50 font-bold text-sm rounded-2xl shadow-xl transition-all disabled:opacity-40 disabled:shadow-none flex items-center justify-center space-x-2"
       >
-        <span>{confirmingBooking ? 'Booking Session...' : 'Confirm & Book Session'}</span>
+        <span>{confirmingBooking ? 'Booking Session...' : 'Confirm and Book Session'}</span>
         <ArrowRight className="w-4 h-4" />
       </button>
     </>

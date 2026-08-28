@@ -17,7 +17,7 @@ const BENEFITS = [
     icon: <School className="w-8 h-8 text-coral" />,
     title: "Integration With On-Campus Care",
     description:
-      "Seamlessly route students who flag critical scores directly to your existing university counseling hotlines, phone lines, and physical clinics.",
+      "Connect students who flag high distress directly to your campus counseling center, local hotlines, and health clinics.",
   },
 ];
 

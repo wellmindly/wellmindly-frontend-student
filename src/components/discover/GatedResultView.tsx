@@ -16,45 +16,45 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
     switch (id) {
       case "checkin":
         return {
-          header: "Emotional snapshot captured!",
-          desc: "We've mapped your well-being snapshot across 6 dimensions. Your responses indicate a specific emotional posture today, but you need to log in to see the full detailed profile.",
-          feature: "Emotional dimensions breakdown",
+          header: "Check-in completed",
+          desc: "We've mapped your wellbeing responses across key areas. Sign in to view your complete breakdown and history.",
+          feature: "Emotional wellbeing breakdown",
         };
       case "mood":
         return {
-          header: "Mood snapshot recorded!",
-          desc: "Your mood snapshot tile has been created. To add it to your personal wellness board and track it over time, please create an account.",
-          feature: "Daily mood tiles & tracking",
+          header: "Mood logged",
+          desc: "Your mood entry is ready. Create a free student account to save it to your wellness board and see how you trend over time.",
+          feature: "Daily mood history and trends",
         };
       case "strengths":
         return {
-          header: "Signature strengths mapped!",
-          desc: "Your top 5 signature strengths have been calculated! Log in to reveal your signature strength cards and share them.",
+          header: "Your strengths are ready",
+          desc: "We've identified your top 5 strengths from your responses. Sign in to view your full strengths card.",
           feature: "Top 5 character strengths card",
         };
       case "bigfive":
         return {
-          header: "Personality archetype ready!",
-          desc: "Your Big Five personality traits have been calculated, revealing your distinct character archetype. Sign up to unlock your detailed archetype report.",
-          feature: "Big Five character archetype report",
+          header: "Personality profile ready",
+          desc: "Your Big Five personality traits have been calculated. Sign in to see your full personality profile.",
+          feature: "Big Five personality profile",
         };
       case "values":
         return {
-          header: "Personal values mapped!",
-          desc: "Your core personal values have been mapped based on your choices. Log in to see your leading values and second-tier drivers.",
-          feature: "Leading values hierarchy card",
+          header: "Core values mapped",
+          desc: "Your primary personal values have been mapped from your answers. Sign in to explore your top values and motivators.",
+          feature: "Core values summary card",
         };
       case "strengthshadow":
         return {
-          header: "Strength & shadow analyzed!",
-          desc: "Your core strength and its shadow (the flip side of your greatest trait) have been analyzed. Sign up to read your detailed shadow warnings and tips.",
-          feature: "Personal strength & shadow card",
+          header: "Strengths and growth areas ready",
+          desc: "We've mapped your primary strengths alongside potential blind spots. Sign in to read your personalized reflection guide.",
+          feature: "Personal strengths and growth card",
         };
       default:
         return {
-          header: "Self-reflection complete!",
-          desc: "Your results are analyzed and ready to view. Sign in or create a free student account to unlock your full detailed report.",
-          feature: "Personalized wellness insights",
+          header: "Reflection completed",
+          desc: "Your responses are ready. Sign in or create a free student account to see your full report.",
+          feature: "Personalized reflection report",
         };
     }
   };
@@ -81,7 +81,7 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
       <Card elevation="sunken" padding="md" className="mx-auto mt-8 max-w-sm">
         <Badge tone="primary" icon={<Sparkles />}>Unlocks with Account</Badge>
         <p className="mt-2.5 text-xs font-bold leading-normal text-ink-600">
-          Unlock your <b className="font-bold text-plum-700">{teaser.feature}</b>.
+          View your <b className="font-bold text-plum-700">{teaser.feature}</b>.
         </p>
       </Card>
 

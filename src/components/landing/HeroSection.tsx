@@ -57,7 +57,7 @@ export function HeroSection({
         >
           {/* Eyebrow */}
           <span className="text-2xs font-bold uppercase tracking-wide text-plum-600 mb-4">
-            Peer Support &amp; Self-Reflection
+            Peer Support and Self-Reflection
           </span>
 
           {/* Headline - max 3 lines at 375px */}
