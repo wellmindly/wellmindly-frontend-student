@@ -37,7 +37,7 @@ const OPTIONS: CareOption[] = [
   {
     id: "talkmindly",
     answer: "To people who get it",
-    support: "Anonymous, moderated peer circles. Open 24/7.",
+    support: "Anonymous peer circles with safety filtering.",
     chip: "Anonymous",
     cta: "Join a circle",
     icon: MessageSquare,
@@ -48,7 +48,7 @@ const OPTIONS: CareOption[] = [
   {
     id: "blueprints",
     answer: "To a real person",
-    support: "Book a confidential 1-on-1 with a trained student mentor.",
+    support: "Book a confidential 1-on-1 with a trained student coach.",
     chip: "1-on-1",
     cta: "See coaches",
     icon: Users,

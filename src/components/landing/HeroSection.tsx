@@ -162,7 +162,7 @@ export function HeroSection({
           <div className="mt-8 pt-5 border-t border-ink-200/60 w-full flex flex-wrap items-center gap-x-6 gap-y-2 text-2xs text-ink-600">
             <span className="flex items-center gap-1.5 font-medium">
               <Shield className="w-4 h-4 text-teal-600" aria-hidden="true" />
-              Never shared with your school
+              No identifying data shared with your school
             </span>
             <span className="flex items-center gap-1.5 font-medium">
               <Check className="w-4 h-4 text-teal-600" aria-hidden="true" />

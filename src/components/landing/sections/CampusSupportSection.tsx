@@ -74,7 +74,7 @@ export function CampusSupportSection({ className }: CampusSupportSectionProps) {
               Help when it's urgent
             </h3>
             <p className="text-sm text-ink-600 leading-relaxed">
-              Confidential 24/7 crisis hotlines and grounding tools are always available free on our crisis page.
+              Confidential crisis hotlines and grounding tools are listed by country on our crisis page.
             </p>
           </div>
         </div>

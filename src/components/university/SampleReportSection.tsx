@@ -59,7 +59,7 @@ export function SampleReportSection() {
 
           <div className="space-y-3">
             <div className="text-xs font-bold text-ink-900">
-              Anonymized Stress Distribution:
+              Anonymized Stress Distribution (Specimen):
             </div>
             <div className="space-y-2">
               <div>

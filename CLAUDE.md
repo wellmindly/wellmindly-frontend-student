@@ -1,247 +1,72 @@
 # CLAUDE.md - WellMindly Student Frontend
 
-> **Audience: me, in a future session.** This is the working ledger for the student-frontend UI/UX redesign. Read it first. It records the mission, what's done, what's next, and the facts that are expensive to rediscover. Update the "Done" / "Next" / "Known issues" sections as work lands - keep it honest, not aspirational.
+> **Audience: future session / team.** Working ledger for the student-frontend redesign. Read first. Contains mission, binding constraints, current status, file map, and lessons learned.
 
 ---
 
 ## 1. What this app is
 
-`frontend-student` - the student-facing SPA in the WellMindly monorepo.
-
-- **Stack:** React 19 + Vite 8 + TypeScript + Tailwind **v4** + Framer Motion. Router: react-router-dom 7. HTTP: axios. Icons: lucide-react.
-- **Runs at** `:5173` (`npm run dev`). Ships as a **Capacitor Android APK** (`@capacitor/*` 8.x) - it's a real mobile app, not just a website. Treat mobile as the primary target.
-- **Backend:** Node/Express/Prisma/PostgreSQL at `:5000`. API base is `VITE_API_URL` → `/api`. Auth is JWT in `localStorage` (`token`, `user`), decoded with `jwt-decode`; an axios interceptor attaches `Bearer`.
-- **Feature flag:** `config.enableWriteMindly` gates the WriteMindly surface.
-- Other monorepo apps (university, auraflow, admin=Vue, counselor) are **out of scope** - do not touch them.
+`frontend-student` — student-facing SPA in the WellMindly monorepo.
+- **Stack:** React 19 + Vite 8 + TypeScript + Tailwind v4 + Framer Motion. Router: react-router-dom 7. HTTP: axios (`services/api.ts`). Icons: lucide-react.
+- **Platforms:** Web `:5173` (`npm run dev`) and Capacitor Android APK (`@capacitor/*` 8.x). Mobile is the primary target.
+- **Backend:** Node/Express/Prisma/PostgreSQL at `:5000`. API base: `/api`. Auth: JWT in `localStorage` (`token`, `user`).
+- **Feature flag:** `config.enableWriteMindly` gates WriteMindly. Monorepo sibling apps (university, auraflow, admin, counselor) are out of scope.
 
 ---
 
-## 2. Mission & design direction
+## 2. Mission & binding constraints
 
-From the 25-section brief "WellMindly - Student Frontend UI/UX Redesign". Rebuild the student experience into **a modern, highly interactive, emotionally engaging Gen-Z student product that feels like a real app**, not a university portal.
+Rebuild the student experience into a modern, highly interactive, emotionally engaging Gen-Z student wellness product that feels like a real app. Core principle: every screen answers *"What can the student DO here?"*
 
-Design direction: **modern, youthful, premium, calm, interactive, emotionally warm, playful-not-childish, distinctive, mobile-first.** Think "consumer app + social product + wellness product + interactive dashboard," NOT "university portal + corporate website." The product should have personality.
-
-**Core principle:** every major screen answers *"What can the student DO here?"* - not *"What information can we show?"*
-
-**Binding constraints (do not violate):**
+**Binding constraints (verbatim from brief):**
 - Do **not** break existing functionality while redesigning UI.
 - Do **not** modify admin/counselor functionality unless absolutely necessary for shared components.
-- **Inspect the existing implementation** before changing it - never assume from the filename. Understand data flow / API deps / state / routing / auth first.
-- Do **not** replace working functionality with mock data. Do not remove API integrations because the UI is ugly. If a change needs backend data that already exists, use it. If it genuinely needs backend changes, **flag it - don't invent data.**
-- Avoid unnecessary dependencies - check the existing UI kit / libs first.
+- **Inspect the existing implementation** before changing it — never assume from the filename. Understand data flow / API deps / state / routing / auth first.
+- Do **not** replace working functionality with mock data. Do not remove API integrations because the UI is ugly. If a change needs backend data that already exists, use it. If it genuinely needs backend changes, **flag it — don't invent data.**
+- Avoid unnecessary dependencies — check the existing UI kit / libs first.
 - Production-quality code only. No throwaway prototypes, no static HTML mockups, no fake screenshots. The result is the actual working app.
 - **No dark patterns.** Supportive, not addictive.
 - Respect `prefers-reduced-motion`.
 - Use the **UI/UX Pro Max skill** before design decisions.
 - Test at **375, 390, 768, 1024, 1440, and large desktop.**
-- You do NOT need approval for every design decision - use judgment.
+- You do NOT need approval for every design decision — use judgment.
 
 ---
 
-## 3. Conventions & gotchas (expensive to rediscover)
+## 3. Current status (Phase 10 — Cleanup & Release Readiness)
 
-- **`npm install` requires `--legacy-peer-deps`** - pre-existing ERESOLVE from `@codetrix-studio/capacitor-google-auth@^3.4.0-rc.4`.
-- **Build:** `cd frontend-student && npx vite build`. **Never** pass `--root` from the monorepo root - npx installs a foreign vite and dies with `CACError: Unknown option --root`. (`npm run build` runs `tsc -b && vite build` + copies `index.html`→`404.html` for gh-pages.)
-- **Tailwind v4 `@theme`:** namespaced tokens (`--color-*`, `--font-*`, `--text-*`, `--radius-*`, `--shadow-*`, `--ease-*`, `--animate-*`, `--blur-*`) auto-generate utilities. **Non-namespaced** vars (`--z-*`, `--duration-*`, `--bottom-nav-height`) generate **no** utility - use arbitrary syntax: `z-[var(--z-modal)]`, not `z-modal`.
-- **Static extraction:** class names can **never** be templated. `bg-${stem}-500` emits nothing. Write full literal strings; that's why `lib/mood.ts` spells every class out.
-- **Ink ramp is 50→900** - there is **no `ink-950`**. Brand ramps plum/teal/coral/gold/rose/sage are 50→900. The new `rose`/`teal`/`sage`/`coral`/`gold` tokens **override** Tailwind's built-ins.
-- **Vitest jsdom has no `matchMedia` mock** (`setupFiles: []`). Components must guard `window.matchMedia?.()` and fall back for `addListener`/`addEventListener` (see `Sheet.tsx`).
-- Valid dynamic scales confirmed: `h-4.5`, `p-4.5`, `border-3`, `z-25`. Invalid: `py-0.8`, `text-xs.5`.
+- **Gates:** `tsc -b` clean · `vitest` **18/18** in 3 files · `guard.mjs --all` **0 errors / 0 warnings** across 116 files (chain: `388 → 148 → 12 → 0`).
+- **E2E:** `npx playwright test` **94 tests green** (90 responsive measurements across 8 public routes + 7 dashboard tabs over 6 viewports + 4 reduced-motion tests).
+- **Bundle:** JS entry **521.31 kB / 168.10 kB gz** (chunk size warning expected — all bytes needed for first paint; no arbitrary `manualChunks` or raised limits). Dist images **146 kB** (down from 2.14 MB, 93.2% cut via WebP conversion and dead asset removal).
+- **CSS:** Generated bundle 109.8 kB (17.8 kB gz). CSS warning resolved via `@source not "../CLAUDE.md";` in `src/index.css`.
 
 ---
 
-## 4. The system to build on
+## 4. File map & components
 
-**Do not restyle pages independently** - the old codebase had four drifted visual languages. If a page needs a treatment that isn't in the kit, **add it to the kit first.**
-
-- **UI kit barrel** `src/components/ui/index.ts` - `Button`/`IconButton`, `Card`/`ActionCard`/`SectionHeader`, `Badge`/`Chip`/`Avatar`/`Divider`, `Field`/`Input`/`Textarea`/`PasswordInput`, `Sheet`/`ConfirmSheet`, `ToastProvider`/`useToast`, `Skeleton`/`SkeletonText`/`SkeletonCard`/`Loadable`, `EmptyState`/`ErrorState`, `ProgressBar`/`ProgressRing`/`StepDots`, `SegmentedControl`/`Tabs`/`TabPanel`. Import via `"../ui"`.
-- **Helpers:** `lib/cn.ts` (clsx+tailwind-merge), `lib/motion.ts` (springs/variants), `lib/a11y.ts`, `lib/format.ts`.
-- **Mood:** `lib/mood.ts` is the **single source of truth** for the 1–5 scale (rating/label/summary/colors/affirmation). `moodByRating()` clamps out-of-range values. `ui/MoodFace.tsx` draws the line-art faces. Never redefine mood colors locally again.
-- **Tokens:** `src/index.css` - all colors, z-index, safe-area, motion vars.
+- **UI Kit (`src/components/ui/`):** Button, IconButton, Card, ActionCard, Badge, Chip, Avatar, Divider, Field, Input, Textarea, PasswordInput, Sheet, ConfirmSheet, Toast, Skeleton, EmptyState, ErrorState, Progress, SegmentedControl, Tabs, SkipLink.
+- **Feature Modules (`src/components/`):** `auth/` (AuthBrandPanel, AuthForm, GoogleAuthButtons, AuthAlerts), `dashboard/` (DashboardLayout, overview/, report/, CheckinModal, DiscoverTab, TalkMindlyTab, WriteMindlyTab, AssessmentsTab), `booking/` (10 files: CounselorBookingView, CounselorCard, DateStrip, SlotGrid, BookingSummary, MySessionsList, modals, types), `discover/` (10 files: HubView, TestView, LikertMode, PairMode, PictureMode, ResultView, GatedResultView, CollectionView, FeedbackForm), `crisis/` (BreathingExercise, CountrySelect, HotlineCard, hotlines.ts), `university/` (UniversityOnboardingForm, UniversityBenefits, SampleReportSection).
+- **Core Libs (`src/lib/`):** `cn.ts`, `motion.ts`, `a11y.ts` (`scrollToElement`, `useRovingKeys`), `format.ts`, `mood.ts` (single source of truth for 1–5 scale), `wellbeing.ts`.
 
 ---
 
-## 5. Done & verified ✅
+## 5. Lessons learned & operational rules
 
-Foundation + shell are complete and green (`tsc -b` clean, `vitest run` 3/3, `vite build` successful):
-
-- **Design tokens** (`src/index.css`) and the **UI kit** (`src/components/ui/`).
-- **`DashboardLayout.tsx`** - one unified shell for every signed-in surface (was forked into a hard-coded dark tree for TalkMindly). Fixed z-index utilities → `z-[var(--z-*)]`, `bg-ink-950`→`ink-900`, immersive-header squash. Preserves `DashboardLayoutProps` so `Dashboard.tsx` was untouched.
-- **`lib/mood.ts` + `ui/MoodFace.tsx`** - killed a real data bug: the scale was defined 3× with conflicting colors (rating 2 amber-in-picker vs green-in-mosaic; rating 4 blue vs gold), so a student's history showed a different color than the face they tapped.
-- **`DailyCheckinPopup.tsx`** rebuilt on `Sheet` - added focus trap, ESC, dialog role, labeled close; faces carry color permanently (hover-reveal fails on touch).
-- **`Sheet.tsx`** - hardened `matchMedia` (iOS Safari <14 `addListener` fallback).
-- **`useDashboard.ts`** - `normalizeTab()` fixes the `/dashboard?tab=phq9` blank-page bug; tab changes now **push** history (browser/Android back steps through sections) with a URL-sync effect.
-
----
-
-## 6. How the work is now split (read this before doing anything)
-
-Since 2026-08-25 the user has capped my token budget and moved to a **two-role model**:
-
-- **Me (Claude/Opus) = architect, task author, reviewer.** I plan the refactor, write task cards, and review every batch. **I do not edit app code.** When I find a defect I file a bug or write a card — I never spend tokens fixing it myself.
-- **Gemini 3.7 Flash (Antigravity) = builder.** It works through `../tasks/` one card at a time and marks the tracker.
-
-The loop does not end until the refactor is 100% complete and I am satisfied with code, design, style and architecture.
-
-**Everything lives in `Wellmindly/tasks/`** (monorepo root — note this is *outside* the git repo, since the git root is `frontend-student`, so `tasks/` is untracked by design):
-
-| File | Purpose |
-|---|---|
-| `TRACKER.md` | Single source of truth for status. Builder sets `DONE`/`BLOCKED`; only I set `ACCEPTED`. Has the review log. |
-| `BUGS.md` | My review findings, S1/S2/S3. Outranks new tasks. |
-| `INDEX.md` | The ~58-task roadmap across 10 phases. |
-| `README.md` | The builder's operating instructions. |
-| `phase-N-*/T-NNN-*.md` | One card per task. |
-
-**Card-writing rules I learned the hard way:**
-- **Never leave user-facing copy to the builder's judgement.** Six of eight S1 bugs in pass 1 were invented claims ("Delete anytime", "4 free sessions funded by your institution"). If a card doesn't supply the sentence, the builder writes one. Supply every sentence, or say explicitly that `BLOCKED` is the correct response.
-- **Verify API names before putting them in a card.** T-103 specified lucide brand icons that don't exist and blocked two tasks. Cost a whole round-trip.
-- **A mandated "Step-0 inventory in Notes" gets skipped** unless the Done-when checklist has a line item for it.
-- **Demand one commit per task.** Pass 1 arrived as one 45-file blob; per-task diffs were unrecoverable and I had to review whole files. Pass 2 gave 4 commits and was reviewable.
-- **Say how many sites a bug has, and make counting them a Done-when line.** Both pass-2 reopens were the same failure: a *correct* fix applied to part of the surface (1 of 4 redirect call sites; 3 UI states wired but 2 unreachable from the data layer). A bug that says "N places" gets N places fixed; a bug that says "this is wrong" gets one place fixed.
-- **`BUGS.md` must be append-only.** The builder replaced every bug body with a one-line status, so I could no longer diff a fix against the ask without `git log` — expensive when tokens are the constraint.
-- **Read the target component's real signature before specifying the migration.** Writing Phase 3 I had to check that `Logo` only offers `sm`/`md` (so the login brand mark necessarily shrinks — a visual decision the card must own rather than discover), that `Button`'s `loading` *hides* the label and shows an `sr-only` announcement (so "Processing…" stops being visible), and that kit `Input` already wires `aria-invalid`/`aria-describedby` (so the a11y card must say "verify", not "add"). A card written from memory of the kit specifies work that doesn't exist and misses work that does.
-- **When a legacy value is genuinely correct, authorise the escape hatch explicitly.** Google's sign-in mark uses fixed brand hexes that no token should ever match. If T-303 didn't name that and pre-approve four `guard-ignore`s, the builder would either retint Google's logo or never reach a clean gate.
-- **For anything the client will look at, give her options with previews — never one proposal.** The user's standing constraint: she *"is way too moody, she herself doesn't know what she wants and always confuses me."* A single opinionated design guarantees a rejection round. Put 3 visually distinct directions in an `AskUserQuestion` with ASCII previews and let her pick; then write the chosen shape into the card as a **constraint**, with an explicit "do not substitute a different shape." That is how T-208 and T-209 were specified.
-- **Review the file's claims, not just the card's asks.** The TalkMindly simulator fabricated peer handles (Sage/Lotus/Fern/Tulip) with scripted dialogue labelled "● Live Demo", and it survived passes 1, 2 **and** 3 — because each pass checked whether the builder did what the card said, and no card ever said "don't invent students." §8's do-not-fabricate list has to be re-read against the diff, not just against the card.
-- **A card that asks for something elaborate will get it.** T-204 asked for "three visually connected pillars" and got 499 lines: a `role="tablist"` with roving tabindex, two scale-transform connectors, a `min-h-[380px]` panel, three duplicated fake simulators. The build was correct and the client rejected it as *"too many things, useless lines… doesn't make any sense at all."* The "useless lines" were the connectors **I specified.** When a card's Done-when list is long, that is a signal the design is too big, not that the spec is thorough.
-
-### Current status (Phase 4 carded — review pass 6, 2026-08-25)
-
-`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ 515.96 kB · `guard src/components/ui` ✅ **0/0** · `guard` auth route ✅ **0/0** · landing route ✅ 0 errors, 3 permitted warnings · HEAD `7b52660`, clean tree
-
-**Phases 1, 2, 2R and 3 are all `ACCEPTED`, and the bug queue is empty.** B-036 — T-210's measured 375/390 walk, the one thing I could not take myself — came in and is `VERIFIED`. I checked it for internal consistency instead of trusting it, and it holds: at 1440, `clientWidth 1432` → `main left 140` = (1432−1152)/2, sections at `left 164` = 140+24 and `width 1104` = 1152−48, **and all four `border-t` rules measuring that same 1104** is the actual evidence the sections finally share one box, which is what T-210 existed to produce. 1024 works the same way (968 = 1016−48). At 375 and 390, `scrollWidth == clientWidth`. Every statically checkable claim I re-ran independently and it matched. **P-6 and P-7 are both `CLOSED`** — complied with on the first status line written after they were filed.
-
-**Phase 4 (dashboard home) is authored: six cards, `tasks/phase-4-dashboard/`.** The plan said five; it became six for two reasons worth remembering. First, **the split has to be its own card** (T-401) — `guard.mjs` scopes to files changed against HEAD, so whoever moves a block inherits its debt, and the token migration has to travel with the split or it lands unevenly on the five cards behind it. That is the T-201 move that made Phase 2 reviewable. Second, "modals onto `Sheet`" turned out to be two unrelated jobs.
-
-**The single most important thing I found on this route: `MoodMosaic` writes to the database when you look at it.** Tapping today's empty tile calls `onDailyCheckin(3)` — a student taps a dashed square to see what it does and the app POSTs a mood they never chose, renders it back as their own reported feeling, and feeds it into the trajectory chart. On a mental-health product that is a data-integrity defect, not a UI one, and it is a dark pattern by omission because the tap looks like navigation. T-403's Done-when is therefore a **row count before and after a tap-then-dismiss**, not a screenshot.
-
-**I traced a fabrication to its source instead of deleting the symptom.** `OverviewTab` carried `maxScore ?? (quizTitle.includes("PHQ-9") ? 15 : 27)`. The reason is a closed island of 391 lines: `AssessmentWizard.tsx` (53 guard errors) administers **five** PHQ-9 items and scores them out of 15, reached only by a `ScreeningModal` that nothing imports, behind a `showScreening` state nothing reads. The real PHQ-9 has nine items and a max of 27. T-402 deletes the fallback; T-406 deletes the cause, and 54 guard errors and one of three duplicated PHQ-9 configs leave with it. Phase 9's T-904 (fix `AssessmentWizard`'s no-op CTAs) is dropped as a consequence.
-
-**Three of four product claims on the quick-action cards failed an audit against `schema.prisma`.** "Share your thoughts **anonymously**" is the serious one: `TalkNote` carries a required `userId` FK plus a `nickname` copied from `User.talkNickname`, which is `@unique` and persistent — so it is pseudonymous and fully linkable, on the surface where students disclose mental-health information *because* they read that word. "24/7 Support" has no rota, SLA or on-call field anywhere. "Free" has no price, plan, credit or billing field in the whole schema — and §6 below records that the last two invented commercial claims were S1 bugs. Only the counselor-credentials line needed a rewrite rather than a deletion. **Audit the schema before writing a user-facing claim; do not rewrite marketing copy by taste.**
-
-**One backend finding, filed and deliberately fenced off: B-037 / T-608.** `GET /talk/rooms/:roomId/notes` does `findMany` with no `select`, so every note's `userId` ships to every student in the room — combined with the persistent unique nickname, the peer board is de-anonymisable from the network tab. It is **not** filed as `OPEN`, because an open bug outranks new tasks in the fix order and would drag backend work into a dashboard phase. The fix is a shaped payload (`isMine: boolean`) touching client and route together, so it belongs to Phase 6, which owns TalkMindly.
-
-**Next for me:** review Phase 4's six commits when the builder returns — T-401's split is a diff-for-behaviour-change review, and T-403/T-405 are the two where I check a claim against a number rather than reading a note. Then author **Phase 5 (Discover / quiz engine, 8 cards)**, where T-501's PHQ-9 dedupe is now a two-copy job rather than three.
-
-**Debt map, whole tree:** 869 guard errors across 81 files — `off-system-palette` 522, `raw-white` 225, `micro-type` 68, `raw-hex` 54. Worst files: `CounselorBookingView` 183, `TalkMindlyTab` 138, `OverviewTab` 72, `AssessmentsTab` 63, `ReportDetailModal` 60, `AssessmentWizard` 53 (leaves the map when T-406 deletes it), `ResultView` 46. `pages/Login.tsx` has left the list entirely. Two mechanical substitutions account for 86% of it, which is worth knowing before Phase 10 looks frightening.
-
-### Previously (review pass 5 — Phase 2R closed, 2026-08-25)
-
-`tsc -b` ✅ clean · `vitest` ✅ 3/3 · `vite build` ✅ 515.96 kB · `guard src/components/ui` ✅ **0/0** · `guard` auth route ✅ **0/0** · landing route ✅ 0 errors, 3 permitted warnings
-
-**Phases 1, 2, 2R and 3 are all closed.** Pass 5 accepted T-208 and T-209 and verified all seven pass-4 bugs (B-029 → B-035) with zero reopens. The landing route now answers both of the client's complaints: the care path is **500 → 154 lines and 11 props → 3** with the tablist, connector hairlines, 380px panel and three fabricated simulators deleted (and the invented Sage/Lotus/Fern/Tulip peer handles with them), and the route has **one 24px gutter** where three of four sections were spending 48 at 375px.
-
-**One item was outstanding at the time and it was a report, not code: [B-036](../tasks/BUGS.md).** T-210 §3 required a measured 375/390 walk — `document.documentElement.scrollWidth`/`clientWidth` as numbers, the gutter measured, 11 surfaces walked, desktop rechecked at 1024/1440. **I cannot take those measurements from here: the in-app browser preview is not enabled on this install** (a `runtimeExecutable` config fails because port 5173 is already held by a foreign `node.exe`, and a `url`-only attach config is rejected outright). Everything statically checkable in that card, I checked, and it held; T-210 stayed `DONE` rather than `ACCEPTED` until the numbers landed. *(Pass 6: they landed, they verify, T-210 is `ACCEPTED`. The constraint stands, though — anything in a card that needs a rendered pixel has to be asked for as a number and measured by the builder.)*
-
-What *was* statically provable and got proved: **T-209's pixel-identical desktop claim.** Read the diff class by class — every mobile change is either a new `sm:`-prefixed override or an unprefixed value that an existing `sm:` rule already overrode (`flex-col`→`sm:flex-row`, `static`→`sm:absolute`, `max-w-none`→`sm:max-w-[220px]`), and the only two deletions are mobile-only values. `sm:contents` is the mechanism: at `sm+` the wrapper leaves the box tree so the two `sm:absolute` cards resolve against the `relative` column instead of the grid.
-
-**`nested-gutter` is now a guard error** (`188bf9e`) — the one candidate rule from the last round, and T-210 settled it. Not as a class-name match anywhere in a file, but scoped to **components whose root element is a `<section>`** carrying `px-*`, `mx-auto` or `max-w-*`. That is self-scoping: a component with a `<section>` root is by definition nested inside a layout parent that owns the route gutter, so the rule needs no path list and covers Phase 4's dashboard sections automatically. Verified both ways — it fires on the pre-fix `CoachingSection` at exactly line 22, and `--all` gives **0 hits across 81 files**, so it prevents regressions without adding debt.
-
-**Two process notes filed, both about evidence rather than code.** **P-6:** all seven bugs came back as `**Status:** CLOSED` with nothing after it — `CLOSED` is not in the vocabulary and `VERIFIED` is the reviewer's word, and the evidence clause that made pass 3 cheap was dropped. **P-7:** a Notes cell stated a count of "→ 0" for a number that is 2 (`max-w-6xl` in `src/components/landing/`, which is `LandingHeader` + `LandingFooter` — both siblings of `<main>`, so keeping theirs was correct and my card's "0" was the error). Both are the same lesson from the other side: the ledger is only worth what its numbers are worth.
-
-**Next for me:** author **Phase 4 (dashboard home)** once B-036 closes. *(Done in pass 6 — six cards, and the ID mapping shifted from the plan in this line: T-401 is now the mechanical split, T-402 the home shell, T-403 the mosaic, T-404 the chart, T-405 the quick actions, T-406 the modals plus the `AssessmentWizard` deletion.)*
-
-**Debt map at the end of this pass:** unchanged from pass 5 at 869 errors / 81 files — see the current-status block above for the live numbers.
-
-**Deliberately not a database lookup:** the UI/UX Pro Max skill's search corpus is **not installed** in this environment — only `SKILL.md` is present, `scripts/search.py` does not exist. The design reasoning behind T-208/T-209 comes from the skill's priority table (accessibility → touch targets → layout/responsive → typography → animation) plus this app's own token system. Do not record it as a matched palette/style profile.
-
-### Previously (Phase 3 reviewed — review pass 4, 2026-08-25)
-
-**Phase 3 (auth) closed: all five cards `ACCEPTED`, zero reopens** — the first batch with none. `Login.tsx` 883 → 457 lines plus four components in `src/components/auth/` (`AuthBrandPanel`, `AuthForm`, `GoogleAuthButtons`, `AuthAlerts`), and 44 guard errors → 0/0.
-
-Two things I verified rather than trusted, and both are worth repeating on future splits: **all seven auth paths diffed byte-for-byte** against the pre-split commit (`78f6dbe`) — every `api.post`, `navigate(`, `loginSuccess`, `GoogleAuth`, `sessionStorage` line — where the only disappearances were the two `<div onClick={() => navigate("/")}>` logos that became the kit `Logo`; and **the focus-to-first-error actually moves focus**, because `Field.tsx` genuinely `forwardRef`s onto the inner `<input>` (a `ref` on a kit component that swallows it would have made the whole a11y card cosmetic and every grep would still have passed).
-
-**Seven bugs came out of it (B-029 → B-035), and two were mine.** B-033 (the post-auth navigation block written out three times) and B-035 (`otpSent` not reset when the email changes) are pre-existing logic that T-301 correctly told the builder to move mechanically — I should have carded them in the first place. All seven are `VERIFIED` as of pass 5, and two of them (B-030, B-035) came back solved better than the bug body asked.
-
-### Previously (Phase 2R authored — client feedback round, 2026-08-25)
-
-**Phase 2R jumped the queue.** The client saw the landing page and rejected two things:
-
-1. **The care-path block, outright** — *"too many things, useless lines in it, this component doesn't make any sense at all, we need to make this simple, easy to understand and genzy style."* She is right. `ExploreToolsSection.tsx` is 499 lines — **37% of the whole landing route** — to say "there are three ways to get help": 11 props, a tablist with a full arrow-key handler, two connector hairlines, a `min-h-[380px]` reserved panel, and three structurally duplicated fake simulators. T-204 is `SUPERSEDED`, **not** `REVIEW-FAIL` — the build matched my card; the card was wrong.
-2. **The whole route on mobile** — *"rest of the landing page looks good, except on mobile… this is our selling point."*
-
-| Card | What it does |
-|---|---|
-| T-208 | Rebuild the care path as **"one question, three answers"** — the shape the client chose from three previews. `<h2>` is the question "How much do you want to talk right now?", then three tappable rows (Not out loud / To people who get it / To a real person), then one quiet crisis line. 499→<200 lines, 11 props→3. Every string supplied. Kills the fabricated Sage/Lotus/Fern/Tulip peer handles. |
-| T-209 | Hero at 375–390px. Five `absolute` children **all at `z-20`** over a ~279px canvas: the top pair wants 380px, the bottom pair wants 400px, so they physically intersect and `truncate` produces `Coach Vinayak · T…`. Bubbles → `hidden sm:flex`; the two preview cards → a static 2-up row below the portrait via a `sm:contents` wrapper. **Desktop must stay pixel-identical.** |
-| T-210 | Route-wide mobile. `<main>` provides `px-6 max-w-6xl`; **three of four sections apply both again** → 48px gutters instead of 24 at 375px (a 15% width tax on the primary platform) and every `border-t` spanning a different width than its content. `ExploreToolsSection` is the one that got it right and is the reference. Plus the beta banner's dismiss button floating mid-paragraph at 375px. Ends with a measured 375/390 route walk. |
-
-**Next for me:** review Phase 2R's three commits **and** Phase 3 against T-301's Step-0 audit in one round, then author Phase 4 off the debt map. Candidate new guard rule from this round: **`nested-gutter`** — a section re-applying its layout parent's `px-*` or `max-w-*`. No gate catches it today.
-
-*(Phase 3 half of that has since been done — see the current-status block above. Phase 2R is still with the builder.)*
-
-### Previously (end of review pass 3)
-
-**Phases 1 and 2 closed** — every row `ACCEPTED`, every bug through B-028 `VERIFIED`, zero reopens and zero new bugs. The public route (header, footer, hero, care path, coaching, trust, both legacy blocks) plus the entire 15-file UI kit were clean on all four gates; `LandingPage.tsx` went 761→288 lines. One row of that has since been reopened by the client: **T-204 → `SUPERSEDED` by T-208** (see above). The gates themselves are unaffected — the rejection is about design, not correctness.
-
-Phase 3 was authored in full in the same round: T-301 (Step-0 audit + mechanical split into `AuthBrandPanel`/`AuthForm`/`GoogleAuthButtons`/`AuthAlerts`), T-302 (delete the local `Field`, move onto kit `Input`/`PasswordInput`), T-303 (kit `Logo`/`Button`/`IconButton` + full token migration + the four authorised Google-brand `guard-ignore`s, and the `GoogleLogin width="320"` overflow), T-304 (replace the fabricated brand-panel cards), T-305 (`<h1>`, two always-mounted live regions, focus-to-first-invalid-field on a `failedAttempt` counter). All five are `DONE` and awaiting review.
-
-### Design-system debt map (from `guard --all`, for phase planning)
-
-**913 errors across 76 files.** Dominant rules: `off-system-palette` 552, `raw-white` 233, `micro-type` 70, `raw-hex` 58 — i.e. the legacy tree mostly predates the ramp.
-
-| File | Guard errors | Note |
-|---|---|---|
-| `CounselorBookingView.tsx` | 183 | worst offender — overtook TalkMindly once the rules caught `ring-offset-*` |
-| `TalkMindlyTab.tsx` | 138 | hard-coded dark theme |
-| `OverviewTab.tsx` | 72 | |
-| `AssessmentsTab.tsx` | 63 | |
-| `ReportDetailModal.tsx` | 60 | |
-| `AssessmentWizard.tsx` | 53 | |
-| `ResultView.tsx` | 46 | |
-| `Login.tsx` | 44 | Phase 3 — carded |
-
-Run `cd frontend-student && node scripts/guard.mjs --all` for the current picture.
-
-### `guard.mjs` — my review tooling
-
-`frontend-student/scripts/guard.mjs`, zero deps. Every rule exists because the mistake was actually made once. Scope defaults to files changed vs HEAD; pass paths (files **or** directories) to narrow, `--all` for the whole tree. Errors exit 1, warnings exit 0, `// guard-ignore` opts a line out. Prints a per-rule + worst-file tally on failure.
-
-Rules: `templated-class`, `phantom-z-utility`, `phantom-ink-950`, `micro-type`, `raw-hex`, `off-system-palette`, `raw-white`, `clickable-div`, `new-dependency`, `nested-gutter` (errors); `outline-none-no-ring`, `animate-height`, `pulse-animation`, `emoji-glyph`, `icon-button-no-label`, `small-touch-target` (warnings).
-
-`nested-gutter` is the newest and the only one that reads structure rather than class names in isolation: if a component's **root** element is a `<section>` carrying `px-*`, `mx-auto` or `max-w-*`, it fires. The premise is that such a component is nested inside a layout parent that already owns the route's horizontal gutter (`LandingPage`'s `<main>`, `DashboardLayout`'s content box), so re-applying it doubles the mobile gutter — 48px of a 375px viewport instead of 24. Nothing else in the toolchain can see this: it type-checks, it builds, and it surfaces only as "feels cramped on mobile," which is exactly how the client reported it. A section that genuinely needs its own narrower box gets a `guard-ignore` on the `<section` line.
-
-A rule may set `clearedBy` + `window` to look ahead N lines before firing — `outline-none-no-ring` needs it, because a focus ring is routinely on the next line of a wrapped class list. Without it the rule both false-positived on `Field.tsx:93` and missed the real hit in `SegmentedControl.tsx:274`.
-
-**When a review finds a class of defect the guard missed, add the rule.** Pass 1 added five; pass 2 fixed two.
+- **A guard error can live in a field no consumer reads:** `mood.ts`'s 4 errors were in unrendered `MoodLevel.fill`. Measure consumers before modifying colours.
+- **A tool's own remediation advice can be wrong:** Guard suggested `text-white` → `text-rose-50` on `bg-rose-500` (4.07:1 → 3.78:1, worse and failing WCAG AA).
+- **A legacy alias that looks like a ramp step may not be one:** `text-sage` was `#E2F1E6` (1.02:1 on `bg-sage-100`, invisible icon); resolved to `text-sage-600` (5.51:1).
+- **A normaliser that closes one case can leave the general case open:** `normalizeTab` mapped `phq9`, but `?tab=hotlines` rendered a blank `<main>`. Use whitelist matching.
+- **A tool's blind spot is not evidence of absence:** `guard.mjs` missed bare `outline-none` (B-071); `deadexports.cjs` excluded `*.test.*` and reported test exports as dead.
+- **`tsc`'s `noUnusedLocals` gives false confidence:** Unused exports are invisible to it; 53 accumulated across refactors.
+- **A file extension can lie:** Three `.png` heroes were JPEGs at quality ~98; PNG optimisations did nothing until re-encoded to WebP.
+- **`public/` ships whether imported or not:** 812 kB unreferenced hero was bundled in every build with zero tool warnings.
+- **Gzip does not compress images:** 2.04 MB of pictures dwarfed 475 kB gzipped JS; bundle bloat was assets, not code.
+- **Root markdown files are Tailwind sources:** Prose about arbitrary classes emits invalid CSS unless excluded via `@source not "../CLAUDE.md";`.
+- **Student-facing absolutes can be contradicted by B2B pages:** "Never shared with your school" vs `/about` aggregate reporting required precise qualification ("No identifying data shared with your school").
+- **`scrollIntoView({behavior:"smooth"})` overrides CSS:** Global `prefers-reduced-motion` CSS does not stop JS smooth scrolling; gate via `scrollToElement` in `a11y.ts`.
+- **Never leave user-facing copy to builder judgment:** Supply exact sentences in cards or mandate `BLOCKED`.
+- **`BUGS.md` is append-only:** Status vocabulary is strictly `OPEN · FIXED · VERIFIED · WONTFIX · BLOCKED`. Never invent status words.
 
 ---
 
-## 7. Deferred backlog (~70–75% of the brief)
-
-Each is a coherent chunk a future session can pick up. Line counts current as of this ledger.
-
-**Big surfaces:** `TalkMindlyTab` (1116), `booking/CounselorBookingView` (1156), `Login` (887), `UniversityPage` (535), `WriteMindlyTab` (447), `CrisisPage` (440), `OverviewTab` full redesign (416, tokens already migrated), `AssessmentsTab` (361), `CounselorsPage` (300), `ContactPage` (260), `HeroSection` (206), `AboutPage` (146).
-
-**Quiz/Discover engine:** `ResultView` (558), `DiscoverPage` (351), `FeedbackForm` (238), `GatedResultView` (142), `CollectionView` (119), `TestView` (116), `HubView` (97), `LikertMode`/`PictureMode`/`PairMode`, `DiscoverTab` (152).
-
-**Modals & misc:** `ReportDetailModal` (389), `HotlinesTab` (283, dead component / live endpoint), `ComingSoonModal` (207), `WellbeingChart` (148), `CheckinModal` (67), `ScreeningModal` (33), `Dashboard` (161). *(The last three are carded in Phase 4; `ScreeningModal` + `AssessmentWizard` are deleted by T-406, not redesigned.)*
-
-Then **QA sweep** at 375 / 390 / 768 / 1024 / 1440 / large desktop.
-
-**Cleanup while in the area:** the PHQ-9 config (**two copies after T-406, not three**), `shade()` helper, 3 copies of the social-SVG markup, unused props; route TalkMindly's user id through `AuthContext`; consolidate `CounselorBookingView` onto the shared `api` instance.
-
----
-
-## 8. Known issues & fix-don't-fabricate list
-
-**Fix (real endpoint exists or behavior is broken):**
-- ~~`LandingPage.confirmBooking()` is **fake**~~ — **DONE** (T-202, pass 2). The coach/slot picker is now labelled "Example slots" with a `Preview` badge and confirming routes to `/login?redirect=…`; the real endpoint `/api/v1/students/sessions/book` is auth-only. **`?redirect=` is now part of the normal product flow**, which is why the open-redirect hole in `Login.tsx` (B-014) matters.
-- No-op CTAs: TalkMindly "Close & Contact Support"; ~~AssessmentWizard's 2 CTAs~~ (**moot — T-406 deletes the file; it was unreachable**); `OverviewTab` Mood Mosaic silently calling `onDailyCheckin(3)` (~L248, **carded as T-403 and the highest-severity thing on the dashboard: it POSTs a mood the student never chose**); CrisisPage crisis-scroll.
-- `LandingPage.fetchCoaches()` swallows both its error and its empty case into a hardcoded `DEFAULT_COACHES` roster, so real backend failures show placeholder people as bookable (B-016).
-
-**Flag - do NOT fabricate data to fill these:**
-- `AssessmentsTab` Sleep/Social/Study bars (invented); `ReportDetailModal` 6 hardcoded breakdowns; `WellbeingChart` Jan–Jun empty axis (**carded — T-404 replaces it with an `EmptyState`**); `HeroSection`/`Login` "Today's tone" + "Coach Vinayak · Thu 5pm" mock cards; `UniversityPage` fabricated jsPDF report; `FeedbackForm` 6-answers-in-one-string; 3 divergent readings of `/students/hotlines`.
-- **`maxScore ?? (quizTitle.includes("PHQ-9") ? 15 : 27)`** in `OverviewTab` — carded as T-402 (fallback) + T-406 (cause). `maxScore` is a **non-nullable column**, so the fallback never legitimately fires; it existed because the repo held a second, 5-question "PHQ-9" scored out of 15. Recorded here because it is the pattern to look for: a defensive fallback that quietly encodes a contradiction elsewhere in the codebase.
-- **Never state a product claim the schema cannot support.** "Anonymously" on a board with a `userId` FK and a persistent `@unique` nickname, "24/7 Support" with no rota field, "Free" with no billing field — all three were live on the dashboard until T-405. §6 records that the last two invented commercial claims were S1 bugs. Check `schema.prisma` before writing the sentence.
-- **11 pre-existing npm vulns (1 critical)** - left untouched, not introduced by this work.
-- Build emits a chunk-size warning (entry >500 kB) - accepted for now; route-level `lazy()` already applied.
-
-**Filed, not yet actionable (do not fix on sight):**
-- **B-037 / T-608** — `backend/src/routes/talk.ts:260-283` sends every note's `userId` to every student in the room (`findMany`, no `select`). With `TalkNote.nickname` being a persistent `@unique` handle, the peer board is de-anonymisable from the network tab. Needs a shaped payload (`isMine: boolean`) touching client and route together, so it belongs to **Phase 6**. Deliberately not `OPEN` in `BUGS.md`, because an open bug outranks new tasks in the builder's fix order.
-
----
-
-*Last updated: 2026-08-25. Round completed: **review pass 6 — B-036 `VERIFIED`, Phase 2R fully closed, Phase 4 (dashboard home) authored as six cards.** No new commits: B-036 was report-only, so HEAD is still `7b52660` with a clean tree and pass 5's gates stand. T-210 `ACCEPTED`; process notes P-6 and P-7 both `CLOSED` (complied with); the bug queue is empty. Phase 4's cards are T-401 mechanical split → T-402 home shell → T-403 mosaic (stops a POST the student never authorised) → T-404 chart (`viewBox`, true axis, no fabricated empty state) → T-405 quick actions (kit `ActionCard` + copy the schema supports) → T-406 modals (and −391 lines of unreachable 5-question "PHQ-9"). B-037 filed against Phase 6 as T-608. Next: builder runs T-401 → T-406 in order; I review, then author Phase 5 (Discover / quiz engine).*
+*Last updated: 2026-08-28. Status: **Phase 10 (T-1001..T-1007, CHECKPOINT-10A) DONE**. Monorepo task cards and tracker in `../tasks/`.*

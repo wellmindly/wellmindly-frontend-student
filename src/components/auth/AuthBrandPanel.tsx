@@ -47,7 +47,7 @@ export function AuthBrandPanel({}: AuthBrandPanelProps = {}) {
           <Shield className="h-5 w-5 shrink-0 text-teal-600 mt-0.5" aria-hidden="true" />
           <div className="min-w-0">
             <div className="text-2xs text-ink-500 font-bold uppercase tracking-wider">Your privacy</div>
-            <div className="text-xs font-bold text-ink-900">Never shared with your school</div>
+            <div className="text-xs font-bold text-ink-900">No identifying data shared with your school</div>
             <div className="text-2xs text-ink-500 font-medium mt-0.5">Private by default</div>
           </div>
         </motion.div>
