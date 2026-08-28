@@ -1,7 +1,18 @@
 import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-const CYCLE_SECONDS = 19; // 4 + 7 + 8
+// 4-7-8 breathing. `endsAt` is the cumulative cut-point inside one cycle, which is
+// what the elapsed-second counter is compared against:
+//   second  0..3   Inhale  (4s, ends at 4)
+//   second  4..10  Hold    (7s, ends at 11)
+//   second 11..18  Exhale  (8s, ends at 19)
+const PHASES = [
+  { name: "Inhale", seconds: 4, endsAt: 4 },
+  { name: "Hold", seconds: 7, endsAt: 11 },
+  { name: "Exhale", seconds: 8, endsAt: 19 },
+] as const;
+
+const CYCLE_SECONDS = PHASES[PHASES.length - 1].endsAt; // 19
 
 export function BreathingExercise() {
   const [active, setActive] = useState(false);
@@ -17,18 +28,10 @@ export function BreathingExercise() {
   }, [active]);
 
   const cycleSecond = elapsed % CYCLE_SECONDS;
-  let phase: "Inhale" | "Hold" | "Exhale" = "Inhale";
-  let remaining = 4 - cycleSecond;
-  if (cycleSecond < 4) {
-    phase = "Inhale";
-    remaining = 4 - cycleSecond;
-  } else if (cycleSecond < 11) {
-    phase = "Hold";
-    remaining = 11 - cycleSecond;
-  } else {
-    phase = "Exhale";
-    remaining = 19 - cycleSecond;
-  }
+  // `find` always matches because cycleSecond < CYCLE_SECONDS; the fallback only satisfies the type.
+  const current = PHASES.find((p) => cycleSecond < p.endsAt) ?? PHASES[0];
+  const phase = current.name;
+  const remaining = current.endsAt - cycleSecond;
 
   return (
     <div className="max-w-md mx-auto bg-gradient-to-br from-plum/10 via-teal/5 to-gold-500/10 border border-plum/20 rounded-3xl p-6 sm:p-8 text-center mb-12 shadow-sm relative overflow-hidden">
@@ -52,8 +55,16 @@ export function BreathingExercise() {
           className="w-28 h-28 rounded-full bg-plum/20 border-2 border-plum/50 flex items-center justify-center shadow-lg"
         >
           <div className="w-20 h-20 rounded-full bg-plum text-plum-50 flex flex-col items-center justify-center font-bold shadow-md">
-            <span aria-live="polite" className="text-xs font-semibold">{active ? phase : "Ready"}</span>
+            {/* The word and the digits are the sighted channel and are both hidden from
+                assistive tech: a live countdown would fire one announcement per second,
+                19 per cycle, on a crisis surface. The sr-only region below carries the
+                same information, including the duration the digits convey, but changes
+                only at a phase boundary — three announcements per cycle. */}
+            <span aria-hidden="true" className="text-xs font-semibold">{active ? phase : "Ready"}</span>
             {active && <span aria-hidden="true" className="text-lg font-black">{remaining}s</span>}
+            <span aria-live="polite" className="sr-only">
+              {active ? `${phase} for ${current.seconds} seconds` : "Ready to begin"}
+            </span>
           </div>
         </motion.div>
       </div>

@@ -152,7 +152,7 @@ export function HeroSection({
                   <Link to="/login" className="font-semibold text-plum-700 underline hover:text-plum-900">
                     Sign in
                   </Link>{" "}
-                  to save your mood and start your streak.
+                  to save your mood and watch it over time.
                 </p>
               </div>
             )}
