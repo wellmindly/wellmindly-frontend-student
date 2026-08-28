@@ -25,17 +25,31 @@ export interface DiscoverResultData {
 }
 
 /**
+ * Valid dashboard tab identifiers.
+ * Keep in step with menuItems in src/components/dashboard/DashboardLayout.tsx.
+ */
+export const TABS = new Set([
+  "overview",
+  "checkin",
+  "assessments",
+  "discover",
+  "writemindly",
+  "talkmindly",
+  "sessionbooking",
+]);
+
+/**
  * `?tab=` accepts a couple of shorthands that aren't tabs in their own right:
  * `phq9` means "the discover tab, with the wellbeing check-in already running".
- * Resolving
- * them here is what keeps `activeTab` a value the dashboard can actually
+ * Resolving them here is what keeps `activeTab` a value the dashboard can actually
  * render - a cold load of `/dashboard?tab=phq9` previously set activeTab to the
  * literal string "phq9", which matches no branch, and the page came up blank.
+ * Unknown tab params fallback to "overview" to prevent rendering an empty panel.
  */
-function normalizeTab(tab: string | null | undefined): string {
+export function normalizeTab(tab: string | null | undefined): string {
   if (!tab) return "overview";
   if (tab === "phq9") return "discover";
-  return tab;
+  return TABS.has(tab) ? tab : "overview";
 }
 
 export function useDashboard() {

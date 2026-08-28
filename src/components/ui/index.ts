@@ -48,6 +48,9 @@ export type { TabOption } from "./SegmentedControl";
 export { Logo } from "./Logo";
 export type { LogoProps } from "./Logo";
 
+export { SkipLink } from "./SkipLink";
+export type { SkipLinkProps } from "./SkipLink";
+
 export { CrisisBanner } from "./CrisisBanner";
 export type { CrisisBannerProps } from "./CrisisBanner";
 

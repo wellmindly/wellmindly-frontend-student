@@ -46,12 +46,12 @@ export function TodayCard({
   return (
     <section aria-labelledby="today-heading">
       <div className="mb-4">
-        <h1
+        <h2
           id="today-heading"
           className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-900"
         >
           {greeting}, {firstName}
-        </h1>
+        </h2>
         <p className="text-sm text-ink-500 mt-0.5">
           {formatFullDate(new Date())}
         </p>
@@ -66,32 +66,35 @@ export function TodayCard({
               </span>
             </div>
 
-            <div className="flex items-start gap-4">
-              <span
-                className={cn(
-                  "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
-                  currentMood.soft,
-                  currentMood.text
-                )}
-              >
-                <MoodFace rating={currentMood.rating} className="h-7 w-7" />
-              </span>
-
-              <div className="space-y-1">
-                <h2 className="text-lg font-bold text-ink-900">
-                  {currentMood.affirmation.title}
-                </h2>
-                <p className="text-sm text-ink-600 leading-relaxed">
-                  {currentMood.affirmation.message}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setEditing(true)}
-                  className="mt-2 text-xs font-semibold text-plum hover:text-plum-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum cursor-pointer"
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <span
+                  className={cn(
+                    "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl",
+                    currentMood.soft,
+                    currentMood.text
+                  )}
                 >
-                  Change today's mood
-                </button>
+                  <MoodFace rating={currentMood.rating} className="h-7 w-7" />
+                </span>
+
+                <div>
+                  <h2 className="text-base font-bold text-ink-900">
+                    {currentMood.label}
+                  </h2>
+                  <p className="text-xs text-ink-500">
+                    {currentMood.summary}
+                  </p>
+                </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="text-xs font-semibold text-plum hover:text-plum-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum cursor-pointer"
+              >
+                Change today's mood
+              </button>
             </div>
           </div>
         ) : (
