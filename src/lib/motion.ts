@@ -46,23 +46,14 @@ export const tween = {
 
 /* ------------------------------------------------------------------ Entrances */
 
-export const fadeIn: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: tween.slow },
-  exit: { opacity: 0, transition: tween.fast },
-};
-
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 14 },
   show: { opacity: 1, y: 0, transition: tween.slow },
   exit: { opacity: 0, y: -8, transition: tween.fast },
 };
 
-export const fadeInDown: Variants = {
-  hidden: { opacity: 0, y: -14 },
-  show: { opacity: 1, y: 0, transition: tween.slow },
-  exit: { opacity: 0, y: 8, transition: tween.fast },
-};
+/** Alias for fadeInUp. */
+export const fadeUp = fadeInUp;
 
 export const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.96 },
@@ -131,38 +122,3 @@ export const toast: Variants = {
   exit: { opacity: 0, y: 16, scale: 0.98, transition: tween.fast },
 };
 
-/**
- * Dashboard tab / route change. Small vertical travel only - a big slide reads
- * as a page load and makes the app feel slower than it is.
- */
-export const tabPanel: Variants = {
-  hidden: { opacity: 0, y: 8 },
-  show: { opacity: 1, y: 0, transition: { duration: duration.base, ease: ease.outSoft } },
-  exit: { opacity: 0, y: -6, transition: { duration: duration.fast, ease: ease.outSoft } },
-};
-
-/**
- * Quiz question advance. Direction-aware so going back feels like going back.
- */
-export function questionSlide(direction: 1 | -1): Variants {
-  return {
-    hidden: { opacity: 0, x: 40 * direction },
-    show: { opacity: 1, x: 0, transition: { duration: duration.slow, ease: ease.outQuint } },
-    exit: { opacity: 0, x: -40 * direction, transition: { duration: duration.fast, ease: ease.outSoft } },
-  };
-}
-
-/* ----------------------------------------------------------------- Interaction */
-
-/** Press feedback for motion components. 80ms, scale only - never layout. */
-export const pressable = {
-  whileTap: { scale: 0.97 },
-  transition: { duration: duration.instant },
-} as const;
-
-/** Card lift on pointer devices. */
-export const liftable = {
-  whileHover: { y: -3 },
-  whileTap: { scale: 0.99 },
-  transition: tween.base,
-} as const;

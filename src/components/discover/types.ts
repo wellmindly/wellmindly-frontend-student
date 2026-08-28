@@ -1,12 +1,4 @@
 // ─── Helpers ─────────────────────────────────────────────────────
-export function shade(hex: string): string {
-  const n = parseInt(hex.slice(1), 16);
-  const r = Math.max(0, (n >> 16) - 30);
-  const g = Math.max(0, ((n >> 8) & 255) - 26);
-  const b = Math.max(0, (n & 255) - 22);
-  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
-}
-
 export function toneWord(p: number): string {
   return p >= 75 ? 'a real strength' : p >= 55 ? 'solid' : p >= 35 ? 'developing' : 'room to grow';
 }
@@ -20,8 +12,21 @@ export interface TypeInfo {
   a?: { label: string; text: string };
   b?: { label: string; text: string };
 }
+/** The ramp name for kit components with a closed `tone` union (ProgressBar, Card). */
+export type TestTone = "primary" | "teal" | "coral" | "gold" | "sage" | "rose";
+
 export interface TestDef {
-  title: string; accent: string; icon: string; blurb: string; kind: string; tag?: string;
+  title: string;
+  /** Gradient start / solid fill. A `var(--color-*)` string, never a hex. */
+  accent: string;
+  /** Gradient end. Two steps darker on the same ramp. */
+  accentTo: string;
+  /** Text and icon colour on a light surface. Verified ≥4.5:1 on `--color-surface`. */
+  accentInk: string;
+  /** Tinted background fill. The ramp's 50 step. */
+  accentSoft: string;
+  tone: TestTone;
+  icon: string; blurb: string; kind: string; tag?: string;
   intro?: string; items?: TestItem[]; topN?: number; card?: boolean; cardLabel?: string;
   reveal?: string; overall?: boolean; archetype?: boolean;
   types?: Record<string, TypeInfo>;
@@ -41,7 +46,11 @@ export const TESTS: Record<string, TestDef> = {
   // lib/wellbeing.ts for why the title and bands are what they are.
   phq9: {
     title: "Wellbeing check-in",
-    accent: "#50718F",
+    accent: "var(--color-teal-500)",
+    accentTo: "var(--color-teal-700)",
+    accentInk: "var(--color-teal-700)",
+    accentSoft: "var(--color-teal-50)",
+    tone: "teal",
     icon: "clipboard",
     blurb: "Five questions on how the last two weeks have felt. A reflection tool, not a diagnosis.",
     kind: "profile",
@@ -64,7 +73,11 @@ export const TESTS: Record<string, TestDef> = {
   },
   checkin: { 
     title: "Emotional check-in", 
-    accent: "#7A5B93", // Styled in plum theme
+    accent: "var(--color-plum-500)",
+    accentTo: "var(--color-plum-700)",
+    accentInk: "var(--color-plum-700)",
+    accentSoft: "var(--color-plum-50)",
+    tone: "primary",
     icon: "heart", 
     blurb: "A two-minute snapshot. See how you’re really doing, and watch it shift over the weeks.", 
     kind: "profile", 
@@ -82,23 +95,31 @@ export const TESTS: Record<string, TestDef> = {
   },
   mood: { 
     title: "Mood snapshot", 
-    accent: "#AD6A82", // Styled in rose/plum theme
-    icon: "cloud", 
+    accent: "var(--color-rose-500)",
+    accentTo: "var(--color-rose-700)",
+    accentInk: "var(--color-rose-700)",
+    accentSoft: "var(--color-rose-50)",
+    tone: "rose",
+    icon: "cloudSun", 
     blurb: "A one-tap picture check. Fast, honest, and it adds a tile to your moodboard.", 
     kind: "picture", 
     tag: "Quick · 15 sec", 
     options: [
-      { label: "Bright", ic: "spark", tone: 88, c1: "#e3b04b", c2: "#7c9473" }, 
-      { label: "Steady", ic: "compass", tone: 64, c1: "#7c9473", c2: "#3D6E66" }, 
-      { label: "Tangled", ic: "bloom", tone: 40, c1: "#d4a24a", c2: "#c97b3f" }, 
-      { label: "Heavy", ic: "cloud", tone: 20, c1: "#8a93b0", c2: "#6f7aa0" }, 
-      { label: "Tender", ic: "heart", tone: 48, c1: "#AD6A82", c2: "#7A5B93" }, 
-      { label: "Wired", ic: "star", tone: 55, c1: "#d97706", c2: "#AD6A82" }
+      { label: "Bright", ic: "spark", tone: 88, c1: "var(--color-gold-400)", c2: "var(--color-sage-400)" }, 
+      { label: "Steady", ic: "compass", tone: 64, c1: "var(--color-sage-400)", c2: "var(--color-sage-600)" }, 
+      { label: "Tangled", ic: "bloom", tone: 40, c1: "var(--color-gold-600)", c2: "var(--color-coral-600)" }, 
+      { label: "Heavy", ic: "cloud", tone: 20, c1: "var(--color-ink-400)", c2: "var(--color-ink-600)" }, 
+      { label: "Tender", ic: "heart", tone: 48, c1: "var(--color-rose-500)", c2: "var(--color-plum-500)" }, 
+      { label: "Wired", ic: "zap", tone: 55, c1: "var(--color-gold-500)", c2: "var(--color-rose-500)" }
     ] 
   },
   strengths: { 
     title: "Signature strengths", 
-    accent: "#C99452", // Styled in gold/brand theme
+    accent: "var(--color-gold-600)",
+    accentTo: "var(--color-gold-800)",
+    accentInk: "var(--color-gold-800)",
+    accentSoft: "var(--color-gold-50)",
+    tone: "gold",
     icon: "star", 
     blurb: "Your top five character strengths: the qualities you lead with, on a card made to share.", 
     kind: "rank", 
@@ -122,7 +143,11 @@ export const TESTS: Record<string, TestDef> = {
   },
   bigfive: { 
     title: "Personality profile", 
-    accent: "#50718F", // Styled in sky/blue theme
+    accent: "var(--color-sage-500)",
+    accentTo: "var(--color-sage-700)",
+    accentInk: "var(--color-sage-700)",
+    accentSoft: "var(--color-sage-50)",
+    tone: "sage",
     icon: "compass", 
     blurb: "Five core traits that add up to an archetype that’s unmistakably you.", 
     kind: "profile", 
@@ -144,7 +169,11 @@ export const TESTS: Record<string, TestDef> = {
   },
   values: { 
     title: "What matters most", 
-    accent: "#7A5B93", 
+    accent: "var(--color-coral-500)",
+    accentTo: "var(--color-coral-700)",
+    accentInk: "var(--color-coral-700)",
+    accentSoft: "var(--color-coral-50)",
+    tone: "coral",
     icon: "scale", 
     blurb: "A quick this-or-that that reveals the values you quietly lead with.", 
     kind: "pairs", 
@@ -162,7 +191,11 @@ export const TESTS: Record<string, TestDef> = {
   },
   strengthshadow: { 
     title: "Strength & shadow", 
-    accent: "#7A5B93", 
+    accent: "var(--color-plum-500)",
+    accentTo: "var(--color-plum-700)",
+    accentInk: "var(--color-plum-700)",
+    accentSoft: "var(--color-plum-50)",
+    tone: "primary",
     icon: "shield", 
     blurb: "Your greatest strength and its flip side: usually the same trait, turned up.", 
     kind: "type", 
@@ -214,7 +247,7 @@ export const TESTS: Record<string, TestDef> = {
   },
 };
 
-export const ARCHETYPE = [
+const ARCHETYPE = [
   { when: ["Openness", "Extraversion"], name: "The Explorer", desc: "Curious and outgoing, chasing new experiences and bringing people along." },
   { when: ["Conscientiousness", "Steadiness"], name: "The Anchor", desc: "Reliable and calm, the steady one others lean on." },
   { when: ["Warmth", "Extraversion"], name: "The Connector", desc: "Warm and social, building bridges and bringing energy to a room." },
@@ -232,7 +265,6 @@ export const VALUE_DESC: Record<string, string> = {
   Growth: "You’re here to learn and become more.",
 };
 
-export const TEST_ORDER = ["checkin", "mood", "strengths", "bigfive", "values", "strengthshadow"];
 /** Discovery hub order, excludes 'checkin' which lives on its own dedicated tab */
 export const DISCOVER_TEST_ORDER = ["mood", "strengths", "bigfive", "values", "strengthshadow"];
 export const STORAGE_KEY = "wm-discover";

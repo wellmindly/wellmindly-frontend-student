@@ -41,10 +41,6 @@ export const WELLBEING_MAX_SCORE = 15;
 /** The honest name. Not "PHQ-9", not "screening", not "clinical-grade". */
 export const WELLBEING_TITLE = "Wellbeing check-in";
 
-/** One sentence, reusable, that states the limits of the thing up front. */
-export const WELLBEING_DISCLAIMER =
-  "Five questions on how the last two weeks have felt. It's a reflection tool, not a diagnosis.";
-
 export type WellbeingBandId = "steady" | "patchy" | "demanding" | "heavy";
 
 export interface WellbeingBand {

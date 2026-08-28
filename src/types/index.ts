@@ -9,7 +9,3 @@ export interface User {
   universityVerified: boolean;
 }
 
-export interface AuthResponse {
-  token: string;
-  user: User;
-}
