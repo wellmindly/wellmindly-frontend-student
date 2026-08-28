@@ -60,7 +60,7 @@ export function CoachBookingModal({
       </div>
 
       <p className="text-2xs text-ink-500 text-center mb-3">
-        Sign in to confirm — we'll bring your choice with you.
+        These are example times — sign in to see when this coach is actually free.
       </p>
 
       <Button

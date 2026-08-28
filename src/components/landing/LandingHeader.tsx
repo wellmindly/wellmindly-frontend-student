@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { cn } from "../../lib/cn";
-import { CrisisBanner, Logo, buttonClasses } from "../ui";
+import { CrisisBanner, Logo, SkipLink, buttonClasses } from "../ui";
 
 interface LandingHeaderProps {
   onCrisisClick: () => void;
@@ -12,7 +12,6 @@ interface LandingHeaderProps {
 
 const navLinks = [
   { label: "Explore", path: "/discover" },
-  { label: "Counselors", path: "/counselors" },
   { label: "For Universities", path: "/university" },
   { label: "About", path: "/about" },
   { label: "Contact", path: "/contact" },
@@ -29,11 +28,10 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
     setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Close drawer on Escape and return focus to toggle
+  // Close mobile menu on Escape key
   useEffect(() => {
-    if (!mobileMenuOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === "Escape" && mobileMenuOpen) {
         setMobileMenuOpen(false);
         toggleRef.current?.focus();
       }
@@ -45,12 +43,7 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
   return (
     <>
       {/* Skip to main content link for keyboard & a11y */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[var(--z-modal)] focus:rounded-lg focus:bg-plum-600 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-plum-50 focus:outline-2 focus:outline-offset-2 focus:outline-plum-300"
-      >
-        Skip to main content
-      </a>
+      <SkipLink />
 
       {/* Global Crisis Support Banner */}
       <CrisisBanner onAction={onCrisisClick} />

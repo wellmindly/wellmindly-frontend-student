@@ -5,6 +5,8 @@ import { LandingFooter } from "../components/landing/LandingFooter";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { UserPlus, Award, Heart, Send, Check, AlertTriangle } from "lucide-react";
+import { Button } from "../components/ui/Button";
+import { Input, Textarea } from "../components/ui/Field";
 
 export function CounselorsPage() {
   const navigate = useNavigate();
@@ -41,7 +43,7 @@ export function CounselorsPage() {
       if (response.data?.success) {
         setStatus({
           type: "success",
-          message: "Application submitted! Our clinical vetting board will review your credentials and contact you within 5 business days.",
+          message: "Application submitted. Our clinical team will review your credentials and email you at the address above.",
         });
         setFormData({ name: "", email: "", phone: "", credentials: "", experience: "", message: "" });
       } else {
@@ -85,215 +87,199 @@ export function CounselorsPage() {
 
       <main id="main-content" tabIndex={-1}>
         {/* Hero Header */}
-      <section className="py-20 px-6 bg-gradient-to-r from-plum to-[#614777] text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.span 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="inline-block px-3 py-1 bg-white/10 text-rose rounded-full text-xs font-semibold uppercase tracking-wider mb-4"
-          >
-            Clinical Network
-          </motion.span>
-          <motion.h1 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-5xl font-extrabold font-serif leading-tight mb-6"
-          >
-            Join Our Panel of Counselors & Student Coaches
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-base text-purple-100 max-w-2xl mx-auto leading-relaxed"
-          >
-            Deliver non-diagnostic support, review student assessments, and provide guidance to a growing community of university students looking for clarity.
-          </motion.p>
-        </div>
-      </section>
+        <section className="py-20 px-6 bg-gradient-to-r from-plum-700 via-plum-800 to-plum-900 text-plum-50">
+          <div className="max-w-4xl mx-auto text-center">
+            <motion.span 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="inline-block px-3 py-1 bg-plum-500/20 text-plum-200 border border-plum-400/30 rounded-full text-xs font-semibold uppercase tracking-wider mb-4"
+            >
+              Clinical Network
+            </motion.span>
+            <motion.h1 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-4xl md:text-5xl font-extrabold font-display leading-tight mb-6"
+            >
+              Join Our Panel of Counselors & Student Coaches
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-base text-plum-100 max-w-2xl mx-auto leading-relaxed"
+            >
+              Deliver non-diagnostic support, review student assessments, and provide guidance to a growing community of university students looking for clarity.
+            </motion.p>
+          </div>
+        </section>
 
-      {/* Rationale Grid */}
-      <section className="py-16 px-6 max-w-6xl mx-auto w-full">
-        <div className="text-center mb-12">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-ink font-serif">Why Onboard With WellMindly?</h2>
-          <p className="text-sm text-ink-soft mt-2">Maximize your impact while maintaining control over your schedule.</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {columns.map((col, idx) => (
-            <div key={idx} className="bg-card p-8 rounded-2xl border border-line shadow-sm hover:shadow-md transition-shadow">
-              <div className="mb-4">{col.icon}</div>
-              <h3 className="text-lg font-bold text-ink mb-2">{col.title}</h3>
-              <p className="text-sm text-ink-soft leading-relaxed">{col.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Counselor Onboarding Details & Form */}
-      <section className="py-16 px-6 bg-paper-2/40 border-y border-line w-full">
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-start">
-          {/* Vetting Criteria Details */}
-          <div className="space-y-6">
-            <h2 className="text-3xl font-extrabold text-ink font-serif leading-snug">Become an Active Partner</h2>
-            <p className="text-sm text-ink-soft leading-relaxed">
-              We value professionalism and clinical safety. Every counselor and coach on our platform undergoes a detailed credentials and license audit before onboarding.
-            </p>
-
-            <div className="space-y-6 pt-4">
-              <div>
-                <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-                  <span className="w-5 h-5 bg-teal/10 text-teal rounded-full flex items-center justify-center text-xs">1</span>
-                  Credentials Vetting
-                </h4>
-                <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
-                  You must hold a valid license or registration (e.g. CDA license, DHA license, or international equivalent like BACP, ACA, HCPC) in psychology, counseling, or social work.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-                  <span className="w-5 h-5 bg-teal/10 text-teal rounded-full flex items-center justify-center text-xs">2</span>
-                  Digital Care Training
-                </h4>
-                <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
-                  Complete our 2-hour onboarding course on non-diagnostic student self-reflection tools, privacy gating protocols, and emergency escalation workflows.
-                </p>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-bold text-ink flex items-center gap-2">
-                  <span className="w-5 h-5 bg-teal/10 text-teal rounded-full flex items-center justify-center text-xs">3</span>
-                  Earn and Support
-                </h4>
-                <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
-                  Log into our clinical dashboard, claim student assessment consultation tickets, and conduct private chat reviews. Earn steady payouts processed twice a month.
-                </p>
-              </div>
-            </div>
+        {/* Rationale Grid */}
+        <section className="py-16 px-6 max-w-6xl mx-auto w-full">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-ink-900 font-display">Why Onboard With WellMindly?</h2>
+            <p className="text-sm text-ink-soft mt-2">Maximize your impact while maintaining control over your schedule.</p>
           </div>
 
-          {/* Form */}
-          <div className="bg-card p-8 rounded-2xl border border-line shadow-sm">
-            <h3 className="text-lg font-bold text-ink mb-6">Counselor Application Form</h3>
-
-            {status.type && (
-              <div className={`p-4 rounded-xl text-xs font-semibold mb-6 flex items-start gap-3 border ${
-                status.type === "success" 
-                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
-                  : "bg-ember/10 text-ember border-ember/20"
-              }`}>
-                {status.type === "success" ? <Check className="w-5 h-5 shrink-0" /> : <AlertTriangle className="w-5 h-5 shrink-0" />}
-                <span>{status.message}</span>
+          <div className="grid md:grid-cols-3 gap-8">
+            {columns.map((col, idx) => (
+              <div key={idx} className="bg-card p-8 rounded-2xl border border-line shadow-sm hover:shadow-md transition-shadow">
+                <div className="mb-4">{col.icon}</div>
+                <h3 className="text-lg font-bold text-ink-900 mb-2">{col.title}</h3>
+                <p className="text-sm text-ink-soft leading-relaxed">{col.description}</p>
               </div>
-            )}
+            ))}
+          </div>
+        </section>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="name" className="text-xs font-semibold text-ink">Full Name *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
+        {/* Counselor Onboarding Details & Form */}
+        <section className="py-16 px-6 bg-paper-2/40 border-y border-line w-full">
+          <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-start">
+            {/* Vetting Criteria Details */}
+            <div className="space-y-6">
+              <h2 className="text-3xl font-extrabold text-ink-900 font-display leading-snug">Become an Active Partner</h2>
+              <p className="text-sm text-ink-soft leading-relaxed">
+                We value professionalism and clinical safety. Every counselor and coach on our platform undergoes a detailed credentials and license audit before onboarding.
+              </p>
+
+              <div className="space-y-6 pt-4">
+                <div>
+                  <h4 className="text-sm font-bold text-ink-900 flex items-center gap-2">
+                    <span className="w-5 h-5 bg-teal/10 text-teal rounded-full flex items-center justify-center text-xs">1</span>
+                    Credentials Vetting
+                  </h4>
+                  <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
+                    You must hold a valid license or registration (e.g. CDA license, DHA license, or international equivalent like BACP, ACA, HCPC) in psychology, counseling, or social work.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-ink-900 flex items-center gap-2">
+                    <span className="w-5 h-5 bg-teal/10 text-teal rounded-full flex items-center justify-center text-xs">2</span>
+                    Digital Care Training
+                  </h4>
+                  <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
+                    Complete our 2-hour onboarding course on non-diagnostic student self-reflection tools, privacy gating protocols, and emergency escalation workflows.
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-ink-900 flex items-center gap-2">
+                    <span className="w-5 h-5 bg-teal/10 text-teal rounded-full flex items-center justify-center text-xs">3</span>
+                    Earn and Support
+                  </h4>
+                  <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
+                    Log into our clinical dashboard, claim student assessment consultation tickets, and conduct private chat reviews. Earn steady payouts processed twice a month.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Form */}
+            <div className="bg-card p-8 rounded-2xl border border-line shadow-sm">
+              <h3 className="text-lg font-bold text-ink-900 mb-4">Counselor Application Form</h3>
+
+              <div className="space-y-4 mb-6">
+                <p role="status" aria-live="polite" className={`min-h-5 text-sm font-medium ${status.type === "success" ? "text-sage-700" : status.type === "error" ? "text-danger" : "text-transparent"}`}>
+                  {status.message}
+                </p>
+
+                {status.type && (
+                  <div className={`p-4 rounded-xl text-xs font-semibold flex items-start gap-3 border ${
+                    status.type === "success" 
+                      ? "bg-sage-50 text-sage-800 border-sage-200" 
+                      : "bg-coral-50 text-coral-900 border-coral-200"
+                  }`}>
+                    {status.type === "success" ? <Check className="w-5 h-5 shrink-0 text-sage-600" /> : <AlertTriangle className="w-5 h-5 shrink-0 text-coral-600" />}
+                    <span>{status.message}</span>
+                  </div>
+                )}
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input
+                    label="Full name"
                     required
+                    name="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Dr. Sarah Al-Jamil"
-                    className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors"
+                    className="text-base"
                   />
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="email" className="text-xs font-semibold text-ink">Email Address *</label>
-                  <input
+                  <Input
+                    label="Email address"
                     type="email"
-                    id="email"
-                    name="email"
                     required
+                    name="email"
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="sarah@clinic.com"
-                    className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors"
+                    className="text-base"
                   />
                 </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="phone" className="text-xs font-semibold text-ink">Phone Number</label>
-                  <input
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Input
+                    label="Phone number"
                     type="tel"
-                    id="phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="+971 55 987 6543"
-                    className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors"
+                    className="text-base"
                   />
-                </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="credentials" className="text-xs font-semibold text-ink">Professional Credentials / Licenses *</label>
-                  <input
-                    type="text"
-                    id="credentials"
-                    name="credentials"
+                  <Input
+                    label="Professional credentials / licenses"
                     required
+                    name="credentials"
                     value={formData.credentials}
                     onChange={handleInputChange}
                     placeholder="CDA Licensed Psychologist / BACP Register"
-                    className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors"
+                    className="text-base"
                   />
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="experience" className="text-xs font-semibold text-ink">Brief Experience Summary *</label>
-                <textarea
-                  id="experience"
-                  name="experience"
+                <Textarea
+                  label="Brief experience summary"
                   required
                   rows={3}
+                  name="experience"
                   value={formData.experience}
                   onChange={handleInputChange}
                   placeholder="5+ years in adolescent therapy, specialized in cognitive behavioral frameworks..."
-                  className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors resize-none"
-                ></textarea>
-              </div>
+                  className="text-base"
+                />
 
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="message" className="text-xs font-semibold text-ink">Additional Message / Cover Note *</label>
-                <textarea
-                  id="message"
-                  name="message"
+                <Textarea
+                  label="Additional message"
                   required
                   rows={3}
+                  name="message"
                   value={formData.message}
                   onChange={handleInputChange}
                   placeholder="Why would you like to join the WellMindly team?"
-                  className="px-4 py-2 rounded-xl border border-line text-sm text-ink bg-paper/30 focus:border-plum focus:outline-none transition-colors resize-none"
-                ></textarea>
-              </div>
+                  className="text-base"
+                />
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-plum text-white font-bold rounded-full text-xs shadow-md shadow-plum/20 hover:opacity-95 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2 border-none mt-2"
-              >
-                {loading ? (
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                ) : (
-                  <>
-                    <Send className="w-3.5 h-3.5" />
-                    <span>Submit Application</span>
-                  </>
-                )}
-              </button>
-            </form>
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    loading={loading}
+                    leadingIcon={<Send className="w-4 h-4" />}
+                  >
+                    Submit application
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       </main>
 
       <LandingFooter onCrisisClick={handleCrisisClick} />

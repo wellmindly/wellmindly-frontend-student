@@ -17,7 +17,7 @@ const COMPANY_LINKS = [
   { label: "About", path: "/about" },
   { label: "Contact", path: "/contact" },
   { label: "For Universities", path: "/university" },
-  { label: "Counselors", path: "/counselors" },
+  { label: "Join as a counselor", path: "/counselors" },
   { label: "Crisis support", path: "/crisis" },
 ];
 

@@ -1,57 +1,33 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
-  Star,
-  CheckCircle2,
-  Video,
-  ArrowRight,
-  X,
-  AlertCircle,
+  ShieldCheck,
   Sparkles,
   Search,
-  Check,
-  ShieldCheck,
-  Info,
-  Sun,
-  Sunrise,
-  Sunset,
-  Globe,
-  ChevronRight,
+  X,
   User,
+  Globe,
 } from 'lucide-react';
-import axios from 'axios';
+import type { Counselor, Slot, BookedSession } from './types';
+import { CounselorCard } from './CounselorCard';
+import { DateStrip } from './DateStrip';
+import { SlotGrid } from './SlotGrid';
+import { BookingSummary } from './BookingSummary';
+import { MySessionsList } from './MySessionsList';
+import { CounselorBioModal } from './CounselorBioModal';
+import { BookingSuccessModal } from './BookingSuccessModal';
+import { SessionFeedbackModal } from './SessionFeedbackModal';
+import { ConfirmSheet } from '../ui/Sheet';
+import api from '../../services/api';
 
-let rawApiUrl = import.meta.env.VITE_API_URL || 'https://api.wellmindly.com/api';
-if (rawApiUrl.endsWith('/')) rawApiUrl = rawApiUrl.slice(0, -1);
-if (!rawApiUrl.endsWith('/api')) rawApiUrl += '/api';
-const API_BASE = `${rawApiUrl}/v1`;
+export const toLocalISODate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-interface Counselor {
-  id: string;
-  userId: string;
-  name: string;
-  credentials: string;
-  specializations: string[];
-  bio: string;
-  avatarUrl: string;
-  averageRating: number;
-  totalReviews: number;
-}
-
-interface Slot {
-  startTime: string;
-  endTime: string;
-  counselorId: string;
-  isAvailable: boolean;
-  availableCount?: number;
-}
-
-export const CounselorBookingView: React.FC = () => {
+export function CounselorBookingView() {
   const [counselors, setCounselors] = useState<Counselor[]>([]);
   const [selectedCounselor, setSelectedCounselor] = useState<Counselor | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string>(toLocalISODate(new Date()));
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
@@ -75,18 +51,26 @@ export const CounselorBookingView: React.FC = () => {
 
   // My Booked Sessions
   const [activeTab, setActiveTab] = useState<'book' | 'my-sessions'>('book');
-  const [mySessions, setMySessions] = useState<any[]>([]);
+  const [mySessions, setMySessions] = useState<BookedSession[]>([]);
   const [loadingMySessions, setLoadingMySessions] = useState(false);
 
   // Post-session Student Feedback Modal
-  const [activeFeedbackSession, setActiveFeedbackSession] = useState<any | null>(null);
-  const [rating, setRating] = useState<number>(5);
+  const [activeFeedbackSession, setActiveFeedbackSession] = useState<BookedSession | null>(null);
+  const [rating, setRating] = useState<number | null>(null);
   const [comments, setComments] = useState('');
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackError, setFeedbackError] = useState<string | null>(null);
 
-  const getHeaders = () => {
-    const token = localStorage.getItem('token');
-    return { Authorization: `Bearer ${token}` };
+  // Cancellation State
+  const [cancelTarget, setCancelTarget] = useState<BookedSession | null>(null);
+  const [cancellingSession, setCancellingSession] = useState(false);
+  const [cancelStatusMessage, setCancelStatusMessage] = useState<string | null>(null);
+
+  const handleCloseFeedback = () => {
+    setActiveFeedbackSession(null);
+    setRating(null);
+    setComments('');
+    setFeedbackError(null);
   };
 
   // Detect local timezone string (e.g., "IST", "EST")
@@ -102,8 +86,8 @@ export const CounselorBookingView: React.FC = () => {
 
   // Fetch active counselors
   useEffect(() => {
-    axios
-      .get(`${API_BASE}/students/counselors`, { headers: getHeaders() })
+    api
+      .get('/v1/students/counselors')
       .then((res) => {
         if (res.data.success) {
           setCounselors(res.data.data);
@@ -116,13 +100,13 @@ export const CounselorBookingView: React.FC = () => {
   // Fetch slots whenever selectedCounselor or selectedDate changes
   useEffect(() => {
     setLoadingSlots(true);
-    let url = `${API_BASE}/students/counselors/slots?date=${selectedDate}`;
+    let url = `/v1/students/counselors/slots?date=${selectedDate}`;
     if (selectedCounselor) {
       url += `&counselorId=${selectedCounselor.id}`;
     }
 
-    axios
-      .get(url, { headers: getHeaders() })
+    api
+      .get(url)
       .then((res) => {
         if (res.data.success) {
           if (selectedCounselor) {
@@ -142,8 +126,8 @@ export const CounselorBookingView: React.FC = () => {
 
   const fetchMySessions = () => {
     setLoadingMySessions(true);
-    axios
-      .get(`${API_BASE}/students/sessions/me`, { headers: getHeaders() })
+    api
+      .get('/v1/students/sessions/me')
       .then((res) => {
         if (res.data.success) {
           setMySessions(res.data.data);
@@ -165,10 +149,12 @@ export const CounselorBookingView: React.FC = () => {
     for (let i = 0; i < 7; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + i);
-      const iso = d.toISOString().split('T')[0];
+      const iso = toLocalISODate(d);
       const dayName = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' });
       const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      days.push({ iso, dayName, monthDay });
+      const fullDate = d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
+      const fullLabel = i === 0 ? `Today, ${fullDate}` : fullDate;
+      days.push({ iso, dayName, monthDay, fullLabel });
     }
     return days;
   }, []);
@@ -212,7 +198,10 @@ export const CounselorBookingView: React.FC = () => {
       const map = new Map<string, Slot>();
       slots.forEach((s) => {
         if (!map.has(s.startTime) || (s.isAvailable && !map.get(s.startTime)?.isAvailable)) {
-          map.set(s.startTime, s);
+          map.set(s.startTime, {
+            ...s,
+            counselorName: selectedCounselor.name,
+          });
         }
       });
       return Array.from(map.values()).sort(
@@ -223,9 +212,13 @@ export const CounselorBookingView: React.FC = () => {
     // When all counselors are shown: Group by unique startTime
     const slotMap = new Map<string, { slot: Slot; counselorIds: string[] }>();
     slots.forEach((s) => {
+      const c = counselors.find((item) => item.id === s.counselorId);
       if (!slotMap.has(s.startTime)) {
         slotMap.set(s.startTime, {
-          slot: { ...s },
+          slot: {
+            ...s,
+            counselorName: c?.name || '',
+          },
           counselorIds: s.isAvailable ? [s.counselorId] : [],
         });
       } else {
@@ -235,7 +228,6 @@ export const CounselorBookingView: React.FC = () => {
         }
         if (s.isAvailable) {
           existing.slot.isAvailable = true;
-          existing.slot.counselorId = s.counselorId; // attach active counselor ID
         }
       }
     });
@@ -246,7 +238,7 @@ export const CounselorBookingView: React.FC = () => {
         availableCount: item.counselorIds.length,
       }))
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }, [slots, selectedCounselor]);
+  }, [slots, selectedCounselor, counselors]);
 
   // Format slot time range for display (e.g. "08:00 – 09:00 UTC" or "01:30 PM – 02:30 PM IST")
   const formatSlotTimeRange = (startTimeIso: string, endTimeIso: string) => {
@@ -317,14 +309,13 @@ export const CounselorBookingView: React.FC = () => {
     setBookingError(null);
 
     try {
-      const res = await axios.post(
-        `${API_BASE}/students/sessions/book`,
+      const res = await api.post(
+        '/v1/students/sessions/book',
         {
           counselorId: counselorIdToBook,
           startTime: selectedSlot.startTime,
           endTime: selectedSlot.endTime,
-        },
-        { headers: getHeaders() }
+        }
       );
 
       if (res.data.success) {
@@ -341,34 +332,61 @@ export const CounselorBookingView: React.FC = () => {
 
   const handleSubmitFeedback = async () => {
     if (!activeFeedbackSession) return;
+    if (rating === null) {
+      setFeedbackError('Please tell us how the session was.');
+      return;
+    }
+
     setSubmittingFeedback(true);
+    setFeedbackError(null);
 
     try {
-      await axios.post(
-        `${API_BASE}/students/sessions/${activeFeedbackSession.id}/feedback`,
-        { rating, comments },
-        { headers: getHeaders() }
+      await api.post(
+        `/v1/students/sessions/${activeFeedbackSession.id}/feedback`,
+        { rating, comments }
       );
-      setActiveFeedbackSession(null);
+      handleCloseFeedback();
       fetchMySessions();
     } catch (err: any) {
-      setBookingError(err.response?.data?.error || 'Failed to submit feedback. Please try again.');
+      setFeedbackError(err.response?.data?.error || 'Failed to submit feedback. Please try again.');
     } finally {
       setSubmittingFeedback(false);
     }
   };
 
+  const confirmCancel = async () => {
+    if (!cancelTarget) return;
+    setCancellingSession(true);
+    setCancelStatusMessage(null);
+
+    try {
+      await api.post(`/v1/students/sessions/${cancelTarget.id}/cancel`, {});
+      setCancelTarget(null);
+      setCancelStatusMessage('That session is cancelled. The slot is free again.');
+      fetchMySessions();
+    } catch (err: any) {
+      if (err.response?.data?.error?.code === 'CANCELLATION_RESTRICTED') {
+        setCancelStatusMessage('That session starts too soon to cancel online. Please contact us instead.');
+      } else {
+        setCancelStatusMessage("We couldn't cancel that session. Please try again in a moment.");
+      }
+      setCancelTarget(null);
+    } finally {
+      setCancellingSession(false);
+    }
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 font-sans">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
       {/* Top Header & Tab Navigation Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white/90 backdrop-blur-xl p-3 rounded-3xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card/90 backdrop-blur-xl p-3 rounded-3xl border border-ink-200/80 shadow-sm">
         <div className="flex items-center space-x-2 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab('book')}
             className={`flex-1 sm:flex-initial px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 ${
               activeTab === 'book'
-                ? 'bg-slate-900 text-white shadow-md'
-                : 'text-slate-600 hover:bg-slate-100/80'
+                ? 'bg-ink-900 text-ink-50 shadow-md'
+                : 'text-ink-600 hover:bg-paper/80'
             }`}
           >
             <CalendarIcon className="w-4 h-4" />
@@ -379,45 +397,45 @@ export const CounselorBookingView: React.FC = () => {
             onClick={() => setActiveTab('my-sessions')}
             className={`flex-1 sm:flex-initial px-6 py-3 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center justify-center space-x-2 ${
               activeTab === 'my-sessions'
-                ? 'bg-slate-900 text-white shadow-md'
-                : 'text-slate-600 hover:bg-slate-100/80'
+                ? 'bg-ink-900 text-ink-50 shadow-md'
+                : 'text-ink-600 hover:bg-paper/80'
             }`}
           >
             <Clock className="w-4 h-4" />
             <span>My Booked Sessions</span>
             {mySessions.length > 0 && (
-              <span className="ml-1.5 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-700 text-[10px] font-extrabold">
+              <span className="ml-1.5 px-2 py-0.5 rounded-full bg-plum-500/20 text-plum-700 text-2xs font-extrabold">
                 {mySessions.length}
               </span>
             )}
           </button>
         </div>
 
-        <div className="flex items-center space-x-2 px-3.5 py-2 bg-slate-100/70 rounded-2xl text-xs font-medium text-slate-600 self-end sm:self-auto">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-          <span>100% Confidential & Peer Vetted</span>
+        <div className="flex items-center space-x-2 text-xs font-semibold text-ink-700 bg-paper/90 px-4 py-2 rounded-2xl border border-ink-200/80">
+          <ShieldCheck className="w-4 h-4 text-sage-600 shrink-0" />
+          <span>One-to-one counseling</span>
         </div>
       </div>
 
       {activeTab === 'book' ? (
         <div className="space-y-8">
           {/* Main Hero Header */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-8 sm:p-10 text-white shadow-2xl border border-indigo-500/20">
-            <div className="absolute -right-16 -top-16 w-80 h-80 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative overflow-hidden bg-gradient-to-br from-ink-900 via-plum-900 to-ink-900 rounded-3xl p-8 sm:p-10 text-ink-50 shadow-2xl border border-plum-500/20">
+            <div className="absolute -right-16 -top-16 w-80 h-80 bg-plum-500/15 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute right-1/3 -bottom-20 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 max-w-3xl space-y-4">
-              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-indigo-200 text-xs font-medium tracking-wide">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+              <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-card/10 backdrop-blur-md border border-card/15 text-plum-200 text-xs font-medium tracking-wide">
+                <Sparkles className="w-3.5 h-3.5 text-plum-300" />
                 <span>Dedicated Peer Counseling & Guidance</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight font-serif text-white leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight font-display text-ink-50 leading-tight">
                 Talk to Someone Who Truly Understands Student Life
               </h1>
 
-              <p className="text-slate-300 text-sm sm:text-base leading-relaxed font-normal">
-                Connect with verified therapists, clinical psychologists, and student coaches. Select your preferred date, pick a convenient 1-hour slot, and receive your meeting link.
+              <p className="text-ink-300 text-sm sm:text-base leading-relaxed font-normal">
+                Book a one-to-one session with a member of our counseling team. You choose the day and the time, and the session happens over a private video link.
               </p>
             </div>
           </div>
@@ -427,18 +445,18 @@ export const CounselorBookingView: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
               {/* Search Box */}
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-ink-400 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search counselor by name, credential, or specialty..."
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white border border-slate-200/90 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all"
+                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-card border border-ink-200/90 text-sm text-ink-800 placeholder-ink-400 focus:outline-none focus:ring-2 focus:ring-plum-500 shadow-sm transition-all"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -460,8 +478,8 @@ export const CounselorBookingView: React.FC = () => {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`px-4 py-2.5 rounded-2xl text-xs font-semibold shrink-0 transition-all ${
                       selectedCategory === cat.id
-                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                        : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'
+                        ? 'bg-plum-600 text-plum-50 shadow-md shadow-plum-200'
+                        : 'bg-card text-ink-600 border border-ink-200/80 hover:bg-paper'
                     }`}
                   >
                     {cat.label}
@@ -477,10 +495,10 @@ export const CounselorBookingView: React.FC = () => {
             <div className="lg:col-span-7 space-y-6">
               <div className="flex justify-between items-center px-1">
                 <div className="flex items-center space-x-2">
-                  <h2 className="text-xl font-bold text-slate-900 font-serif">
+                  <h2 className="text-xl font-bold text-ink-900 font-display">
                     {selectedCounselor ? 'Selected Counselor' : 'Available Counselors'}
                   </h2>
-                  <span className="px-2.5 py-0.5 bg-slate-100 text-slate-600 rounded-full text-xs font-extrabold">
+                  <span className="px-2.5 py-0.5 bg-ink-100 text-ink-600 rounded-full text-xs font-extrabold">
                     {filteredCounselors.length}
                   </span>
                 </div>
@@ -491,7 +509,7 @@ export const CounselorBookingView: React.FC = () => {
                       setSelectedCounselor(null);
                       setSelectedSlot(null);
                     }}
-                    className="text-xs font-bold text-indigo-600 hover:text-indigo-800 flex items-center space-x-1 transition-colors"
+                    className="text-xs font-bold text-plum-600 hover:text-plum-800 flex items-center space-x-1 transition-colors"
                   >
                     <span>Show All Counselors</span>
                     <X className="w-3.5 h-3.5" />
@@ -500,15 +518,15 @@ export const CounselorBookingView: React.FC = () => {
               </div>
 
               {loadingCounselors ? (
-                <div className="py-20 text-center space-y-3 bg-white rounded-3xl border border-slate-200">
-                  <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                  <p className="text-slate-500 text-sm font-medium">Loading counselor directory...</p>
+                <div className="py-20 text-center space-y-3 bg-card rounded-3xl border border-ink-200">
+                  <div className="w-8 h-8 border-3 border-plum-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                  <p className="text-ink-500 text-sm font-medium">Loading counselor directory...</p>
                 </div>
               ) : filteredCounselors.length === 0 ? (
-                <div className="py-16 px-6 text-center space-y-3 bg-white rounded-3xl border border-slate-200">
-                  <User className="w-10 h-10 text-slate-300 mx-auto" />
-                  <h3 className="text-base font-bold text-slate-800">No counselors match your filter</h3>
-                  <p className="text-slate-500 text-xs max-w-sm mx-auto">
+                <div className="py-16 px-6 text-center space-y-3 bg-card rounded-3xl border border-ink-200">
+                  <User className="w-10 h-10 text-ink-300 mx-auto" />
+                  <h3 className="text-base font-bold text-ink-800">No counselors match your filter</h3>
+                  <p className="text-ink-500 text-xs max-w-sm mx-auto">
                     Try searching for a different keyword or reset your category selection to view all available counselors.
                   </p>
                   <button
@@ -516,7 +534,7 @@ export const CounselorBookingView: React.FC = () => {
                       setSearchQuery('');
                       setSelectedCategory('all');
                     }}
-                    className="px-4 py-2 bg-indigo-50 text-indigo-600 font-bold text-xs rounded-xl hover:bg-indigo-100 transition-all"
+                    className="px-4 py-2 bg-plum-50 text-plum-600 font-bold text-xs rounded-xl hover:bg-plum-100 transition-all"
                   >
                     Reset Filters
                   </button>
@@ -526,107 +544,13 @@ export const CounselorBookingView: React.FC = () => {
                   {filteredCounselors.map((counselor) => {
                     const isSelected = selectedCounselor?.id === counselor.id;
                     return (
-                      <motion.div
+                      <CounselorCard
                         key={counselor.id}
-                        layout
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        onClick={() => setSelectedCounselor(counselor)}
-                        className={`bg-white rounded-3xl p-6 border transition-all duration-300 cursor-pointer flex flex-col justify-between space-y-5 relative group ${
-                          isSelected
-                            ? 'border-indigo-600 ring-2 ring-indigo-500/30 bg-gradient-to-b from-indigo-50/30 to-white shadow-xl shadow-indigo-100/50'
-                            : 'border-slate-200/90 hover:border-indigo-300 hover:shadow-lg hover:-translate-y-0.5'
-                        }`}
-                      >
-                        {/* Top Profile Header */}
-                        <div className="space-y-4">
-                          <div className="flex items-start space-x-3.5">
-                            <div className="relative shrink-0">
-                              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-xl flex items-center justify-center shadow-md overflow-hidden ring-2 ring-white">
-                                {counselor.avatarUrl ? (
-                                  <img
-                                    src={counselor.avatarUrl}
-                                    alt={counselor.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  counselor.name[0]
-                                )}
-                              </div>
-                              <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
-                                <span className="w-1.5 h-1.5 bg-white rounded-full" />
-                              </span>
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <h3 className="font-bold text-slate-900 text-base group-hover:text-indigo-600 transition-colors truncate">
-                                  {counselor.name}
-                                </h3>
-                                {isSelected && (
-                                  <span className="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center shrink-0">
-                                    <Check className="w-3 h-3 stroke-[3]" />
-                                  </span>
-                                )}
-                              </div>
-
-                              <p className="text-slate-500 text-xs font-medium truncate mt-0.5">
-                                {counselor.credentials}
-                              </p>
-
-                              <div className="flex items-center space-x-1 mt-1 text-amber-500 text-xs font-bold">
-                                <Star className="w-3.5 h-3.5 fill-amber-400" />
-                                <span>{counselor.averageRating}</span>
-                                <span className="text-slate-400 font-normal">
-                                  ({counselor.totalReviews > 0 ? counselor.totalReviews : 'Peer Vetted'})
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Specializations Badges */}
-                          <div className="flex flex-wrap gap-1.5">
-                            {counselor.specializations.map((spec, i) => (
-                              <span
-                                key={i}
-                                className="px-2.5 py-1 bg-slate-100/90 text-slate-700 rounded-lg text-[11px] font-medium border border-slate-200/50"
-                              >
-                                {spec}
-                              </span>
-                            ))}
-                          </div>
-
-                          {/* Bio Text */}
-                          <p className="text-slate-600 text-xs leading-relaxed line-clamp-3">
-                            {counselor.bio}
-                          </p>
-                        </div>
-
-                        {/* Card Bottom CTA & Info Button */}
-                        <div className="pt-2 flex items-center space-x-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setBioModalCounselor(counselor);
-                            }}
-                            className="p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors"
-                            title="Read Full Bio"
-                          >
-                            <Info className="w-4 h-4" />
-                          </button>
-
-                          <button
-                            className={`flex-1 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center space-x-1.5 ${
-                              isSelected
-                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200'
-                                : 'bg-slate-900 text-white hover:bg-slate-800'
-                            }`}
-                          >
-                            <span>{isSelected ? 'Counselor Selected' : 'Select Counselor'}</span>
-                            <ChevronRight className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </motion.div>
+                        counselor={counselor}
+                        isSelected={isSelected}
+                        onSelect={setSelectedCounselor}
+                        onOpenBio={setBioModalCounselor}
+                      />
                     );
                   })}
                 </div>
@@ -634,15 +558,15 @@ export const CounselorBookingView: React.FC = () => {
             </div>
 
             {/* Right 5 Columns: Interactive Date & Time Picker Panel */}
-            <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-7 shadow-lg shadow-slate-100 space-y-6 lg:sticky lg:top-8">
+            <div className="lg:col-span-5 bg-card rounded-3xl border border-ink-200/90 p-6 sm:p-7 shadow-lg shadow-ink-100 space-y-6 lg:sticky lg:top-8">
               {/* Header */}
-              <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+              <div className="flex justify-between items-start border-b border-ink-100 pb-4">
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg font-serif flex items-center space-x-2">
-                    <CalendarIcon className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-bold text-ink-900 text-lg font-display flex items-center space-x-2">
+                    <CalendarIcon className="w-5 h-5 text-plum-600" />
                     <span>Select Date & Time</span>
                   </h3>
-                  <p className="text-slate-500 text-xs mt-0.5">
+                  <p className="text-ink-500 text-xs mt-0.5">
                     {selectedCounselor ? (
                       <span>Booking with <strong>{selectedCounselor.name}</strong></span>
                     ) : (
@@ -654,503 +578,115 @@ export const CounselorBookingView: React.FC = () => {
                 {/* Timezone Toggle Pill */}
                 <button
                   onClick={() => setTimezoneMode(timezoneMode === 'local' ? 'utc' : 'local')}
-                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200/70 text-slate-800 rounded-xl text-[11px] font-bold transition-all flex items-center space-x-1.5 border border-slate-200/80 shadow-sm"
+                  className="px-3 py-1.5 bg-paper hover:bg-ink-100 text-ink-800 rounded-xl text-2xs font-bold transition-all flex items-center space-x-1.5 border border-ink-200/80 shadow-sm"
                   title="Click to toggle between UTC and Local Timezone"
                 >
-                  <Globe className="w-3.5 h-3.5 text-indigo-600" />
+                  <Globe className="w-3.5 h-3.5 text-plum-600" />
                   <span>{timezoneMode === 'utc' ? 'UTC Standard' : `Local (${localTzAbbr})`}</span>
                 </button>
               </div>
 
               {/* Quick Select Next 7 Days Strip */}
-              <div className="space-y-2">
-                <label className="block text-xs font-semibold text-slate-700">
-                  Choose a date
-                </label>
-                <div className="flex space-x-2 overflow-x-auto pb-1 no-scrollbar">
-                  {next7Days.map((day) => {
-                    const isSelected = selectedDate === day.iso;
-                    return (
-                      <button
-                        key={day.iso}
-                        onClick={() => {
-                          setSelectedDate(day.iso);
-                          setSelectedSlot(null);
-                        }}
-                        className={`px-3 py-2 rounded-2xl text-center shrink-0 border transition-all ${
-                          isSelected
-                            ? 'bg-slate-900 text-white border-slate-900 shadow-md'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/80'
-                        }`}
-                      >
-                        <div className="text-[10px] font-medium opacity-80">{day.dayName}</div>
-                        <div className="text-xs font-bold">{day.monthDay}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="pt-1">
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => {
-                      setSelectedDate(e.target.value);
-                      setSelectedSlot(null);
-                    }}
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50"
-                  />
-                </div>
-              </div>
+              <DateStrip
+                next7Days={next7Days}
+                selectedDate={selectedDate}
+                onSelectDate={(d) => {
+                  setSelectedDate(d);
+                  setSelectedSlot(null);
+                }}
+              />
 
               {/* Time Slots Section */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-slate-700">
-                    Available time slots ({processedSlots.length})
-                  </label>
-                  <span className="text-[11px] text-slate-400">
-                    {timezoneMode === 'utc' ? '08:00 – 18:00 UTC' : `Converted to ${localTzAbbr}`}
-                  </span>
-                </div>
+              <SlotGrid
+                loadingSlots={loadingSlots}
+                processedSlotsCount={processedSlots.length}
+                timezoneMode={timezoneMode}
+                localTzAbbr={localTzAbbr}
+                groupedSlots={groupedSlots}
+                selectedSlot={selectedSlot}
+                selectedCounselor={selectedCounselor}
+                onSelectSlot={setSelectedSlot}
+                formatSlotTimeRange={formatSlotTimeRange}
+              />
 
-                {loadingSlots ? (
-                  <div className="py-8 text-center space-y-2">
-                    <div className="w-6 h-6 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-slate-400 text-xs">Checking available time slots...</p>
-                  </div>
-                ) : processedSlots.length === 0 ? (
-                  <div className="p-6 text-center bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-                    <Clock className="w-6 h-6 text-slate-400 mx-auto" />
-                    <p className="text-slate-600 font-medium text-xs">No available slots on this date</p>
-                    <p className="text-slate-400 text-[11px]">Select another date from the bar above.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4 max-h-72 overflow-y-auto pr-1">
-                    {/* Morning Block */}
-                    {groupedSlots.morning.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-semibold text-slate-500 flex items-center space-x-1.5">
-                          <Sunrise className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Morning slots</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {groupedSlots.morning.map((slot, i) => {
-                            const timeStr = formatSlotTimeRange(slot.startTime, slot.endTime);
-                            const isSelected = selectedSlot?.startTime === slot.startTime;
-
-                            return (
-                              <button
-                                key={i}
-                                disabled={!slot.isAvailable}
-                                onClick={() => setSelectedSlot(slot)}
-                                className={`py-2.5 px-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-between ${
-                                  !slot.isAvailable
-                                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
-                                    : isSelected
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200'
-                                    : 'bg-slate-50/80 hover:bg-indigo-50/60 text-slate-800 border-slate-200/80 hover:border-indigo-300'
-                                }`}
-                              >
-                                <span>{timeStr}</span>
-                                {!selectedCounselor && slot.availableCount && slot.availableCount > 1 && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                                    isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'
-                                  }`}>
-                                    {slot.availableCount} avail
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Afternoon Block */}
-                    {groupedSlots.afternoon.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-semibold text-slate-500 flex items-center space-x-1.5">
-                          <Sun className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Afternoon slots</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {groupedSlots.afternoon.map((slot, i) => {
-                            const timeStr = formatSlotTimeRange(slot.startTime, slot.endTime);
-                            const isSelected = selectedSlot?.startTime === slot.startTime;
-
-                            return (
-                              <button
-                                key={i}
-                                disabled={!slot.isAvailable}
-                                onClick={() => setSelectedSlot(slot)}
-                                className={`py-2.5 px-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-between ${
-                                  !slot.isAvailable
-                                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
-                                    : isSelected
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200'
-                                    : 'bg-slate-50/80 hover:bg-indigo-50/60 text-slate-800 border-slate-200/80 hover:border-indigo-300'
-                                }`}
-                              >
-                                <span>{timeStr}</span>
-                                {!selectedCounselor && slot.availableCount && slot.availableCount > 1 && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                                    isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'
-                                  }`}>
-                                    {slot.availableCount} avail
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Evening Block */}
-                    {groupedSlots.evening.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-[11px] font-semibold text-slate-500 flex items-center space-x-1.5">
-                          <Sunset className="w-3.5 h-3.5 text-indigo-400" />
-                          <span>Evening slots</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {groupedSlots.evening.map((slot, i) => {
-                            const timeStr = formatSlotTimeRange(slot.startTime, slot.endTime);
-                            const isSelected = selectedSlot?.startTime === slot.startTime;
-
-                            return (
-                              <button
-                                key={i}
-                                disabled={!slot.isAvailable}
-                                onClick={() => setSelectedSlot(slot)}
-                                className={`py-2.5 px-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-between ${
-                                  !slot.isAvailable
-                                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
-                                    : isSelected
-                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200'
-                                    : 'bg-slate-50/80 hover:bg-indigo-50/60 text-slate-800 border-slate-200/80 hover:border-indigo-300'
-                                }`}
-                              >
-                                <span>{timeStr}</span>
-                                {!selectedCounselor && slot.availableCount && slot.availableCount > 1 && (
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${
-                                    isSelected ? 'bg-white/20 text-white' : 'bg-indigo-50 text-indigo-700'
-                                  }`}>
-                                    {slot.availableCount} avail
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Selection Summary Box */}
-              {selectedSlot && (
-                <div className="bg-indigo-50/80 border border-indigo-200/80 p-4 rounded-2xl space-y-2 text-xs">
-                  <div className="font-bold text-indigo-900 flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
-                    <span>Booking Summary</span>
-                  </div>
-                  <div className="space-y-1 text-indigo-950 font-medium">
-                    <p>
-                      Counselor:{' '}
-                      <strong>
-                        {selectedCounselor
-                          ? selectedCounselor.name
-                          : counselors.find((c) => c.id === selectedSlot.counselorId)?.name || 'Assigned Counselor'}
-                      </strong>
-                    </p>
-                    <p>
-                      Time: <strong>{formatSessionDateTime(selectedSlot.startTime)}</strong>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {bookingError && (
-                <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center space-x-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
-                  <span>{bookingError}</span>
-                </div>
-              )}
-
-              {/* Main Booking CTA */}
-              <button
-                disabled={!selectedSlot || confirmingBooking}
-                onClick={handleBookSession}
-                className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl shadow-xl transition-all disabled:opacity-40 disabled:shadow-none flex items-center justify-center space-x-2"
-              >
-                <span>{confirmingBooking ? 'Booking Session...' : 'Confirm & Book Session'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              {/* Selection Summary Box, Error, and CTA */}
+              <BookingSummary
+                selectedSlot={selectedSlot}
+                selectedCounselor={selectedCounselor}
+                counselors={counselors}
+                bookingError={bookingError}
+                confirmingBooking={confirmingBooking}
+                onBookSession={handleBookSession}
+                formatSessionDateTime={formatSessionDateTime}
+              />
             </div>
           </div>
         </div>
       ) : (
         /* My Booked Sessions Tab */
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-8 shadow-sm space-y-6">
-          <div className="border-b border-slate-100 pb-4">
-            <h2 className="text-2xl font-bold text-slate-900 font-serif">My Booked Sessions</h2>
-            <p className="text-slate-500 text-xs mt-1">Join your upcoming video consultations or leave feedback for completed sessions.</p>
-          </div>
-
-          {loadingMySessions ? (
-            <div className="py-16 text-center space-y-3">
-              <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-slate-500 text-sm">Loading your booked sessions...</p>
-            </div>
-          ) : mySessions.length === 0 ? (
-            <div className="py-16 text-center space-y-3">
-              <CalendarIcon className="w-12 h-12 text-slate-300 mx-auto" />
-              <h3 className="text-base font-bold text-slate-800">No session bookings found</h3>
-              <p className="text-slate-500 text-xs max-w-sm mx-auto">
-                You haven't scheduled any counselor sessions yet. Use the "Book a Counselor" tab to select a date and slot.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {mySessions.map((session) => {
-                const isConfirmed = session.status === 'CONFIRMED';
-
-                return (
-                  <div
-                    key={session.id}
-                    className="p-6 rounded-2xl border border-slate-200/90 bg-slate-50/50 hover:bg-white transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold flex items-center justify-center text-lg shadow-md shrink-0">
-                        {session.counselor?.user?.firstName?.[0]}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-base">
-                          Session with {session.counselor?.user?.firstName} {session.counselor?.user?.lastName}
-                        </h4>
-                        <p className="text-slate-500 text-xs mt-0.5">
-                          Scheduled: <strong>{formatSessionDateTime(session.startTime)}</strong>
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center space-x-3 self-end sm:self-auto">
-                      {isConfirmed && (
-                        <a
-                          href={session.meetingLink}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center space-x-2"
-                        >
-                          <Video className="w-4 h-4" />
-                          <span>Join Meeting</span>
-                        </a>
-                      )}
-
-                      {!session.studentFeedback && (
-                        <button
-                          onClick={() => {
-                            setActiveFeedbackSession(session);
-                            setRating(5);
-                            setComments('');
-                          }}
-                          className="px-4 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200/80 font-bold text-xs rounded-xl transition-all flex items-center space-x-1.5"
-                        >
-                          <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                          <span>Give Feedback</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <MySessionsList
+          loadingMySessions={loadingMySessions}
+          mySessions={mySessions}
+          onOpenFeedback={(session) => {
+            setActiveFeedbackSession(session);
+            setRating(null);
+            setComments('');
+            setFeedbackError(null);
+          }}
+          onOpenCancel={(session) => {
+            setCancelTarget(session);
+            setCancelStatusMessage(null);
+          }}
+          cancelStatusMessage={cancelStatusMessage}
+          formatSessionDateTime={formatSessionDateTime}
+        />
       )}
 
       {/* Counselor Full Bio Modal */}
-      <AnimatePresence>
-        {bioModalCounselor && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-            <motion.div
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 280 }}
-              className="bg-white rounded-t-[2.5rem] sm:rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative overflow-hidden max-h-[92vh] overflow-y-auto pb-safe"
-            >
-              {/* Mobile Drag Handle */}
-              <div className="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-2 sm:hidden" />
-              <button
-                onClick={() => setBioModalCounselor(null)}
-                className="absolute right-5 top-5 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-500 to-violet-600 text-white font-bold text-2xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
-                  {bioModalCounselor.avatarUrl ? (
-                    <img src={bioModalCounselor.avatarUrl} alt={bioModalCounselor.name} className="w-full h-full object-cover" />
-                  ) : (
-                    bioModalCounselor.name[0]
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-slate-900 font-serif">{bioModalCounselor.name}</h3>
-                  <p className="text-indigo-600 text-xs font-semibold">{bioModalCounselor.credentials}</p>
-                  <div className="flex items-center space-x-1 mt-1 text-amber-500 text-xs font-bold">
-                    <Star className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>{bioModalCounselor.averageRating}</span>
-                    <span className="text-slate-400 font-normal">({bioModalCounselor.totalReviews} peer reviews)</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Clinical Background & Bio</h4>
-                <p className="text-slate-700 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  {bioModalCounselor.bio}
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Areas of Expertise</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {bioModalCounselor.specializations.map((spec, i) => (
-                    <span key={i} className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-semibold border border-indigo-100">
-                      {spec}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2 flex space-x-3">
-                <button
-                  onClick={() => setBioModalCounselor(null)}
-                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl text-xs transition-colors"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedCounselor(bioModalCounselor);
-                    setBioModalCounselor(null);
-                  }}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs shadow-lg shadow-indigo-200 transition-colors"
-                >
-                  Select This Counselor
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <CounselorBioModal
+        bioModalCounselor={bioModalCounselor}
+        onClose={() => setBioModalCounselor(null)}
+        onSelectCounselor={setSelectedCounselor}
+      />
 
       {/* Booking Confirmation / Success Modal */}
-      <AnimatePresence>
-        {bookingSuccess && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl max-w-md w-full p-8 text-center space-y-6 shadow-2xl"
-            >
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-                <CheckCircle2 className="w-10 h-10" />
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-extrabold text-slate-900 font-serif">Session Confirmed!</h3>
-                <p className="text-slate-500 text-xs mt-1">
-                  Your private consultation has been booked. A confirmation email with meeting details has been sent to your inbox.
-                </p>
-              </div>
-
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-left text-xs space-y-2">
-                <p>
-                  <strong>Counselor:</strong>{' '}
-                  {counselors.find((c) => c.id === bookingSuccess.counselorId)?.name || selectedCounselor?.name}
-                </p>
-                <p><strong>Scheduled Time:</strong> {formatSessionDateTime(bookingSuccess.startTime)}</p>
-                <p className="truncate">
-                  <strong>Meeting Link:</strong>{' '}
-                  <a href={bookingSuccess.meetingLink} target="_blank" rel="noreferrer" className="text-indigo-600 underline">
-                    {bookingSuccess.meetingLink}
-                  </a>
-                </p>
-              </div>
-
-              <button
-                onClick={() => {
-                  setBookingSuccess(null);
-                  setSelectedSlot(null);
-                  setActiveTab('my-sessions');
-                }}
-                className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-lg text-xs"
-              >
-                Go to My Sessions
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <BookingSuccessModal
+        bookingSuccess={bookingSuccess}
+        counselors={counselors}
+        selectedCounselor={selectedCounselor}
+        onClose={() => {
+          setBookingSuccess(null);
+          setSelectedSlot(null);
+          setActiveTab('my-sessions');
+        }}
+        formatSessionDateTime={formatSessionDateTime}
+      />
 
       {/* Student Feedback Modal */}
-      {activeFeedbackSession && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl">
-            <h3 className="text-xl font-bold text-slate-900 font-serif">Session Feedback</h3>
-            <p className="text-slate-500 text-xs">Help us maintain care standards for your peers.</p>
+      <SessionFeedbackModal
+        activeFeedbackSession={activeFeedbackSession}
+        rating={rating}
+        setRating={setRating}
+        comments={comments}
+        setComments={setComments}
+        feedbackError={feedbackError}
+        setFeedbackError={setFeedbackError}
+        submittingFeedback={submittingFeedback}
+        onClose={handleCloseFeedback}
+        onSubmit={handleSubmitFeedback}
+      />
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Rating (1 to 5 Stars)</label>
-              <select
-                value={rating}
-                onChange={(e) => setRating(parseInt(e.target.value))}
-                className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value={5}>⭐⭐⭐⭐⭐ (5/5 - Outstanding Support)</option>
-                <option value={4}>⭐⭐⭐⭐ (4/5 - Good & Helpful)</option>
-                <option value={3}>⭐⭐⭐ (3/5 - Average)</option>
-                <option value={2}>⭐⭐ (2/5 - Fair)</option>
-                <option value={1}>⭐ (1/5 - Needs Improvement)</option>
-              </select>
-            </div>
-
-            <textarea
-              rows={4}
-              value={comments}
-              onChange={(e) => setComments(e.target.value)}
-              placeholder="Tell us about your session experience..."
-              className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-            />
-
-            <div className="flex justify-end space-x-3 pt-2">
-              <button
-                onClick={() => setActiveFeedbackSession(null)}
-                className="px-4 py-2.5 text-slate-500 hover:text-slate-700 text-xs font-semibold"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSubmitFeedback}
-                disabled={submittingFeedback}
-                className="px-6 py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-bold shadow-md hover:bg-indigo-700 disabled:opacity-50"
-              >
-                {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Cancel Session Confirmation Sheet */}
+      <ConfirmSheet
+        open={cancelTarget !== null}
+        onClose={() => setCancelTarget(null)}
+        onConfirm={confirmCancel}
+        title="Cancel this session?"
+        description="Your counselor will be told the slot is free again. You can book another time whenever you're ready, and nothing about this goes on your record."
+        confirmLabel="Cancel session"
+        destructive
+        loading={cancellingSession}
+      />
     </div>
   );
-};
-
+}

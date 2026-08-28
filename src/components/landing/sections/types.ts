@@ -3,7 +3,6 @@ export interface CoachItem {
   name: string;
   role: string;
   init: string;
-  c1: string;
   specs: string[];
   bio?: string;
   avatarUrl?: string;
