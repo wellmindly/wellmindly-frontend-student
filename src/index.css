@@ -526,15 +526,6 @@ button, [role="button"], nav, label:has(input) {
     radial-gradient(70% 60% at 50% 100%, color-mix(in oklab, var(--color-gold-100) 60%, transparent) 0%, transparent 65%);
 }
 
-/* --- Legacy font overrides (TalkMindly). Kept for compatibility; new code
-       should use `font-display` / `font-reflective`. ------------------------ */
-.talkmindly-font-sans {
-  font-family: var(--font-display);
-}
-.talkmindly-font-serif {
-  font-family: var(--font-reflective);
-}
-
 /* --- Scrollbars ---------------------------------------------------------- */
 ::-webkit-scrollbar {
   width: 8px;
@@ -623,6 +614,11 @@ button, [role="button"], nav, label:has(input) {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  /* A loading indicator is feedback, not decoration. Slow it; do not stop it. */
+  .animate-spin {
+    animation-duration: 1.4s !important;
+    animation-iteration-count: infinite !important;
+  }
   /* Opacity-only entrances stay legible; movement is removed, not the content. */
   .bento-card:hover,
   .active-press:active {
@@ -637,3 +633,32 @@ button, [role="button"], nav, label:has(input) {
     --ink-soft: #33405A;
   }
 }
+
+/* Print: the Discover report card is the only thing that goes on paper.
+   Lived inside ResultView.tsx as a <style> element, which mounted a rule
+   hiding every element on the page along with a result card. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-report-card,
+  #printable-report-card * {
+    visibility: visible;
+  }
+  #printable-report-card {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: var(--color-card) !important;
+    color: var(--color-ink-900) !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+

@@ -8,6 +8,7 @@ import type { MoodRating } from "../../lib/mood";
 import { MoodFace } from "../ui/MoodFace";
 import { buttonClasses, Badge } from "../ui";
 import { cn } from "../../lib/cn";
+import { scrollToElement } from "../../lib/a11y";
 import studentPortraitClean from "../../assets/student_portrait_clean.webp";
 
 interface HeroSectionProps {
@@ -32,7 +33,7 @@ export function HeroSection({
     if (onBubbleClick) {
       onBubbleClick(bubbleId);
     } else {
-      document.getElementById("explore-tools")?.scrollIntoView({ behavior: "smooth" });
+      scrollToElement(document.getElementById("explore-tools"));
     }
   };
 
@@ -40,7 +41,7 @@ export function HeroSection({
     if (onBookCoachClick) {
       onBookCoachClick();
     } else {
-      document.getElementById("coaching-section")?.scrollIntoView({ behavior: "smooth" });
+      scrollToElement(document.getElementById("coaching-section"));
     }
   };
 
@@ -92,7 +93,7 @@ export function HeroSection({
               href="#explore-tools"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById("explore-tools")?.scrollIntoView({ behavior: "smooth" });
+                scrollToElement(document.getElementById("explore-tools"));
               }}
               className={buttonClasses("ghost", "lg", "w-full sm:w-auto justify-center min-h-12 text-center")}
             >

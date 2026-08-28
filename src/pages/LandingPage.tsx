@@ -14,6 +14,7 @@ import type { CoachItem } from "../components/landing/sections/types";
 import { config } from "../config";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
+import { scrollToElement } from "../lib/a11y";
 
 export type { CoachItem } from "../components/landing/sections/types";
 
@@ -22,7 +23,7 @@ const BOOKING_SLOTS = ["Mon 4:00pm", "Tue 10:00am", "Wed 6:30pm", "Thu 5:00pm", 
 export function LandingPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | "talkmindly" | "sessionbooking" | null>(null);
+  const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | null>(null);
   
   const [showBetaBanner, setShowBetaBanner] = useState(true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -84,7 +85,7 @@ export function LandingPage() {
   };
 
   const handleCoachingScroll = () =>
-    document.getElementById("coaching-section")?.scrollIntoView({ behavior: "smooth" });
+    scrollToElement(document.getElementById("coaching-section"));
 
   const handleWriteMindlyClick = () => {
     if (!config.enableWriteMindly) {
@@ -145,8 +146,7 @@ export function LandingPage() {
             onBookCoachClick={handleCoachingScroll}
             onBubbleClick={(bubbleId) => {
               const row = document.getElementById(`care-${bubbleId}`);
-              (row ?? document.getElementById("explore-tools"))?.scrollIntoView({
-                behavior: "smooth",
+              scrollToElement(row ?? document.getElementById("explore-tools"), {
                 block: "center",
               });
             }}

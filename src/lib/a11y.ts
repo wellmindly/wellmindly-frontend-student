@@ -215,3 +215,23 @@ export function useRovingKeys(opts: {
     [itemCount, activeIndex, onActiveIndexChange, onSelect, onDismiss, nextKey, prevKey],
   );
 }
+
+/**
+ * Read the user's reduced-motion preference at call time and scroll to an element.
+ * Programmatic smooth scrolls ignore the stylesheet's `scroll-behavior: auto !important`,
+ * so this helper switches to "auto" when prefers-reduced-motion is active.
+ */
+export function scrollToElement(
+  el: Element | null | undefined,
+  options?: ScrollIntoViewOptions,
+) {
+  if (!el) return;
+  const reduced =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  el.scrollIntoView({
+    behavior: reduced ? "auto" : "smooth",
+    ...options,
+  });
+}
+

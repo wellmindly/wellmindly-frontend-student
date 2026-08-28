@@ -5,12 +5,13 @@ import {
   Mic,
   MicOff,
   Trash2,
-  AlertCircle,
   Loader2,
   Heart,
   ShieldCheck
 } from "lucide-react";
 import api from "../../services/api";
+import { Button, ConfirmSheet, IconButton, Input } from "../ui";
+import { scrollToElement } from "../../lib/a11y";
 
 interface Message {
   sender: "user" | "model";
@@ -26,10 +27,23 @@ export function WriteMindlyTab() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const silenceTimerRef = useRef<any>(null);
+
+  const fetchSessionLimits = async (id: string) => {
+    try {
+      const response = await api.get(`/chat/session/${id}`);
+      if (response.data) {
+        setRemainingPercent(response.data.remainingPercent);
+      }
+    } catch (err) {
+      console.error("Failed to read WriteMindly session limits:", err);
+    }
+  };
 
   // Initialize Speech Recognition support check
   useEffect(() => {
@@ -121,18 +135,7 @@ export function WriteMindlyTab() {
 
     localStorage.setItem("hasUsedWriteMindly", "true");
 
-    // Fetch initial session limits
-    const fetchSessionLimits = async () => {
-      try {
-        const response = await api.get(`/chat/session/${tempSessionId}`);
-        if (response.data) {
-          setRemainingPercent(response.data.remainingPercent);
-        }
-      } catch (err) {
-        console.error("Failed to initialize WriteMindly session limits:", err);
-      }
-    };
-    fetchSessionLimits();
+    fetchSessionLimits(tempSessionId);
 
     return () => {
       // Clean up recording if running
@@ -147,7 +150,7 @@ export function WriteMindlyTab() {
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    scrollToElement(chatEndRef.current);
   }, [messages, isLoading]);
 
   // Send Message function
@@ -157,6 +160,7 @@ export function WriteMindlyTab() {
 
     const userMessageText = inputValue.trim();
     setInputValue("");
+    setError(null);
 
     const newMessages: Message[] = [
       ...messages,
@@ -191,14 +195,9 @@ export function WriteMindlyTab() {
       }
     } catch (err) {
       console.error("WriteMindly chat request failed:", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "model",
-          text: "I couldn't reach the server. Let's take a deep breath together. Reconnect and try again in a bit.",
-          timestamp: new Date()
-        }
-      ]);
+      setMessages((prev) => prev.slice(0, -1));
+      setInputValue(userMessageText);
+      setError("We couldn't reach the server, so that message didn't send. Your words are still in the box — try again in a moment.");
     } finally {
       setIsLoading(false);
     }
@@ -223,28 +222,26 @@ export function WriteMindlyTab() {
   };
 
   // End and Reset Session
-  const handleEndSession = async () => {
-    if (window.confirm("Are you sure you want to end this session? All chat history will be permanently deleted.")) {
-      try {
-        await api.delete(`/chat/session/${sessionId}`);
-      } catch (err) {
-        console.error("Failed to delete session on backend:", err);
-      }
-
-      // Generate a new temporary session ID
-      const newTempSessionId = "wm-" + Math.random().toString(36).substring(2) + "-" + Date.now().toString(36);
-      setSessionId(newTempSessionId);
-      setRemainingPercent(100);
-      setInputValue("");
-
-      setMessages([
-        {
-          sender: "model",
-          text: "Blank page, no pressure. What's loudest in your head right now?",
-          timestamp: new Date()
-        }
-      ]);
+  const endSession = async () => {
+    try {
+      await api.delete(`/chat/session/${sessionId}`);
+    } catch (err) {
+      console.error("Failed to delete session on backend:", err);
     }
+
+    // Generate a new temporary session ID
+    const newTempSessionId = "wm-" + Math.random().toString(36).substring(2) + "-" + Date.now().toString(36);
+    setSessionId(newTempSessionId);
+    await fetchSessionLimits(newTempSessionId);
+    setInputValue("");
+
+    setMessages([
+      {
+        sender: "model",
+        text: "Blank page, no pressure. What's loudest in your head right now?",
+        timestamp: new Date()
+      }
+    ]);
   };
 
   // SVG Gauge variables
@@ -253,30 +250,31 @@ export function WriteMindlyTab() {
   const strokeDashoffset = circumference - (remainingPercent / 100) * circumference;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] min-h-[500px] bg-white rounded-3xl border border-slate-200/60 shadow-sm overflow-hidden font-sans">
+    <div className="flex flex-col h-[calc(100dvh-12rem)] min-h-[500px] bg-card rounded-3xl border border-ink-100 shadow-sm overflow-hidden">
       {/* 1. Header Area */}
-      <header className="px-6 py-4 border-b border-slate-100 flex items-center justify-between shrink-0 bg-slate-50/50">
+      <header className="px-6 py-4 border-b border-ink-100 flex items-center justify-between shrink-0 bg-paper-2">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-plum/10 text-plum flex items-center justify-center shadow-inner shrink-0">
-            <Heart className="h-5 w-5 fill-current animate-pulse" />
+          <div className="h-10 w-10 rounded-2xl bg-plum-100 text-plum-600 flex items-center justify-center shadow-inner shrink-0">
+            <Heart className="h-5 w-5 fill-current" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-slate-900 font-serif leading-none">WriteMindly</h2>
-            <p className="text-xs text-slate-500 font-medium mt-1">Temporary, fully private AI companion.</p>
+            <h2 className="text-xl font-black text-ink-900 font-display leading-none">WriteMindly</h2>
+            <p className="text-xs text-ink-500 font-medium mt-1">Temporary, fully private AI companion.</p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-4">
           {/* Circular Context Gauge */}
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl border border-slate-100 shadow-sm select-none">
+          <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-2xl border border-ink-100 shadow-sm select-none">
+            <span className="sr-only">{remainingPercent}% of today's messages left. Resets tomorrow.</span>
             <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
-              <svg className="w-full h-full transform -rotate-90">
+              <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90" aria-hidden="true">
                 <circle
                   cx="18"
                   cy="18"
                   r={radius}
-                  className="stroke-slate-100"
+                  className="stroke-ink-100"
                   strokeWidth="3.5"
                   fill="transparent"
                 />
@@ -286,10 +284,10 @@ export function WriteMindlyTab() {
                   r={radius}
                   className={`transition-all duration-500 ${
                     remainingPercent > 50
-                      ? "stroke-plum"
+                      ? "stroke-plum-500"
                       : remainingPercent > 20
-                      ? "stroke-amber-500"
-                      : "stroke-rose-500"
+                      ? "stroke-gold-500"
+                      : "stroke-coral-500"
                   }`}
                   strokeWidth="3.5"
                   fill="transparent"
@@ -298,41 +296,48 @@ export function WriteMindlyTab() {
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute text-[9px] font-black text-slate-700">{remainingPercent}%</span>
+              <span aria-hidden="true" className="absolute text-2xs font-black text-ink-700">{remainingPercent}%</span>
             </div>
-            <div className="hidden sm:block text-left text-[10px] leading-tight">
-              <p className="font-extrabold text-slate-900 uppercase">Context Left</p>
-              <p className="font-semibold text-slate-400">Remaining capacity</p>
+            <div className="hidden sm:block text-left text-2xs leading-tight">
+              <p className="font-extrabold text-ink-900 uppercase">Messages left</p>
+              <p className="font-semibold text-ink-400">Resets tomorrow</p>
             </div>
           </div>
 
           {/* End Session Button */}
-          <button
-            onClick={handleEndSession}
-            title="End Session & Destroy History"
-            className="flex items-center gap-1.5 bg-rose-50 border border-rose-200/50 hover:bg-rose-100 hover:border-rose-300 text-rose-600 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 cursor-pointer shadow-sm"
+          <Button
+            variant="ghost"
+            size="sm"
+            leadingIcon={<Trash2 />}
+            onClick={() => setConfirmOpen(true)}
+            aria-label="End session"
+            className="text-coral-600 hover:bg-coral-50"
           >
-            <Trash2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">End Session</span>
-          </button>
+            <span className="hidden sm:inline">End session</span>
+          </Button>
         </div>
       </header>
 
       {/* 2. Chat History Viewport */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-gradient-to-b from-slate-50/20 to-white relative">
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-gradient-to-b from-paper-2/40 to-card relative">
         {/* Anonymity Banner */}
-        <div className="max-w-xl mx-auto bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-slate-600 select-none shadow-sm animate-fade-in">
-          <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+        <div className="max-w-xl mx-auto bg-paper-2 border border-ink-100 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-ink-600 select-none shadow-sm">
+          <ShieldCheck className="w-5 h-5 text-sage-600 shrink-0" aria-hidden="true" />
           <div>
-            <p className="font-black text-slate-900 mb-0.5">Completely Private & Session-Only</p>
-            <p className="font-medium text-slate-500">
-              The content of your messages is processed in memory and never logged or written to the database. Leaving this page or ending the session permanently wipes your history.
+            <p className="font-black text-ink-900 mb-0.5">What happens to what you write here</p>
+            <p className="font-medium text-ink-500">
+              What you type is sent to our AI provider so it can reply, and we do not save the words themselves — not in a log, not in the database. We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
             </p>
           </div>
         </div>
 
         {/* Message Log */}
-        <div className="max-w-3xl mx-auto flex flex-col gap-4 font-sans text-sm">
+        <div
+          role="log"
+          aria-live="polite"
+          aria-label="Conversation"
+          className="max-w-3xl mx-auto flex flex-col gap-4 text-sm"
+        >
           <AnimatePresence initial={false}>
             {messages.map((msg, index) => {
               const isUser = msg.sender === "user";
@@ -347,14 +352,14 @@ export function WriteMindlyTab() {
                   <div
                     className={`rounded-2xl px-4 py-3.5 max-w-[85%] sm:max-w-[70%] font-medium leading-relaxed shadow-sm ${
                       isUser
-                        ? "bg-plum text-white rounded-tr-none"
-                        : "bg-slate-100 text-slate-800 rounded-tl-none border border-slate-200/40"
+                        ? "bg-plum-500 text-plum-50 rounded-tr-none"
+                        : "bg-paper-2 text-ink-800 rounded-tl-none border border-ink-200/40"
                     }`}
                   >
                     <p className="whitespace-pre-wrap">{msg.text}</p>
                     <span
-                      className={`block text-[9px] mt-1.5 text-right font-semibold select-none ${
-                        isUser ? "text-white/60" : "text-slate-400"
+                      className={`block text-2xs mt-1.5 text-right font-semibold select-none ${
+                        isUser ? "text-plum-100" : "text-ink-400"
                       }`}
                     >
                       {msg.timestamp.toLocaleTimeString([], {
@@ -375,9 +380,9 @@ export function WriteMindlyTab() {
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-start"
             >
-              <div className="bg-slate-100 border border-slate-200/40 rounded-2xl rounded-tl-none px-5 py-4 flex items-center gap-1.5">
-                <Loader2 className="w-4 h-4 text-plum animate-spin" />
-                <span className="text-xs font-bold text-slate-500 select-none animate-pulse">
+              <div className="bg-paper-2 border border-ink-200/40 rounded-2xl rounded-tl-none px-5 py-4 flex items-center gap-1.5">
+                <Loader2 className="w-4 h-4 text-plum-600 animate-spin" />
+                <span className="text-xs font-bold text-ink-500 select-none">
                   Companion is typing...
                 </span>
               </div>
@@ -390,20 +395,24 @@ export function WriteMindlyTab() {
 
       {/* 3. Session Limit Warnings */}
       {remainingPercent <= 0 && (
-        <div className="bg-amber-50 border-y border-amber-200/50 px-6 py-2 flex items-center justify-center gap-2 select-none shrink-0">
-          <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 animate-bounce" />
-          <span className="text-xs font-extrabold text-amber-800">
-            Context capacity fully reached. Serving fallback messages for the remainder of this session.
+        <div className="bg-gold-50 border-y border-gold-200/50 px-6 py-2 flex items-center justify-center gap-2 select-none shrink-0">
+          <span className="text-xs font-extrabold text-gold-800">
+            You've used all of today's messages. Anything you write now gets a short standard reply, and your full allowance is back tomorrow.
           </span>
         </div>
       )}
 
       {/* 4. Chat Typing Input Bar */}
-      <footer className="px-6 py-4 border-t border-slate-100 shrink-0 bg-slate-50/50">
+      <footer className="px-6 py-4 border-t border-ink-100 shrink-0 bg-paper-2">
+        <p role="status" aria-live="polite" className="min-h-5 text-center text-xs font-medium text-danger mb-2">
+          {error}
+        </p>
         <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex gap-3 relative items-center">
-          <div className="relative flex-1 flex items-center">
-            <input
-              type="text"
+          <div className="flex-1">
+            <Input
+              label="Your message"
+              hideLabel
+              className="text-base"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               disabled={isLoading}
@@ -412,36 +421,43 @@ export function WriteMindlyTab() {
                   ? "Listening... Speak your mind clearly."
                   : "Type whatever is loudest in your head..."
               }
-              className="w-full pl-5 pr-14 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:border-plum focus:ring-2 focus:ring-plum/10 text-sm font-medium bg-white placeholder-slate-400/90 transition-all shadow-inner disabled:bg-slate-100/50"
+              trailing={
+                isSpeechSupported ? (
+                  <IconButton
+                    size="sm"
+                    label={isRecording ? "Stop voice input" : "Start voice input"}
+                    aria-pressed={isRecording}
+                    disabled={isLoading}
+                    onClick={handleToggleRecord}
+                    variant={isRecording ? "danger" : "ghost"}
+                    icon={isRecording ? <MicOff /> : <Mic />}
+                  />
+                ) : undefined
+              }
             />
-
-            {/* Speech to text Mic Button */}
-            {isSpeechSupported && (
-              <button
-                type="button"
-                onClick={handleToggleRecord}
-                disabled={isLoading}
-                className={`absolute right-4 p-2 rounded-xl transition-all cursor-pointer border-none flex items-center justify-center outline-none ${
-                  isRecording
-                    ? "bg-rose-500 text-white scale-110 shadow-lg shadow-rose-500/20 animate-pulse"
-                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
-                }`}
-              >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
-            )}
           </div>
 
           {/* Send Message Button */}
-          <button
+          <IconButton
+            label="Send message"
+            variant="primary"
+            size="md"
             type="submit"
             disabled={isLoading || !inputValue.trim()}
-            className="bg-plum hover:bg-plum/95 text-white p-4 rounded-2xl transition-all flex items-center justify-center shadow-lg shadow-plum/15 disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none shrink-0 cursor-pointer border-none"
-          >
-            <Send className="w-4 h-4" />
-          </button>
+            icon={<Send />}
+          />
         </form>
       </footer>
+
+      <ConfirmSheet
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={endSession}
+        title="End this session?"
+        description="This clears the conversation from your screen and starts a fresh one. It does not delete the daily message count described at the top of this page, and it does not give you more messages for today."
+        confirmLabel="End session"
+        destructive
+      />
     </div>
   );
 }
