@@ -197,7 +197,7 @@ const KNOWN_GUTTER: { route: string; width: number; gutter: number; reason: stri
  * audited and catalogued under B-078 in BUGS.md.
  */
 const KNOWN_TAP_PATTERNS: { labelMatcher: RegExp | string; bugId: string }[] = [
-  { labelMatcher: /WellMindly\s*[-—]\s*home/i, bugId: "B-078" },
+  { labelMatcher: /WellMindly\s*[-—]?\s*home/i, bugId: "B-078" },
   { labelMatcher: "Sign In", bugId: "B-078" },
   { labelMatcher: "Jai Malani", bugId: "B-078" },
   { labelMatcher: "About", bugId: "B-078" },

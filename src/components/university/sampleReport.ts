@@ -21,7 +21,7 @@ export async function downloadSampleReport(): Promise<void> {
   doc.setFontSize(10);
   doc.setTextColor(220, 220, 220);
   doc.text("Anonymized aggregate reports for campus administration", 15, 23);
-  doc.text("Example University — Illustrative Cohort", 15, 29);
+  doc.text("Example University (Illustrative Cohort)", 15, 29);
 
   doc.setFontSize(8.5);
   doc.setTextColor(200, 200, 200);
@@ -59,7 +59,7 @@ export async function downloadSampleReport(): Promise<void> {
   doc.setFontSize(9.5);
   doc.setTextColor(71, 85, 105);
   const summaryText =
-    "This is a specimen of the aggregate report format. Individual student names, email addresses, check-in entries and message contents do not appear in it. The data-handling terms for a live deployment — including the minimum cohort size below which no figure is reported — are agreed in writing with each institution before any report is issued.";
+    "This is a specimen of the aggregate report format. Individual student names, email addresses, check-in entries and message contents do not appear in it. The data-handling terms for a live deployment (including the minimum cohort size below which no figure is reported) are agreed in writing with each institution before any report is issued.";
   const splitSummary = doc.splitTextToSize(summaryText, 180);
   doc.text(splitSummary, 15, 101);
 
@@ -67,7 +67,7 @@ export async function downloadSampleReport(): Promise<void> {
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(77, 41, 91);
-  doc.text("KEY METRICS — ILLUSTRATIVE PLACEHOLDERS", 15, 125);
+  doc.text("KEY METRICS: ILLUSTRATIVE PLACEHOLDERS", 15, 125);
 
   // Draw score card
   doc.setFillColor(241, 245, 249);
@@ -153,7 +153,7 @@ export async function downloadSampleReport(): Promise<void> {
     243,
   );
   doc.text(
-    "• Uptake of each support pathway — self-guided tools, peer spaces and counsellor sessions — as a share of the cohort.",
+    "• Uptake of each support pathway (self-guided tools, peer spaces, and counselor sessions) as a share of the cohort.",
     15,
     249,
   );

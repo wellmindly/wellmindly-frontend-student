@@ -84,7 +84,7 @@ export function ExploreToolsSection({
             How much do you want to talk right now?
           </h2>
           <p className="text-base text-ink-600 text-pretty mt-3">
-            Pick one. You can switch any time — nothing locks you in.
+            Pick one. You can switch any time with no commitments.
           </p>
         </div>
 

@@ -29,7 +29,7 @@ export function TalkTermsScreen({ onAcceptTerms }: TalkTermsScreenProps) {
         >
           <div className="p-3.5 bg-paper-2 rounded-xl border border-ink-200/70">
             <h3 className="font-bold text-ink-900">What other students see</h3>
-            <p className="mt-1 text-ink-700">Your nickname and avatar, and nothing else — your real name is never shown. Your nickname is permanent: it&apos;s the same on every note you write, so people may come to recognise it as yours.</p>
+            <p className="mt-1 text-ink-700">Your nickname and avatar are shown, and nothing else. Your real name is never visible. Your nickname stays the same across every note you write so people recognise you.</p>
           </div>
           <div className="p-3.5 bg-paper-2 rounded-xl border border-ink-200/70">
             <h3 className="font-bold text-ink-900">What our team sees</h3>

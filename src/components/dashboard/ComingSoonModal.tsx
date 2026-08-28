@@ -18,7 +18,7 @@ const FEATURE_DETAILS = {
     colorClass: "bg-teal-100 text-teal-700",
     bulletPoints: [
       "Say it to something that won't judge you",
-      "We don't store what you write — only the date and time, so we can apply a daily limit",
+      "We don't store what you write, only the date and time to apply daily limits",
       "There's a cap on how many messages you get each day, and it resets tomorrow"
     ]
   }

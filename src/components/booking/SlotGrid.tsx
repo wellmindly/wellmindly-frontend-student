@@ -35,7 +35,7 @@ export function SlotGrid({
           Available time slots ({processedSlotsCount})
         </label>
         <span className="text-2xs text-ink-400">
-          {timezoneMode === 'utc' ? '08:00 – 18:00 UTC' : `Converted to ${localTzAbbr}`}
+          {timezoneMode === 'utc' ? '08:00 - 18:00 UTC' : `Converted to ${localTzAbbr}`}
         </span>
       </div>
 

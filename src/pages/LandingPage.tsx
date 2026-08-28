@@ -208,7 +208,7 @@ export function LandingPage() {
         </div>
         
         <p className="text-sm text-ink-600 leading-relaxed mb-4">
-          Hi – and thank you for doing this. You're one of a small handful of students seeing this very early.
+          Hi, and thank you for trying this out. You're one of a small handful of students seeing this early.
         </p>
         
         <p className="text-sm text-ink-600 leading-relaxed mb-6">

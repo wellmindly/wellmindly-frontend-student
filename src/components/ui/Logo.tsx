@@ -20,7 +20,7 @@ export function Logo({ size = "md", className }: LogoProps) {
     >
       <img
         src={logoPng}
-        alt="WellMindly — home"
+        alt="WellMindly home"
         className={cn(
           size === "sm" ? "h-6 w-auto" : "h-8 w-auto",
           "block select-none",

@@ -82,7 +82,7 @@ export function ResultView({
     if (currentAttempt.score !== undefined && prevAttempt.score !== undefined) {
       const diff = currentAttempt.score - prevAttempt.score;
       if (diff < 0) {
-        return `Down ${Math.abs(diff)} points since your last check-in — fewer of these days than last time.`;
+        return `Down ${Math.abs(diff)} points since your last check-in, with fewer difficult days than last time.`;
       } else if (diff > 0) {
         return `Up ${diff} points since your last check-in. More of these days than last time; that is worth noticing, not fixing today.`;
       } else {

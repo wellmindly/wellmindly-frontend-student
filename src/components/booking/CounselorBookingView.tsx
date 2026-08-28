@@ -250,12 +250,12 @@ export function CounselorBookingView() {
       const startM = String(start.getUTCMinutes()).padStart(2, '0');
       const endH = String(end.getUTCHours()).padStart(2, '0');
       const endM = String(end.getUTCMinutes()).padStart(2, '0');
-      return `${startH}:${startM} – ${endH}:${endM} UTC`;
+      return `${startH}:${startM} - ${endH}:${endM} UTC`;
     }
 
     const startStr = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
     const endStr = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
-    return `${startStr} – ${endStr}`;
+    return `${startStr} - ${endStr}`;
   };
 
   // Format full date & time for session confirmations & cards accurately

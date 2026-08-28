@@ -172,7 +172,7 @@ export function CrisisPage() {
             ) : error ? (
               <ErrorState
                 title="We couldn't load the helplines"
-                description="Your connection may have dropped. Try again — and the breathing exercise above still works while you wait."
+                description="Your connection may have dropped. Try again, or use the breathing exercise above while you wait."
                 onRetry={fetchHotlines}
                 retrying={loading}
               />

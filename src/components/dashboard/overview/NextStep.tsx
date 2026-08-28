@@ -50,7 +50,7 @@ export function NextStep({
     iconBg = "bg-plum-100";
   } else if (dailyMood === null) {
     tone = "teal";
-    title = "Start with today — one tap, no reading";
+    title = "Start with today: one tap, no reading";
     support = "Your daily mood takes one tap and builds the mosaic further down this page.";
     ctaLabel = null;
     onCtaClick = null;

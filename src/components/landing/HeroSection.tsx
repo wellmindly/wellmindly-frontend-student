@@ -148,11 +148,11 @@ export function HeroSection({
                   </div>
                 </div>
                 <p className="text-2xs text-ink-500 mt-3 pt-2.5 border-t border-ink-200/50">
-                  Nothing saved yet —{" "}
+                  Nothing saved yet.{" "}
                   <Link to="/login" className="font-semibold text-plum-700 underline hover:text-plum-900">
-                    sign in
+                    Sign in
                   </Link>{" "}
-                  to start your streak.
+                  to save your mood and start your streak.
                 </p>
               </div>
             )}

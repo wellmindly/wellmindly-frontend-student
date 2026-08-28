@@ -197,7 +197,7 @@ export function WriteMindlyTab() {
       console.error("WriteMindly chat request failed:", err);
       setMessages((prev) => prev.slice(0, -1));
       setInputValue(userMessageText);
-      setError("We couldn't reach the server, so that message didn't send. Your words are still in the box — try again in a moment.");
+      setError("We couldn't reach the server, so that message didn't send. Your words are still in the box. Please try again in a moment.");
     } finally {
       setIsLoading(false);
     }
@@ -326,7 +326,7 @@ export function WriteMindlyTab() {
           <div>
             <p className="font-black text-ink-900 mb-0.5">What happens to what you write here</p>
             <p className="font-medium text-ink-500">
-              What you type is sent to our AI provider so it can reply, and we do not save the words themselves — not in a log, not in the database. We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
+              What you type is sent to our AI provider so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
             </p>
           </div>
         </div>

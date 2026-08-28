@@ -212,7 +212,7 @@ export function WellbeingChart({ timeline, onViewDetails }: WellbeingChartProps)
 
             {N === 1 && (
               <p className="text-xs text-ink-600 font-medium mt-3 text-center">
-                One snapshot so far — {formatDayMonth(points[0].date)}, {points[0].percentage}%. A
+                One snapshot so far: {formatDayMonth(points[0].date)}, {points[0].percentage}%. A
                 second one gives this a direction.
               </p>
             )}

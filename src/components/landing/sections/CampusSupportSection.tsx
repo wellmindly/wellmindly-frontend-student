@@ -59,7 +59,7 @@ export function CampusSupportSection({ className }: CampusSupportSectionProps) {
               Works with your campus
             </h3>
             <p className="text-sm text-ink-600 leading-relaxed">
-              Your campus sees aggregate wellbeing trends only — never individual check-ins, messages, or identities.
+              Your campus sees aggregate wellbeing trends only, never individual check-ins, messages, or identities.
             </p>
           </div>
         </div>

@@ -122,7 +122,7 @@ export function MoodMosaic({
 
                   if (checkin) {
                     const mood = moodByRating(checkin.rating);
-                    ariaLabel = `${formatFullDate(d)} — ${mood.label}, ${mood.summary.toLowerCase()}`;
+                    ariaLabel = `${formatFullDate(d)}: ${mood.label}, ${mood.summary.toLowerCase()}`;
                     style = {
                       backgroundColor: mood.color,
                       boxShadow:
@@ -132,11 +132,11 @@ export function MoodMosaic({
                       ? "ring-4 ring-offset-2 ring-plum/50 shadow-md scale-105 cursor-pointer"
                       : "shadow-sm hover:shadow-md hover:scale-115 active:scale-95 cursor-pointer";
                   } else if (isToday) {
-                    ariaLabel = `Today, ${formatFullDate(d)} — no check-in yet. Add one.`;
+                    ariaLabel = `Today, ${formatFullDate(d)}: no check-in yet. Add one.`;
                     className +=
                       "border-2 border-dashed border-plum-400 bg-card hover:bg-plum-50 cursor-pointer shadow-sm";
                   } else {
-                    ariaLabel = `${formatFullDate(d)} — no check-in`;
+                    ariaLabel = `${formatFullDate(d)}: no check-in`;
                     className += "bg-ink-200/60 opacity-60 cursor-default";
                   }
 
