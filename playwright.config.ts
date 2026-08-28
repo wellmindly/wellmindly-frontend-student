@@ -19,7 +19,6 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: "**/*.e2e.ts",
 
   // Measurements have to be stable to be evidence, so nothing runs concurrently
   // and a failure is never retried into a pass.
@@ -40,8 +39,14 @@ export default defineConfig({
 
   projects: [
     {
+      name: "setup",
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      dependencies: ["setup"],
+      testMatch: /.*\.e2e\.ts/,
     },
   ],
 
