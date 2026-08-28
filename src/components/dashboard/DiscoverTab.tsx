@@ -5,7 +5,7 @@ import { TESTS } from "../discover/types";
 import type { PictureOption } from "../discover/types";
 import type { DiscoverResultData } from "../../hooks/useDashboard";
 import type { RefObject } from "react";
-import { Heart } from "lucide-react";
+import { SectionHeader, SkeletonCard, SkeletonText } from "../ui";
 
 interface DiscoverTabProps {
   discoverView: "hub" | "test" | "result" | "results";
@@ -52,6 +52,8 @@ export function DiscoverTab({
   isCheckinMode = false,
   onBackToOverview,
 }: DiscoverTabProps) {
+  // "results" never renders here - the dashboard shows saved results on the
+  // Assessments tab, so goTo("results") switches tabs instead. See T-510.
   const goTo = (v: string) => {
     if (v === "results") {
       onSwitchToAssessments();
@@ -62,17 +64,13 @@ export function DiscoverTab({
 
   if (discoverLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8 space-y-6 animate-pulse select-none bg-white/50 border border-white/20 rounded-[32px] shadow-sm backdrop-blur-md">
-        <div className="relative w-24 h-24 rounded-full bg-plum/20 flex items-center justify-center shadow-lg shadow-plum/10 border border-plum/30 animate-spin" style={{ animationDuration: '8s' }}>
-          <div className="absolute w-12 h-12 rounded-full bg-plum/40 animate-ping" />
-          <Heart className="w-8 h-8 text-plum fill-current" />
-        </div>
-        
-        <div className="space-y-2.5">
-          <h3 className="text-xl font-extrabold text-slate-800 font-serif">Gathering your self-reflection insights...</h3>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto font-medium">
-            Formulating personalized patterns and observations. This will take just a few seconds.
-          </p>
+      <div className="space-y-6">
+        <SkeletonText lines={2} />
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
+          <SkeletonCard />
         </div>
       </div>
     );
@@ -80,21 +78,19 @@ export function DiscoverTab({
 
   return (
     <div className="space-y-8 animate-fade-in pb-12">
-      <div className="flex items-center justify-between border-b border-slate-200/50 pb-5">
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 font-serif">
-            {isCheckinMode ? "Emotional Check-in" : "Explore Tests"}
-          </h2>
-          <p className="text-slate-500 font-medium mt-1">
-            {isCheckinMode
-              ? "A two-minute wellbeing snapshot. See how you're really doing"
-              : "Discover insights about your strengths, personality, and values"}
-          </p>
-        </div>
-      </div>
+      <SectionHeader
+        as="h1"
+        title={isCheckinMode ? "Emotional check-in" : "Explore tests"}
+        description={
+          isCheckinMode
+            ? "A two-minute wellbeing snapshot. See how you're really doing"
+            : "Discover insights about your strengths, personality, and values"
+        }
+        className="border-b border-ink-200/70 pb-5"
+      />
 
       <div className="max-w-4xl mx-auto">
-        {discoverView === "hub" && <HubView startTest={startDiscoverTest} goTo={goTo} />}
+        {discoverView === "hub" && <HubView startTest={startDiscoverTest} goTo={goTo} as="h2" />}
 
         {discoverView === "test" && curDiscoverId && TESTS[curDiscoverId] && (() => {
           const cur = TESTS[curDiscoverId];
@@ -107,7 +103,6 @@ export function DiscoverTab({
           return (
             <TestView
               cur={cur}
-              curId={curDiscoverId}
               qi={discoverQi}
               resp={discoverResp}
               total={total}
@@ -137,6 +132,7 @@ export function DiscoverTab({
               curId={curDiscoverId}
               data={discoverResultData}
               accent={TESTS[curDiscoverId].accent}
+              accentTo={TESTS[curDiscoverId].accentTo}
               cardRef={cardRef}
               reportRef={reportRef}
               onRetake={() => startDiscoverTest(curDiscoverId)}

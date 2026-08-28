@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Logo } from '../components/ui';
+import { Logo, SkipLink } from '../components/ui';
 import { AuthBrandPanel, AuthAlerts, GoogleAuthButtons, AuthForm } from '../components/auth';
 
 /** Resolve the ?redirect= param to a safe in-app path, appending showResult if present. */
@@ -362,9 +362,11 @@ export function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex flex-col lg:flex-row bg-paper font-sans overflow-hidden">
-      {/* LEFT PANEL: Branding & Visuals (Hidden on small screens, full width on large) */}
-      <AuthBrandPanel />
+    <>
+      <SkipLink />
+      <main id="main-content" tabIndex={-1} className="min-h-screen w-full flex flex-col lg:flex-row bg-paper font-sans overflow-hidden">
+        {/* LEFT PANEL: Branding & Visuals (Hidden on small screens, full width on large) */}
+        <AuthBrandPanel />
 
       {/* RIGHT PANEL: Login/Signup Form */}
       <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 bg-paper-2 lg:bg-card relative">
@@ -436,5 +438,6 @@ export function LoginPage() {
         </motion.div>
       </div>
     </main>
+    </>
   );
 }

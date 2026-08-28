@@ -8,11 +8,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { displayQuizTitle, displayClassification } from "../../lib/wellbeing";
+import type { ResultsData, TimelinePoint } from "../../types/student";
+import { Button, EmptyState } from "../ui";
 
 interface AssessmentsTabProps {
-  resultsData: any;
-  selectedReport: any;
-  setSelectedReport: (report: any) => void;
+  resultsData: ResultsData | null;
+  setSelectedReport: (report: TimelinePoint) => void;
   historyPage: number;
   setHistoryPage: (page: number) => void;
   onExploreDiscover: () => void;
@@ -41,63 +42,52 @@ export function AssessmentsTab({
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-indigo-100 text-indigo-700 rounded-2xl flex items-center justify-center">
+          <div className="h-12 w-12 bg-plum-100 text-plum-700 rounded-2xl flex items-center justify-center">
             <ClipboardList className="h-6 w-6" />
           </div>
           <div>
-            <h2 className="text-3xl font-black text-slate-900">My Quiz Results</h2>
-            <p className="text-slate-500 font-medium mt-1">
+            <h2 className="text-3xl font-black text-ink-900">My Quiz Results</h2>
+            <p className="text-ink-500 font-medium mt-1">
               Review your recent well-being assessments
             </p>
           </div>
         </div>
-        <button
+        <Button
+          variant="primary"
+          size="md"
+          leadingIcon={<Activity className="h-4 w-4" />}
           onClick={onStartScreening}
-          className="bg-plum hover:bg-plum/90 text-white rounded-2xl px-6 py-3.5 font-bold text-sm transition-all duration-300 shadow-sm hover:shadow flex items-center gap-2 outline-none cursor-pointer border-none"
         >
-          <Activity className="h-4 w-4" />
           Start the check-in
-        </button>
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Report Card / Empty state */}
         <div className="lg:col-span-2 space-y-6">
           {!resultsData || !resultsData.latestResult ? (
-            <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-slate-200/60 text-center py-16">
-              <div className="h-16 w-16 bg-plum/10 text-plum rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <ClipboardList className="h-8 w-8" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">
-                No Assessments Completed Yet
-              </h3>
-              <p className="text-slate-500 font-medium text-sm max-w-sm mx-auto mb-8 leading-relaxed">
-                Take the five-question wellbeing check-in to start tracking how your
-                weeks are going. It's a reflection tool, not a diagnosis.
-              </p>
-              <button
-                onClick={onStartScreening}
-                className="bg-plum hover:bg-plum/90 text-white font-bold text-sm px-8 py-4 rounded-full transition-all cursor-pointer border-none shadow-md shadow-plum/15"
-              >
-                Take the wellbeing check-in
-              </button>
-            </div>
+            <EmptyState
+              icon={<ClipboardList className="h-8 w-8" />}
+              title="No check-ins yet"
+              description="Take the five-question wellbeing check-in to start tracking how your weeks are going. It's a reflection tool, not a diagnosis."
+              action={{ label: "Take the wellbeing check-in", onClick: onStartScreening }}
+            />
           ) : (
             <>
               {/* Latest Result Card */}
-              <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-slate-200/60 relative overflow-hidden">
+              <div className="bg-card rounded-3xl p-8 sm:p-10 shadow-sm border border-ink-200/60 relative overflow-hidden">
                 {/* Decorative background element */}
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                   <BrainCircuit className="w-64 h-64" />
                 </div>
 
                 <div className="relative z-10">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-6 border-b border-slate-100">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-6 border-b border-ink-100">
                     <div>
-                      <h3 className="text-2xl font-black text-slate-900">
+                      <h3 className="text-2xl font-black text-ink-900">
                         {displayQuizTitle(resultsData.latestResult.quizTitle)}
                       </h3>
-                      <p className="text-slate-500 font-medium mt-2 flex items-center gap-2">
+                      <p className="text-ink-500 font-medium mt-2 flex items-center gap-2">
                         <Clock className="h-4 w-4" /> Completed on{" "}
                         {new Date(resultsData.latestResult.date).toLocaleDateString(undefined, {
                           month: "long",
@@ -112,19 +102,19 @@ export function AssessmentsTab({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100 flex flex-col justify-center">
-                      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
+                    <div className="bg-paper-2 rounded-2xl p-8 border border-ink-100 flex flex-col justify-center">
+                      <h4 className="text-xs font-black text-ink-400 uppercase tracking-widest mb-3">
                         Overall Score
                       </h4>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-6xl font-black text-slate-900 tracking-tighter">
+                        <span className="text-6xl font-black text-ink-900 tracking-tighter">
                           {latestScore}
                         </span>
-                        <span className="text-xl font-bold text-slate-400">
+                        <span className="text-xl font-bold text-ink-400">
                           / {latestMaxScore}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 font-medium mt-4 leading-relaxed">
+                      <p className="text-xs text-ink-500 font-medium mt-4 leading-relaxed">
                         Your total across the five questions. Higher means more of
                         these turned up for you over the last two weeks.
                       </p>
@@ -169,9 +159,9 @@ export function AssessmentsTab({
                   cannot separate one dimension from the total.
                   The real per-question breakdown lives in the report modal,
                   which renders it only when the stored row actually has one. */}
-              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/60">
-                <h3 className="text-xl font-black text-slate-900 mb-2">Detailed Insights</h3>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">
+              <div className="bg-card rounded-3xl p-8 shadow-sm border border-ink-200/60">
+                <h3 className="text-xl font-black text-ink-900 mb-2">Detailed Insights</h3>
+                <p className="text-sm text-ink-500 font-medium leading-relaxed">
                   Open any result below to see your answer to each question and what
                   the total suggests. This check-in reports one overall score - it
                   doesn't break your weeks down into separate areas.
@@ -181,13 +171,15 @@ export function AssessmentsTab({
           )}
 
           {/* Quiz Results History List */}
-          <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/60">
-            <h3 className="text-xl font-black text-slate-900 mb-6">Assessment History</h3>
+          <div className="bg-card rounded-3xl p-8 shadow-sm border border-ink-200/60">
+            <h3 className="text-xl font-black text-ink-900 mb-6">Assessment History</h3>
 
             {!resultsData || !resultsData.timeline || resultsData.timeline.length === 0 ? (
-              <p className="text-slate-400 font-medium text-sm text-center py-6">
-                No history found. Try taking a quiz!
-              </p>
+              <EmptyState
+                size="sm"
+                title="Nothing here yet"
+                description="Completed check-ins and Discover quizzes will show up here."
+              />
             ) : (
               (() => {
                 const itemsPerPage = 5;
@@ -202,7 +194,7 @@ export function AssessmentsTab({
                 return (
                   <div className="space-y-4">
                     <div className="space-y-4">
-                      {paginatedTimeline.map((report: any) => {
+                      {paginatedTimeline.map((report) => {
                         const dateStr = new Date(report.date).toLocaleDateString(undefined, {
                           month: "short",
                           day: "numeric",
@@ -212,19 +204,19 @@ export function AssessmentsTab({
                           <button
                             key={report.id}
                             onClick={() => setSelectedReport(report)}
-                            className="w-full flex items-center justify-between text-left p-5 bg-slate-50 hover:bg-slate-100/70 border border-slate-100 hover:border-plum/20 rounded-2xl transition-all cursor-pointer group outline-none"
+                            className="w-full flex items-center justify-between text-left p-5 bg-paper-2 hover:bg-ink-100/70 border border-ink-100 hover:border-plum/20 rounded-2xl transition-all cursor-pointer group focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-plum-500/12 focus-visible:border-plum-400"
                           >
                             <div className="flex items-center gap-4">
                               <div className="h-10 w-10 bg-plum/10 text-plum rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                                 <ClipboardList className="h-5 w-5" />
                               </div>
                               <div>
-                                <h4 className="font-bold text-slate-800 leading-snug group-hover:text-plum transition-colors">
+                                <h4 className="font-bold text-ink-800 leading-snug group-hover:text-plum transition-colors">
                                   {displayQuizTitle(report.quizTitle)}
                                 </h4>
-                                <p className="text-xs text-slate-400 font-medium mt-1">
+                                <p className="text-xs text-ink-400 font-medium mt-1">
                                   Completed on {dateStr} ·{" "}
-                                  <span className="font-semibold text-slate-500">
+                                  <span className="font-semibold text-ink-500">
                                     {displayClassification(
                                       report.quizTitle,
                                       report.classification,
@@ -236,14 +228,14 @@ export function AssessmentsTab({
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="text-right">
-                                <span className="text-lg font-black text-slate-800">
+                                <span className="text-lg font-black text-ink-800">
                                   {report.score}
                                 </span>
-                                <span className="text-xs text-slate-400 font-bold">
+                                <span className="text-xs text-ink-400 font-bold">
                                   /{report.maxScore}
                                 </span>
                               </div>
-                              <ChevronRight className="h-4 w-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                              <ChevronRight className="h-4 w-4 text-ink-400 group-hover:translate-x-0.5 transition-transform" />
                             </div>
                           </button>
                         );
@@ -252,32 +244,26 @@ export function AssessmentsTab({
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-6 mt-6">
-                        <button
+                      <div className="flex items-center justify-between border-t border-ink-100 pt-6 mt-6">
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           disabled={validPage === 1}
                           onClick={() => setHistoryPage(validPage - 1)}
-                          className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors cursor-pointer outline-none ${
-                            validPage === 1
-                              ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
-                              : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                          }`}
                         >
                           Previous
-                        </button>
-                        <span className="text-xs font-bold text-slate-500">
+                        </Button>
+                        <span className="text-xs font-bold text-ink-500">
                           Page {validPage} of {totalPages}
                         </span>
-                        <button
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           disabled={validPage === totalPages}
                           onClick={() => setHistoryPage(validPage + 1)}
-                          className={`px-4 py-2 rounded-xl text-sm font-bold border transition-colors cursor-pointer outline-none ${
-                            validPage === totalPages
-                              ? "bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed"
-                              : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                          }`}
                         >
                           Next
-                        </button>
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -289,24 +275,25 @@ export function AssessmentsTab({
 
         {/* Recommended Actions Sidebar - Explore Discover */}
         <div className="space-y-6">
-          <div className="bg-gradient-to-br from-plum to-[#8E74A5] rounded-3xl p-8 shadow-md text-white relative overflow-hidden border border-white/10">
+          <div className="bg-gradient-to-br from-plum to-plum-400 rounded-3xl p-8 shadow-md text-plum-50 relative overflow-hidden border border-plum-50/10">
             {/* Ambient glow */}
-            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
+            <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-plum-50/10 blur-xl pointer-events-none" />
             <div className="relative z-10">
               <h3 className="text-xl font-black mb-4 flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-yellow-300 animate-pulse" /> Discover More
+                <Sparkles className="h-5 w-5 text-gold-300" /> Discover More
               </h3>
-              <p className="text-white/90 text-sm font-medium mb-6 leading-relaxed">
+              <p className="text-plum-50/90 text-sm font-medium mb-6 leading-relaxed">
                 Deepen your insights! Explore interactive tests on signature strengths, core values,
                 and cognitive wellness.
               </p>
-              <button
+              <Button
+                variant="secondary"
+                fullWidth
+                trailingIcon={<ChevronRight className="h-4 w-4" />}
                 onClick={onExploreDiscover}
-                className="w-full bg-white text-plum hover:bg-slate-50 rounded-2xl py-3.5 font-bold text-sm transition-all duration-300 shadow-lg flex items-center justify-center gap-2 border-none cursor-pointer"
               >
                 Explore Discover
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           </div>
         </div>

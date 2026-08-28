@@ -15,7 +15,7 @@ import { config } from "../config";
 
 export function Dashboard() {
   const db = useDashboard();
-  const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | "talkmindly" | "sessionbooking" | null>(null);
+  const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | null>(null);
 
   // Update document title for SEO
   useEffect(() => {
@@ -67,7 +67,6 @@ export function Dashboard() {
         {db.activeTab === "assessments" && (
           <AssessmentsTab
             resultsData={db.resultsData}
-            selectedReport={db.selectedReport}
             setSelectedReport={db.setSelectedReport}
             historyPage={db.historyPage}
             setHistoryPage={db.setHistoryPage}
