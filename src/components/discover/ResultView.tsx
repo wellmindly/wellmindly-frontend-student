@@ -1,17 +1,18 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { LifeBuoy } from "lucide-react";
-import { rankDims, shade, toneWord, VALUE_DESC } from "./types";
+import { ArrowRight, CalendarDays, LifeBuoy, MessageCircle, Sparkle } from "lucide-react";
+import { rankDims, toneWord, VALUE_DESC } from "./types";
 import {
   bandForResult,
   isWellbeingCheckin,
   displayClassification,
+  frequencyLabel,
   WELLBEING_MAX_SCORE,
   WELLBEING_TITLE,
 } from "../../lib/wellbeing";
-import type { TestDef, PictureOption } from "./types";
+import type { TestDef, PictureOption, TestTone } from "./types";
 import { FeedbackForm } from "./FeedbackForm";
+import { Button, Card, ProgressBar } from "../ui";
 
 interface ResultViewProps {
   cur: TestDef;
@@ -26,6 +27,7 @@ interface ResultViewProps {
     aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } | null;
   };
   accent: string;
+  accentTo?: string;
   cardRef: React.RefObject<HTMLDivElement | null>;
   reportRef?: React.RefObject<HTMLDivElement | null>;
   onRetake: () => void;
@@ -38,6 +40,7 @@ export function ResultView({
   cur,
   data,
   accent,
+  accentTo = cur.accentTo,
   cardRef,
   reportRef,
   onRetake,
@@ -49,6 +52,8 @@ export function ResultView({
   const [showAllAttempts, setShowAllAttempts] = useState(false);
   const ranked = data.scores ? rankDims(data.scores) : [];
 
+  const isWellbeing = isWellbeingCheckin(cur.title);
+
   // Filter and sort historical attempts for this test.
   // An exact `r.quizTitle === cur.title` match would have dropped every attempt
   // a student made before the rename - their stored rows still say
@@ -56,13 +61,13 @@ export function ResultView({
   // trend on this screen. `isWellbeingCheckin` spans both titles.
   const historyAttempts = useMemo(() => {
     if (!resultsData?.timeline) return [];
-    const matchesThisTest = isWellbeingCheckin(cur.title)
+    const matchesThisTest = isWellbeing
       ? (r: any) => isWellbeingCheckin(r.quizTitle)
       : (r: any) => r.quizTitle === cur.title;
     return resultsData.timeline
       .filter(matchesThisTest)
       .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [resultsData, cur.title]);
+  }, [resultsData, cur.title, isWellbeing]);
 
   const displayAttempts = useMemo(() => {
     return [...historyAttempts].reverse();
@@ -70,38 +75,46 @@ export function ResultView({
 
   // Compute trend information
   const trendInfo = useMemo(() => {
-    if (historyAttempts.length < 2) return null;
+    if (!isWellbeing || historyAttempts.length < 2) return null;
     const currentAttempt = historyAttempts[historyAttempts.length - 1];
     const prevAttempt = historyAttempts[historyAttempts.length - 2];
     
     if (currentAttempt.score !== undefined && prevAttempt.score !== undefined) {
       const diff = currentAttempt.score - prevAttempt.score;
-      if (diff > 0) {
-        return `Your wellbeing score has increased by ${diff} points since your last check-in. You're feeling a bit steadier.`;
-      } else if (diff < 0) {
-        return `Your wellbeing score is down by ${Math.abs(diff)} points compared to your last check-in. It's okay to sit in this heavier stretch.`;
+      if (diff < 0) {
+        return `Down ${Math.abs(diff)} points since your last check-in — fewer of these days than last time.`;
+      } else if (diff > 0) {
+        return `Up ${diff} points since your last check-in. More of these days than last time; that is worth noticing, not fixing today.`;
       } else {
-        return `Your wellbeing score is steady and identical to your last check-in.`;
+        return `Same score as your last check-in.`;
       }
     }
-    return `This is your ${historyAttempts.length}th check-in. You are building a rich pattern of self-discovery.`;
-  }, [historyAttempts]);
+    return null;
+  }, [historyAttempts, isWellbeing]);
 
   // 1. Picture results layout
   const renderContent = () => {
     if (data.kind === 'picture' && data.pictureOption) {
       const opt = data.pictureOption;
       return (
-        <div className="text-center space-y-5">
-          <div className="w-20 h-20 rounded-full mx-auto mb-6 shadow-md" style={{ background: `linear-gradient(140deg, ${opt.c1}, ${opt.c2})` }} />
-          <h2 className="font-serif font-extrabold text-3xl mb-3 text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : `${opt.label}.`}
-          </h2>
-          <p className="font-serif text-lg text-ink-soft leading-relaxed font-medium">
-            {data.aiFeedback ? data.aiFeedback.narrative : (
-              <>Noted. Today felt <b className="text-plum font-extrabold">{opt.label.toLowerCase()}</b>. That's a tile on your moodboard now. The pattern across days tells the real story.</>
-            )}
-          </p>
+        <div className="space-y-5">
+          <div
+            className="mx-auto mb-6 h-20 w-20 rounded-full shadow-md"
+            style={{ background: `linear-gradient(140deg, ${opt.c1}, ${opt.c2})` }}
+          />
+          <ResultHeadline
+            className="text-center"
+            headline={data.aiFeedback ? data.aiFeedback.headline : `${opt.label}.`}
+            narrative={
+              data.aiFeedback ? (
+                data.aiFeedback.narrative
+              ) : (
+                <>
+                  Noted. Today felt <b className="font-bold text-plum-500">{opt.label.toLowerCase()}</b>. That's a tile on your moodboard now. The pattern across days tells the real story.
+                </>
+              )
+            }
+          />
         </div>
       );
     }
@@ -110,33 +123,48 @@ export function ResultView({
     if (data.kind === 'values' && data.top) {
       return (
         <div className="space-y-5">
-          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : (
-              <>You lead with <em className="italic font-serif text-plum">{data.top[0]}</em>.</>
-            )}
-          </h2>
-          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : (VALUE_DESC[data.top[0]] || '')}
-          </p>
-          
+          <ResultHeadline
+            headline={
+              data.aiFeedback ? (
+                data.aiFeedback.headline
+              ) : (
+                <>
+                  You lead with <em className="italic text-plum-500">{data.top[0]}</em>.
+                </>
+              )
+            }
+            narrative={data.aiFeedback ? data.aiFeedback.narrative : (VALUE_DESC[data.top[0]] || '')}
+          />
+
           {!data.aiFeedback && data.top[1] && (
-            <div className="border-l-[3px] border-plum bg-[#fffdf8]/60 backdrop-blur-sm rounded-r-[14px] p-5 text-[14.5px] shadow-sm font-semibold text-ink-soft">
-              <h4 className="text-xs tracking-wider uppercase text-ink-soft font-extrabold mb-1">Your second value</h4>
-              <b className="text-ink font-bold">{data.top[1]}</b>: {VALUE_DESC[data.top[1]] || ''}
-            </div>
+            <InsightBlock
+              borderColor="var(--color-plum-500)"
+              label="Your second value"
+              text={
+                <>
+                  <b className="font-bold text-ink-900">{data.top[1]}</b>: {VALUE_DESC[data.top[1]] || ''}
+                </>
+              }
+            />
           )}
-          
-          <ShareCard accent={accent} cardRef={cardRef}>
-            <h3 className="font-serif font-extrabold text-[13px] tracking-[.16em] uppercase opacity-80 mb-3">What matters most</h3>
+
+          <ShareCard accent={accent} accentTo={accentTo} cardRef={cardRef}>
+            <h3 className="mb-3 font-display text-xs font-bold uppercase tracking-[0.16em] opacity-80">
+              What matters most
+            </h3>
             <div className="flex flex-col gap-2.5">
               {data.top.map((s, i) => (
                 <div key={s} className="flex items-center gap-3 text-base font-bold">
-                  <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-[13px] font-black flex-shrink-0">{i + 1}</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-on-primary/20 text-xs font-bold">
+                    {i + 1}
+                  </span>
                   {s}
                 </div>
               ))}
             </div>
-            <p className="mt-5 text-[10px] opacity-75 tracking-wider uppercase font-bold">WellMindly · Discover</p>
+            <p className="mt-5 text-2xs font-bold uppercase tracking-wider opacity-75">
+              WellMindly · Discover
+            </p>
           </ShareCard>
         </div>
       );
@@ -146,34 +174,43 @@ export function ResultView({
     if (data.kind === 'strengths' && data.top && data.scores) {
       return (
         <div className="space-y-5">
-          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : (
-              <>Your top <em className="italic font-serif text-plum">strengths.</em></>
-            )}
-          </h2>
-          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : "These are the qualities you lead with. Leaning into your signature strengths, on purpose this week, is one of the most reliable ways to feel more like yourself."}
-          </p>
+          <ResultHeadline
+            headline={
+              data.aiFeedback ? (
+                data.aiFeedback.headline
+              ) : (
+                <>
+                  Your top <em className="italic text-plum-500">strengths.</em>
+                </>
+              )
+            }
+            narrative={
+              data.aiFeedback
+                ? data.aiFeedback.narrative
+                : "These are the qualities you lead with. Leaning into your signature strengths, on purpose this week, is one of the most reliable ways to feel more like yourself."
+            }
+          />
 
-          <ShareCard accent={accent} cardRef={cardRef}>
-            <h3 className="font-serif font-extrabold text-[13px] tracking-[.16em] uppercase opacity-80 mb-3">My signature strengths</h3>
+          <ShareCard accent={accent} accentTo={accentTo} cardRef={cardRef}>
+            <h3 className="mb-3 font-display text-xs font-bold uppercase tracking-[0.16em] opacity-80">
+              My signature strengths
+            </h3>
             <div className="flex flex-col gap-2.5">
               {data.top.map((s, i) => (
                 <div key={s} className="flex items-center gap-3 text-base font-bold">
-                  <span className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-[13px] font-black flex-shrink-0">{i + 1}</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-on-primary/20 text-xs font-bold">
+                    {i + 1}
+                  </span>
                   {s}
                 </div>
               ))}
             </div>
-            <p className="mt-5 text-[10px] opacity-75 tracking-wider uppercase font-bold">WellMindly · Discover</p>
+            <p className="mt-5 text-2xs font-bold uppercase tracking-wider opacity-75">
+              WellMindly · Discover
+            </p>
           </ShareCard>
-          
-          <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
-            <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">Full ranking</p>
-            {ranked.map(([label, val], i) => (
-              <DimBar key={label} label={label} value={val} accent={accent} delay={i * 0.08} />
-            ))}
-          </div>
+
+          <RankingPanel title="Full ranking" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
         </div>
       );
     }
@@ -184,32 +221,39 @@ export function ResultView({
       const typeInfo = cur.types?.[topType];
       return (
         <div className="space-y-5">
-          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : (
-              <>{cur.reveal || 'You’re'} <em className="italic font-serif text-plum">{topType}</em>.</>
-            )}
-          </h2>
-          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : (typeInfo?.desc || '')}
-          </p>
-          
+          <ResultHeadline
+            headline={
+              data.aiFeedback ? (
+                data.aiFeedback.headline
+              ) : (
+                <>
+                  {cur.reveal || 'You’re'} <em className="italic text-plum-500">{topType}</em>.
+                </>
+              )
+            }
+            narrative={data.aiFeedback ? data.aiFeedback.narrative : (typeInfo?.desc || '')}
+          />
+
           {cur.card && (
-            <ShareCard accent={accent} cardRef={cardRef}>
-              <h3 className="font-serif font-extrabold text-[13px] tracking-[.16em] uppercase opacity-80 mb-3">{cur.cardLabel || 'My result'}</h3>
-              <p className="font-serif text-4xl font-extrabold leading-tight mb-3">{topType}</p>
-              <p className="text-[10px] opacity-75 tracking-wider uppercase font-bold">{typeInfo?.tag || cur.title} · WellMindly</p>
+            <ShareCard accent={accent} accentTo={accentTo} cardRef={cardRef}>
+              <h3 className="mb-3 font-display text-xs font-bold uppercase tracking-[0.16em] opacity-80">
+                {cur.cardLabel || 'My result'}
+              </h3>
+              <p className="mb-3 font-display text-4xl font-bold leading-tight">{topType}</p>
+              <p className="mt-5 text-2xs font-bold uppercase tracking-wider opacity-75">
+                {typeInfo?.tag || cur.title} · WellMindly
+              </p>
             </ShareCard>
           )}
-          
-          {!data.aiFeedback && typeInfo?.a && <InsightBlock borderColor="#3D6E66" label={typeInfo.a.label} text={typeInfo.a.text} />}
-          {!data.aiFeedback && typeInfo?.b && <InsightBlock borderColor="#B3583E" label={typeInfo.b.label} text={typeInfo.b.text} />}
-          
-          <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
-            <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">How it broke down</p>
-            {ranked.map(([label, val], i) => (
-              <DimBar key={label} label={label} value={val} accent={accent} delay={i * 0.08} />
-            ))}
-          </div>
+
+          {!data.aiFeedback && typeInfo?.a && (
+            <InsightBlock borderColor="var(--color-teal-700)" label={typeInfo.a.label} text={typeInfo.a.text} />
+          )}
+          {!data.aiFeedback && typeInfo?.b && (
+            <InsightBlock borderColor="var(--color-coral-700)" label={typeInfo.b.label} text={typeInfo.b.text} />
+          )}
+
+          <RankingPanel title="How it broke down" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
         </div>
       );
     }
@@ -219,27 +263,30 @@ export function ResultView({
       const arch = data.archetype;
       return (
         <div className="space-y-5">
-          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : (
-              <>You're <em className="italic font-serif text-plum">{arch.name}</em>.</>
-            )}
-          </h2>
-          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : arch.desc}
-          </p>
+          <ResultHeadline
+            headline={
+              data.aiFeedback ? (
+                data.aiFeedback.headline
+              ) : (
+                <>
+                  You're <em className="italic text-plum-500">{arch.name}</em>.
+                </>
+              )
+            }
+            narrative={data.aiFeedback ? data.aiFeedback.narrative : arch.desc}
+          />
 
-          <ShareCard accent={accent} cardRef={cardRef}>
-            <h3 className="font-serif font-extrabold text-[13px] tracking-[.16em] uppercase opacity-80 mb-3">My personality archetype</h3>
-            <p className="font-serif text-4xl font-extrabold leading-tight mb-3">{arch.name}</p>
-            <p className="text-[10px] opacity-75 tracking-wider uppercase font-bold">WellMindly · Discover</p>
+          <ShareCard accent={accent} accentTo={accentTo} cardRef={cardRef}>
+            <h3 className="mb-3 font-display text-xs font-bold uppercase tracking-[0.16em] opacity-80">
+              My personality archetype
+            </h3>
+            <p className="mb-3 font-display text-4xl font-bold leading-tight">{arch.name}</p>
+            <p className="mt-5 text-2xs font-bold uppercase tracking-wider opacity-75">
+              WellMindly · Discover
+            </p>
           </ShareCard>
-          
-          <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
-            <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">Your five traits</p>
-            {ranked.map(([label, val], i) => (
-              <DimBar key={label} label={label} value={val} accent={accent} delay={i * 0.08} />
-            ))}
-          </div>
+
+          <RankingPanel title="Your five traits" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
         </div>
       );
     }
@@ -271,12 +318,10 @@ export function ResultView({
             </div>
           </div>
 
-          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : WELLBEING_TITLE}
-          </h2>
-          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : band.support}
-          </p>
+          <ResultHeadline
+            headline={data.aiFeedback ? data.aiFeedback.headline : WELLBEING_TITLE}
+            narrative={data.aiFeedback ? data.aiFeedback.narrative : band.support}
+          />
 
           {/* Top band only. Before this there was no crisis path wired to a
               score anywhere in the app - a student could be handed the highest
@@ -294,12 +339,7 @@ export function ResultView({
             </div>
           )}
 
-          <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
-            <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">Your dimensions</p>
-            {ranked.map(([label, val], i) => (
-              <DimBar key={label} label={label} value={val} accent={accent} delay={i * 0.08} />
-            ))}
-          </div>
+          <RankingPanel title="Your dimensions" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
         </div>
       );
     }
@@ -310,19 +350,16 @@ export function ResultView({
       const tone = avg >= 70 ? "You're doing well." : avg >= 45 ? "Finding your footing." : "A heavier stretch.";
       return (
         <div className="space-y-5">
-          <h2 className="font-serif font-medium text-[clamp(24px,4.4vw,36px)] leading-tight text-ink">
-            {data.aiFeedback ? data.aiFeedback.headline : tone}
-          </h2>
-          <p className="font-serif text-lg leading-relaxed text-ink-soft font-medium mt-1">
-            {data.aiFeedback ? data.aiFeedback.narrative : "This is a snapshot, not a score. Use it to notice how your weeks shift. The patterns over time tell a richer story than any single check-in."}
-          </p>
+          <ResultHeadline
+            headline={data.aiFeedback ? data.aiFeedback.headline : tone}
+            narrative={
+              data.aiFeedback
+                ? data.aiFeedback.narrative
+                : "This is a snapshot, not a score. Use it to notice how your weeks shift. The patterns over time tell a richer story than any single check-in."
+            }
+          />
 
-          <div className="bg-white/60 border border-white/20 rounded-3xl p-6 shadow-sm">
-            <p className="text-xs tracking-widest uppercase text-ink-soft font-extrabold mb-4 border-b border-line/45 pb-2">Your dimensions</p>
-            {ranked.map(([label, val], i) => (
-              <DimBar key={label} label={label} value={val} accent={accent} delay={i * 0.08} />
-            ))}
-          </div>
+          <RankingPanel title="Your dimensions" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
         </div>
       );
     }
@@ -331,21 +368,26 @@ export function ResultView({
   };
 
   return (
-    <div ref={reportRef} id="printable-report-card" className="space-y-6 select-none bg-white/70 border border-white/20 rounded-[32px] p-8 shadow-xl backdrop-blur-md relative overflow-hidden transition-all duration-300">
-      
+    <Card
+      ref={reportRef}
+      id="printable-report-card"
+      padding="lg"
+      elevation="floating"
+      className="space-y-6 overflow-hidden"
+    >
       {/* Printable page header */}
-      <div className="hidden print:block border-b border-slate-200 pb-4 mb-6">
-        <h1 className="text-2xl font-black font-serif text-slate-900">WellMindly</h1>
-        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{cur.title} Assessment Report</p>
+      <div className="mb-6 hidden border-b border-ink-200 pb-4 print:block">
+        <h1 className="font-display text-2xl font-bold text-ink-900">WellMindly</h1>
+        <p className="text-xs font-bold uppercase tracking-wider text-ink-500">{cur.title} Assessment Report</p>
       </div>
 
       {/* category badge */}
-      <div className="flex items-center justify-between no-print">
+      <div className="no-print flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: accent }} />
-          <span className="text-xs font-black tracking-wider uppercase text-slate-500">{cur.title}</span>
+          <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: accent }} />
+          <span className="text-xs font-bold uppercase tracking-wider text-ink-500">{cur.title}</span>
         </div>
-        <span className="text-[11px] font-bold px-3 py-1 bg-paper-2 rounded-full text-slate-500 border border-line select-none">
+        <span className="rounded-full border border-line bg-paper-2 px-3 py-1 text-2xs font-bold text-ink-500">
           {cur.tag || '~2 min'}
         </span>
       </div>
@@ -355,17 +397,17 @@ export function ResultView({
 
       {/* Dynamic Observations list */}
       {data.aiFeedback?.insights && data.aiFeedback.insights.length > 0 && (
-        <div className="bg-white/50 border border-white/20 rounded-3xl p-6 shadow-sm select-none">
-          <h4 className="text-xs tracking-wider uppercase text-plum font-extrabold mb-3">Key Observations</h4>
-          <ul className="space-y-3 text-[14.5px] text-ink-soft font-medium">
+        <Card elevation="sunken" padding="md">
+          <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-plum-600">Key Observations</h4>
+          <ul className="space-y-3 text-sm font-medium text-ink-600">
             {data.aiFeedback.insights.map((ins, idx) => (
-              <li key={idx} className="flex gap-3 items-start leading-relaxed">
-                <span className="text-plum shrink-0 text-base">✦</span>
+              <li key={idx} className="flex items-start gap-3 leading-relaxed">
+                <Sparkle className="mt-0.5 h-4 w-4 shrink-0 text-plum-500" aria-hidden="true" />
                 <span>{ins}</span>
               </li>
             ))}
           </ul>
-        </div>
+        </Card>
       )}
 
       {/* Action Tip */}
@@ -379,21 +421,21 @@ export function ResultView({
 
       {/* Trajectory History Timeline */}
       {historyAttempts.length > 0 && (
-        <div className="bg-white/50 border border-white/20 rounded-3xl p-6 shadow-sm no-print space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-200/50 pb-3">
-            <h4 className="text-xs tracking-wider uppercase text-plum font-extrabold">Your Check-in History</h4>
-            <span className="text-[11px] font-bold px-2.5 py-0.5 bg-paper-2 rounded-full text-ink-soft">
+        <Card elevation="sunken" padding="md" className="no-print space-y-4">
+          <div className="flex items-center justify-between border-b border-line pb-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-plum-600">Your Check-in History</h4>
+            <span className="rounded-full bg-paper-2 px-2.5 py-0.5 text-2xs font-bold text-ink-600">
               {historyAttempts.length} {historyAttempts.length === 1 ? 'Attempt' : 'Attempts'}
             </span>
           </div>
-          
+
           {trendInfo && (
-            <p className="text-sm font-semibold text-ink-soft italic leading-relaxed bg-plum/5 p-3.5 rounded-xl border border-plum/10">
+            <p className="rounded-xl border border-plum-100 bg-plum-50 p-3.5 text-sm font-semibold italic leading-relaxed text-ink-600">
               {trendInfo}
             </p>
           )}
-          
-          <div className="relative pl-6 border-l-2 border-slate-200/80 space-y-5 py-2">
+
+          <div className="relative space-y-5 border-l-2 border-line py-2 pl-6">
             {(showAllAttempts ? displayAttempts : displayAttempts.slice(0, 5)).map((att: any, idx: number) => {
               const d = new Date(att.date);
               const isLatest = idx === 0;
@@ -402,39 +444,38 @@ export function ResultView({
               const diff = prevAtt && att.score !== undefined && prevAtt.score !== undefined
                 ? att.score - prevAtt.score
                 : null;
-              
+
               // Direction matters: on this instrument a LOWER score is the
               // better week, the opposite of every other test here. This read
               // `cur.title.includes("phq")`, which the rename turns false - and
               // a false value silently flips the arrow, so a student getting
               // worse would have been shown "improving".
-              const isPhq9 = isWellbeingCheckin(cur.title);
-              const isImprovement = diff !== null && (isPhq9 ? diff < 0 : diff > 0);
-              const isWorse = diff !== null && (isPhq9 ? diff > 0 : diff < 0);
+              const isImprovement = diff !== null && (isWellbeing ? diff < 0 : diff > 0);
+              const isWorse = diff !== null && (isWellbeing ? diff > 0 : diff < 0);
               return (
                 <div key={att.id || idx} className="relative">
                   {/* Timeline Dot */}
-                  <div className={`absolute left-[-31px] top-1.5 w-2.5 h-2.5 rounded-full border-2 bg-white ${isLatest ? 'border-plum scale-125 shadow-md shadow-plum/20' : 'border-slate-300'}`} />
-                  
+                  <div className={`absolute left-[-31px] top-1.5 h-2.5 w-2.5 rounded-full border-2 bg-card ${isLatest ? 'border-plum-500 scale-125 shadow-md shadow-plum-500/20' : 'border-ink-200'}`} />
+
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="text-[13.5px] font-extrabold text-ink leading-tight">
+                      <p className="text-sm font-bold leading-tight text-ink-900">
                         {displayClassification(att.quizTitle, att.classification, att.score) ||
                           'Completed'}
-                        {isLatest && <span className="ml-2.5 text-[9px] bg-plum text-white px-2 py-0.5 rounded-full uppercase font-black tracking-wider">Latest</span>}
+                        {isLatest && <span className="ml-2.5 rounded-full bg-plum-500 px-2 py-0.5 text-2xs font-bold uppercase tracking-wider text-on-primary">Latest</span>}
                       </p>
-                      <p className="text-[11px] text-ink-soft opacity-70 font-semibold mt-0.5">
+                      <p className="mt-0.5 text-2xs font-semibold text-ink-500">
                         {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
                     {att.score !== undefined && (
-                      <span className="text-[13px] font-bold text-ink-soft bg-paper-2 px-2.5 py-0.5 rounded-lg border border-line flex items-center gap-1.5">
+                      <span className="flex items-center gap-1.5 rounded-lg border border-line bg-paper-2 px-2.5 py-0.5 text-xs font-bold text-ink-600">
                         Score: {att.score} / {att.maxScore}
                         {diff !== null && diff !== 0 && (
-                          <span className={`text-[10px] font-black px-1.5 py-0.5 rounded ${
-                            isImprovement ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                            isWorse ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                            'bg-slate-50 text-slate-600 border border-slate-200'
+                          <span className={`rounded px-1.5 py-0.5 text-2xs font-bold ${
+                            isImprovement ? 'border border-sage-200 bg-sage-50 text-sage-700' :
+                            isWorse ? 'border border-rose-200 bg-rose-50 text-rose-700' :
+                            'border border-ink-200 bg-ink-50 text-ink-600'
                           }`}>
                             {diff > 0 ? `+${diff}` : diff}
                           </span>
@@ -448,16 +489,13 @@ export function ResultView({
           </div>
 
           {displayAttempts.length > 5 && (
-            <div className="pt-2 border-t border-slate-200/50 flex justify-center">
-              <button
-                onClick={() => setShowAllAttempts(!showAllAttempts)}
-                className="text-xs font-extrabold text-plum hover:underline cursor-pointer border-none bg-transparent"
-              >
+            <div className="flex justify-center border-t border-line pt-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowAllAttempts(!showAllAttempts)}>
                 {showAllAttempts ? "Show less" : `Show all attempts (${displayAttempts.length})`}
-              </button>
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Post-Assessment Feedback Questionnaire */}
@@ -469,129 +507,144 @@ export function ResultView({
 
       {/* Connected services CTAs */}
       {onComingSoonClick && (
-        <div className="bg-white/50 border border-white/20 rounded-3xl p-6 shadow-sm no-print space-y-4">
-          <h4 className="text-xs tracking-wider uppercase text-plum font-extrabold">Connected Services</h4>
-          <p className="text-xs text-ink-soft font-medium leading-relaxed">
-            Need to talk through these insights or find support? Reach out to our campus channels directly.
+        <Card elevation="sunken" padding="md" className="no-print space-y-4">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-plum-600">Connected Services</h4>
+          <p className="text-xs font-medium leading-relaxed text-ink-600">
+            Need to talk through these insights or find support?
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <button 
-              onClick={() => onComingSoonClick('talkmindly')}
-              className="cursor-pointer flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-extrabold text-sm transition active:scale-[.97]"
-            >
-              <span>💬 TalkMindly</span>
-            </button>
-            <button 
-              onClick={() => onComingSoonClick('sessionbooking')}
-              className="cursor-pointer flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-extrabold text-sm transition active:scale-[.97]"
-            >
-              <span>📅 Book a Session</span>
-            </button>
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+            <Button variant="outline" fullWidth onClick={() => onComingSoonClick('talkmindly')} leadingIcon={<MessageCircle />}>
+              TalkMindly
+            </Button>
+            <Button variant="outline" fullWidth onClick={() => onComingSoonClick('sessionbooking')} leadingIcon={<CalendarDays />}>
+              Book a session
+            </Button>
           </div>
-        </div>
+        </Card>
       )}
 
-      {/* Card buttons row */}
-      <div className="flex gap-3.5 flex-wrap mt-8 pt-4 border-t border-line/40 no-print">
-        <button 
-          onClick={onRetake} 
-          className="cursor-pointer px-6 py-3.5 rounded-full border-[1.5px] border-line text-ink-soft font-extrabold text-[14.5px] hover:bg-white transition active:scale-[.97] bg-transparent"
-        >
-          Take again
-        </button>
+      {/* Nav row */}
+      <div className="no-print mt-8 flex flex-wrap items-center justify-between gap-3.5 border-t border-line/40 pt-4">
+        <Button variant="outline" onClick={onRetake}>Take again</Button>
+        <Button variant="ghost" onClick={() => goTo('hub')} trailingIcon={<ArrowRight />}>
+          Explore more tests
+        </Button>
       </div>
+    </Card>
+  );
+}
 
-      {/* Back navigation buttons */}
-      <div className="flex gap-3.5 flex-wrap mt-2 justify-center no-print">
-        <button 
-          onClick={() => goTo('hub')} 
-          className="cursor-pointer text-sm font-extrabold text-plum hover:underline"
-        >
-          Explore More Tests &rarr;
-        </button>
-      </div>
-
-      {/* Print styles block */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-report-card, #printable-report-card * {
-            visibility: visible;
-          }
-          #printable-report-card {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            box-shadow: none !important;
-            border: none !important;
-            background: white !important;
-            color: black !important;
-            padding: 0 !important;
-            margin: 0 !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
-      `}</style>
+// ─── Layout Helper: Headline + Narrative ──────────────────────────
+/** The headline + narrative pair every result layout opens with. */
+function ResultHeadline({
+  headline,
+  narrative,
+  className,
+}: {
+  headline: React.ReactNode;
+  narrative: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <h2 className="font-display text-2xl font-medium leading-tight text-ink-900 sm:text-3xl">
+        {headline}
+      </h2>
+      <p className="mt-1 font-display text-lg font-medium leading-relaxed text-ink-600">
+        {narrative}
+      </p>
     </div>
   );
+}
+
+// ─── Layout Helper: Inset Ranking Panel ────────────────────────────
+/** The inset "here is how it broke down" panel. Five layouts render one. */
+function RankingPanel({
+  title,
+  ranked,
+  tone,
+  isWellbeing,
+}: {
+  title: string;
+  ranked: [string, number][];
+  tone: TestTone;
+  isWellbeing?: boolean;
+}) {
+  return (
+    <Card elevation="sunken" padding="md">
+      <p className="mb-4 border-b border-line/45 pb-2 text-xs font-bold uppercase tracking-widest text-ink-600">
+        {title}
+      </p>
+      <div className="flex flex-col gap-4">
+        {ranked.map(([label, value]) => (
+          <ProgressBar
+            key={label}
+            size="md"
+            value={value}
+            tone={dimTone(value, isWellbeing, tone)}
+            label={label}
+            valueText={isWellbeing ? frequencyLabel(value) : toneWord(value)}
+          />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * The wellbeing check-in colours its bars by severity, not by the test's own
+ * ramp: more of these days is a warmer bar. Every other test uses the ramp.
+ * Replaces the legacy 4-tier severity bar with design system tone ramps.
+ */
+function dimTone(value: number, isWellbeing: boolean | undefined, fallback: TestTone): TestTone {
+  if (!isWellbeing) return fallback;
+  if (value >= 75) return "coral";
+  if (value >= 55) return "rose";
+  if (value >= 35) return "gold";
+  return "sage";
 }
 
 // ─── Layout Helper: Svg Icons Share Card ──────────────────────────
-function ShareCard({ accent, children, cardRef }: { accent: string; children: React.ReactNode; cardRef: React.RefObject<HTMLDivElement | null> }) {
+function ShareCard({
+  accent,
+  accentTo,
+  children,
+  cardRef,
+}: {
+  accent: string;
+  accentTo?: string;
+  children: React.ReactNode;
+  cardRef: React.RefObject<HTMLDivElement | null>;
+}) {
   return (
-    <div 
-      ref={cardRef} 
-      className="rounded-[22px] p-8 text-white relative overflow-hidden shadow-xl"
-      style={{ background: `linear-gradient(135deg, ${accent}, ${shade(accent)})` }}
+    <div
+      ref={cardRef}
+      className="relative overflow-hidden rounded-2xl p-8 text-on-primary shadow-xl"
+      style={{ background: `linear-gradient(135deg, ${accent}, ${accentTo || accent})` }}
     >
-      <div 
-        className="absolute inset-0 pointer-events-none"
-        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='3' cy='3' r='1.5' fill='%23fff' opacity='.08'/%3E%3C/svg%3E")` }} 
-      />
-      <div className="relative z-[1]">{children}</div>
-    </div>
-  );
-}
-
-// ─── Layout Helper: Animated Bar ──────────────────────────────────
-function DimBar({ label, value, accent, delay, isPhq9 }: { label: string; value: number; accent: string; delay: number; isPhq9?: boolean }) {
-  const labelText = isPhq9
-    ? (value >= 75 ? 'Nearly every day' : value >= 55 ? 'More than half the days' : value >= 35 ? 'Several days' : 'Not at all')
-    : toneWord(value);
-    
-  const barColor = isPhq9
-    ? (value >= 75 ? 'var(--coral)' : value >= 55 ? 'var(--rose)' : value >= 35 ? 'var(--gold)' : 'var(--sage-brand)')
-    : accent;
-
-  return (
-    <div className="mb-4">
-      <div className="flex justify-between text-sm mb-1.5">
-        <b className="font-bold text-ink">{label}</b>
-        <span className="text-ink-soft text-[13px] font-semibold">{labelText}</span>
-      </div>
-      <div className="h-3 bg-paper-2 rounded-full overflow-hidden">
-        <motion.div 
-          className="h-full rounded-full" 
-          style={{ background: barColor }}
-          initial={{ width: 0 }} 
-          animate={{ width: `${value}%` }}
-          transition={{ duration: 0.7, delay, ease: [0.3, 0, 0.2, 1] }} 
-        />
-      </div>
+      {children}
     </div>
   );
 }
 
 // ─── Layout Helper: Insight Block ──────────────────────────────────
-function InsightBlock({ borderColor, label, text }: { borderColor: string; label: string; text: string }) {
+function InsightBlock({
+  borderColor,
+  label,
+  text,
+}: {
+  borderColor: string;
+  label: React.ReactNode;
+  text: React.ReactNode;
+}) {
   return (
-    <div className="border-l-[3px] bg-white/50 rounded-r-[14px] p-5 my-3 text-[14.5px] border-y border-r border-line shadow-sm text-ink-soft font-medium" style={{ borderColor }}>
-      <h4 className="text-xs tracking-wider uppercase text-ink font-extrabold mb-1" style={{ color: borderColor }}>{label}</h4>
+    <div
+      className="my-3 rounded-r-xl border-y border-r border-line border-l-3 bg-paper-2 p-5 text-sm font-medium text-ink-600 shadow-sm"
+      style={{ borderColor }}
+    >
+      <h4 className="mb-1 text-xs font-bold uppercase tracking-wider" style={{ color: borderColor }}>
+        {label}
+      </h4>
       {text}
     </div>
   );

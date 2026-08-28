@@ -1,4 +1,5 @@
-import React from "react";
+import { useId } from "react";
+import { cn } from "../../lib/cn";
 
 const L5: [string, number][] = [
   ["Strongly agree", 5], 
@@ -13,33 +14,41 @@ interface LikertModeProps {
   question: string;
   selected?: number;
   onPick: (v: number) => void;
-  accent: string;
   scale?: [string, number][];
 }
 
-export function LikertMode({ intro, question, selected, onPick, accent, scale }: LikertModeProps) {
+export function LikertMode({ intro, question, selected, onPick, scale }: LikertModeProps) {
+  const groupId = useId();
   const options = scale || L5;
   return (
     <div>
       <p className="text-ink-soft text-sm mb-4">{intro}</p>
-      <h3 className="font-serif font-medium text-[clamp(20px,4.4vw,28px)] leading-snug mb-5 text-ink">{question}</h3>
-      <div className="flex flex-col gap-2.5">
+      <h2 id={groupId} className="font-display font-medium text-xl sm:text-2xl leading-snug mb-5 text-ink-900">
+        {question}
+      </h2>
+      <div role="group" aria-labelledby={groupId} className="flex flex-col gap-2.5">
         {options.map(([label, val]) => (
-          <button 
-            key={val} 
+          <button
+            key={val}
+            type="button"
             onClick={() => onPick(val)}
-            className={`flex items-center gap-3.5 text-left border-[1.5px] rounded-[14px] px-5 py-4 transition-all text-[15px] font-semibold cursor-pointer
-              ${selected === val 
-                ? 'border-plum bg-plum/5 text-plum shadow-sm' 
-                : 'border-line bg-white hover:border-plum/60 hover:translate-x-1'}`}
-            style={{ '--accent': accent } as React.CSSProperties}
+            aria-pressed={selected === val}
+            className={cn(
+              "flex min-h-11 cursor-pointer items-center gap-3.5 rounded-xl border px-5 py-4 text-left text-sm font-semibold transition-colors",
+              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
+              selected === val
+                ? "border-plum-500 bg-plum-50 text-plum-700 shadow-sm"
+                : "border-line bg-card text-ink-800 hover:border-plum-300",
+            )}
           >
-            <span 
-              className={`w-[22px] h-[22px] rounded-full border-[2.5px] flex-shrink-0 transition-all
-                ${selected === val 
-                  ? 'border-plum bg-plum shadow-[inset_0_0_0_3.5px_#fff]' 
-                  : 'border-line'}`} 
-            />
+            <span
+              className={cn(
+                "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                selected === val ? "border-plum-500 bg-plum-500" : "border-ink-200",
+              )}
+            >
+              {selected === val && <span className="h-2 w-2 rounded-full bg-card" />}
+            </span>
             {label}
           </button>
         ))}

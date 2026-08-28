@@ -9,7 +9,7 @@ import { tween } from "../../lib/motion";
    equivalent - progress must never be conveyed by fill colour alone.
    ========================================================================= */
 
-export type ProgressTone = "primary" | "teal" | "coral" | "gold" | "sage" | "success";
+export type ProgressTone = "primary" | "teal" | "coral" | "gold" | "sage" | "rose" | "success";
 
 const FILL: Record<ProgressTone, string> = {
   primary: "bg-plum-500",
@@ -17,6 +17,7 @@ const FILL: Record<ProgressTone, string> = {
   coral: "bg-coral-500",
   gold: "bg-gold-500",
   sage: "bg-sage-500",
+  rose: "bg-rose-500",
   success: "bg-success",
 };
 
@@ -26,6 +27,7 @@ const STROKE: Record<ProgressTone, string> = {
   coral: "stroke-coral-500",
   gold: "stroke-gold-500",
   sage: "stroke-sage-500",
+  rose: "stroke-rose-500",
   success: "stroke-success",
 };
 
@@ -63,7 +65,7 @@ export function ProgressBar({
       )}
       <div
         role="progressbar"
-        aria-label={valueText ? undefined : label}
+        aria-label={label}
         aria-valuenow={Math.round(value)}
         aria-valuemin={0}
         aria-valuemax={max}

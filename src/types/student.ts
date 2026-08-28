@@ -13,6 +13,25 @@ export interface DailyCheckinRow {
   createdAt: string;
 }
 
+/** The AI feedback object stored inside the `classification` JSON column.
+    Mirror of `QuizFeedback` in backend/src/utils/ai.ts:33. `insights` is
+    optional here because rows written before that field existed omit it. */
+export interface QuizAiFeedback {
+  headline: string;
+  narrative: string;
+  tip: string;
+  insights?: string[];
+}
+
+/** Whatever the client posted at submit time. `quizzes.ts:232` falls back to
+    the whole request body, so nothing here is guaranteed - narrow at the read
+    site rather than trusting the type. */
+export interface StoredAnswers {
+  /** Per-question values, already normalised 0-100 when present. */
+  scores?: Record<string, number>;
+  [key: string]: unknown;
+}
+
 /** One completed quiz result, as the results timeline reports it. */
 export interface TimelinePoint {
   id: string;
@@ -22,8 +41,8 @@ export interface TimelinePoint {
   /** Already rounded 0–100 by the backend. */
   percentage: number;
   classification: string;
-  aiFeedback: string | null;
-  answers: Record<string, number> | null;
+  aiFeedback: QuizAiFeedback | null;
+  answers: StoredAnswers | null;
   quizTitle: string;
   quizCategory: string;
 }
@@ -32,8 +51,8 @@ export interface LatestResult {
   score: number;
   maxScore: number;
   classification: string;
-  aiFeedback: string | null;
-  answers: Record<string, number> | null;
+  aiFeedback: QuizAiFeedback | null;
+  answers: StoredAnswers | null;
   date: string;
   quizTitle: string;
 }

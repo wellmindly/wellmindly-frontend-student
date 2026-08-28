@@ -1,95 +1,96 @@
 import { motion } from "framer-motion";
-import { SvgIcon } from "./SvgIcon";
-import { TESTS, DISCOVER_TEST_ORDER, loadAll, shade } from "./types";
+import { Check } from "lucide-react";
+import { ActionCard, Badge, Chip, SectionHeader } from "../ui";
+import { staggerItem, staggerParent } from "../../lib/motion";
+import { DiscoverIcon } from "./DiscoverIcon";
+import { TESTS, DISCOVER_TEST_ORDER, loadAll } from "./types";
 
 interface HubViewProps {
   startTest: (id: string) => void;
   goTo: (v: 'hub' | 'test' | 'result' | 'results') => void;
+  /**
+   * Heading level for the hub's own title. `h1` on /discover, where this is
+   * the page's only heading; `h2` inside the dashboard, which renders its own
+   * <h2> above this component (DiscoverTab.tsx:85).
+   */
+  as?: "h1" | "h2";
 }
 
-export function HubView({ startTest, goTo }: HubViewProps) {
+export function HubView({ startTest, goTo, as = "h1" }: HubViewProps) {
   const all = loadAll();
   return (
-    <div className="pt-12 sm:pt-14 select-none">
-      <p className="text-xs font-bold tracking-[.13em] uppercase text-ember mb-3">Self-Discovery</p>
-      <h1 className="font-serif font-semibold text-[clamp(32px,6vw,52px)] leading-[1.02] tracking-tight text-ink">
-        Get to know <em className="text-plum font-semibold italic font-serif">yourself.</em>
-      </h1>
-      <p className="text-ink-soft text-base max-w-[54ch] mt-4 leading-relaxed font-medium">
-        Five quick self-discovery tests. Each takes about two minutes and hands back something worth keeping. Follow your curiosity, there's no wrong place to begin.
-      </p>
-      
-      <div className="flex gap-4 flex-wrap mt-5 text-[13px] text-ink-soft">
-        {['~2 minutes', 'Private to you', 'Never a diagnosis'].map(t => (
-          <b key={t} className="flex items-center gap-1.5 font-bold">
-            <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 stroke-plum fill-none" style={{ strokeWidth: 2.6 }}>
-              <path d="M5 12l4 4L19 7" />
-            </svg>
+    <div className="pt-12 sm:pt-14">
+      <SectionHeader
+        as={as}
+        eyebrow="Self-discovery"
+        title={<>Get to know <em className="italic text-plum-500">yourself.</em></>}
+        description="Five quick self-discovery tests. Each takes about two minutes and hands back something worth keeping. Follow your curiosity, there's no wrong place to begin."
+      />
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {["~2 minutes", "Private to you", "Never a diagnosis"].map((t) => (
+          <Badge key={t} tone="primary" size="md" icon={<Check />}>
             {t}
-          </b>
+          </Badge>
         ))}
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1.5 mt-8 mb-4 flex-wrap">
-        <button className="px-5 py-2 rounded-full text-[13.5px] font-extrabold bg-plum text-white border border-plum shadow-md shadow-plum/10 cursor-pointer">
-          All tests
-        </button>
-        <button 
-          onClick={() => goTo('results')} 
-          className="px-5 py-2 rounded-full text-[13.5px] font-extrabold text-ink-soft border-[1.5px] border-line hover:bg-white transition cursor-pointer"
-        >
-          My collection
-        </button>
+      <div className="mt-8 mb-4 flex flex-wrap gap-2">
+        <Chip selected onClick={() => goTo("hub")}>All tests</Chip>
+        <Chip onClick={() => goTo("results")}>My collection</Chip>
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-4">
-        {DISCOVER_TEST_ORDER.map((id, i) => {
-          const t = TESTS[id]; 
+      <motion.div
+        variants={staggerParent(0.06)}
+        initial="hidden"
+        animate="show"
+        className="mt-4 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {DISCOVER_TEST_ORDER.map((id) => {
+          const t = TESTS[id];
           if (!t) return null;
           const done = all[id]?.length;
           return (
-            <motion.button 
-              key={id} 
+            <ActionCard
+              key={id}
+              variants={staggerItem}
               onClick={() => startTest(id)}
-              className="text-left border border-line rounded-3xl bg-white overflow-hidden transition-shadow hover:shadow-[0_28px_50px_-28px_rgba(122,91,147,.25)] group relative cursor-pointer"
-              initial={{ opacity: 0, y: 20 }} 
-              animate={{ opacity: 1, y: 0 }} 
-              transition={{ delay: i * 0.07, duration: 0.45 }}
-              whileHover={{ y: -6 }}
+              padding="none"
+              className="group overflow-hidden"
             >
               {done ? (
-                <div className="absolute top-3.5 right-3.5 z-[3] flex items-center gap-1.5 bg-plum text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-sm">
-                  <SvgIcon name="check" className="w-3 h-3 stroke-white fill-none" /> Done
-                </div>
+                <Badge tone="primary" className="absolute right-3.5 top-3.5 z-[3]" icon={<Check />}>
+                  Done
+                </Badge>
               ) : null}
               {/* Banner */}
-              <div className="h-[82px] relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${t.accent}, ${shade(t.accent)})` }}>
+              <div className="h-[82px] relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentTo})` }}>
                 <svg className="absolute inset-0 w-full h-full opacity-[.08]" viewBox="0 0 200 80">
-                  <circle cx="160" cy="20" r="40" fill="#fff" />
-                  <circle cx="30" cy="60" r="25" fill="#fff" />
-                  <circle cx="100" cy="10" r="15" fill="#fff" />
+                  <circle cx="160" cy="20" r="40" fill="var(--color-on-primary)" />
+                  <circle cx="30" cy="60" r="25" fill="var(--color-on-primary)" />
+                  <circle cx="100" cy="10" r="15" fill="var(--color-on-primary)" />
                 </svg>
                 <div 
-                  className="absolute bottom-0 left-5 translate-y-[50%] w-[50px] h-[50px] rounded-[14px] flex items-center justify-center border-[3px] border-white z-[2] shadow-md"
-                  style={{ background: `linear-gradient(135deg, ${t.accent}, ${shade(t.accent)})` }}
+                  className="absolute bottom-0 left-5 translate-y-[50%] w-[50px] h-[50px] rounded-[14px] flex items-center justify-center border-3 border-card z-[2] shadow-md"
+                  style={{ background: `linear-gradient(135deg, ${t.accent}, ${t.accentTo})` }}
                 >
-                  <SvgIcon name={t.icon} className="w-6 h-6 stroke-white fill-none" />
+                  <DiscoverIcon name={t.icon} className="w-6 h-6 text-on-primary" />
                 </div>
               </div>
               {/* Body */}
               <div className="pt-8 pb-5 px-5">
-                <h3 className="font-serif text-[19px] font-extrabold mb-1.5 text-ink">{t.title}</h3>
-                <p className="text-ink-soft text-[13.5px] leading-snug mb-4 font-medium">{t.blurb}</p>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-paper-2 text-ink-soft">{t.tag || '~2 min'}</span>
+                <h3 className="font-display text-lg font-semibold mb-1.5 text-ink">{t.title}</h3>
+                <p className="text-ink-soft text-xs leading-snug mb-4 font-medium">{t.blurb}</p>
+                <Badge tone="neutral">{t.tag || "~2 min"}</Badge>
               </div>
-            </motion.button>
+            </ActionCard>
           );
         })}
-      </div>
+      </motion.div>
 
-      <div className="text-[12px] text-ink-soft bg-paper-2/60 rounded-2xl p-4.5 border border-line mt-8 leading-relaxed font-semibold">
+      <div className="text-2xs text-ink-soft bg-paper-2/60 rounded-2xl p-4.5 border border-line mt-8 leading-relaxed font-semibold">
         WellMindly is a non-clinical self-reflection &amp; self-discovery tool, not a medical or psychological assessment. It doesn't diagnose anything. If something feels heavy, talking to a counsellor or someone you trust can help.
       </div>
     </div>

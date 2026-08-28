@@ -1,10 +1,9 @@
 import { motion } from "framer-motion";
-import { Lock, Sparkles, Heart } from "lucide-react";
+import { Lock, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { TestDef } from "./types";
+import { Card, Button, Badge, SectionHeader } from "../ui";
 
 interface GatedResultViewProps {
-  cur: TestDef;
   curId: string;
   onBackClick: () => void;
 }
@@ -17,7 +16,7 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
     switch (id) {
       case "checkin":
         return {
-          header: "Emotional Snapshot Captured!",
+          header: "Emotional snapshot captured!",
           desc: "We've mapped your well-being snapshot across 6 dimensions. Your responses indicate a specific emotional posture today, but you need to log in to see the full detailed profile.",
           feature: "Emotional dimensions breakdown",
         };
@@ -30,7 +29,7 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
       case "strengths":
         return {
           header: "Signature strengths mapped!",
-          desc: "Your top 5 signature strengths have been calculated! You have a highly unique profile. Log in to reveal your signature strength cards and share them.",
+          desc: "Your top 5 signature strengths have been calculated! Log in to reveal your signature strength cards and share them.",
           feature: "Top 5 character strengths card",
         };
       case "bigfive":
@@ -53,7 +52,7 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
         };
       default:
         return {
-          header: "Self-Reflection Complete!",
+          header: "Self-reflection complete!",
           desc: "Your results are analyzed and ready to view. Sign in or create a free student account to unlock your full detailed report.",
           feature: "Personalized wellness insights",
         };
@@ -63,80 +62,38 @@ export function GatedResultView({ curId, onBackClick }: GatedResultViewProps) {
   const teaser = getTeaserInfo(curId);
 
   return (
-    <div className="bg-white border border-line rounded-3xl p-8 sm:p-10 shadow-[0_22px_50px_-22px_rgba(122,91,147,.2)] text-center relative overflow-hidden select-none">
-      
+    <Card padding="lg" elevation="floating" className="relative overflow-hidden text-center">
       {/* Decorative Aura Glow */}
-      <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-plum/5 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-12 -left-12 w-48 h-48 rounded-full bg-sage-brand/5 blur-3xl pointer-events-none" />
+      <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-plum-500/5 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-12 -left-12 h-48 w-48 rounded-full bg-sage-500/5 blur-3xl" />
 
       {/* Lock Icon Header */}
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-16 h-16 rounded-2xl bg-plum/10 text-plum flex items-center justify-center mx-auto mb-6 shadow-sm shadow-plum/5"
+        className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-plum-100 text-plum-600 shadow-sm"
       >
-        <Lock className="w-7 h-7" />
+        <Lock className="h-7 w-7" />
       </motion.div>
 
-      <h2 className="font-serif font-extrabold text-3xl mb-3 text-ink leading-tight">
-        {teaser.header}
-      </h2>
-      
-      <p className="text-ink-soft text-base leading-relaxed max-w-lg mx-auto font-medium mb-8">
-        {teaser.desc}
-      </p>
+      <SectionHeader align="center" as="h2" title={teaser.header} description={teaser.desc} />
 
-      {/* Blurred Card Mockup Teaser */}
-      <div className="relative border border-line/70 rounded-2xl p-6 bg-slate-50/50 max-w-sm mx-auto mb-8 overflow-hidden select-none">
-        
-        {/* Mock content */}
-        <div className="space-y-4 filter blur-[5px] opacity-45 pointer-events-none select-none">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-plum/30 flex items-center justify-center">
-              <Heart className="w-4 h-4 text-plum" />
-            </div>
-            <div className="h-4 w-32 bg-slate-300 rounded-md" />
-          </div>
-          
-          <div className="h-6 w-full bg-slate-300 rounded-md" />
-          <div className="h-24 w-full bg-plum/15 rounded-xl flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-plum/20" />
-          </div>
-          
-          <div className="space-y-2">
-            <div className="h-2 w-full bg-slate-200 rounded-md" />
-            <div className="h-2 w-[85%] bg-slate-200 rounded-md" />
-          </div>
-        </div>
-
-        {/* Lock Overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/40 backdrop-blur-[2px] p-6">
-          <span className="text-[11px] font-extrabold tracking-widest uppercase text-plum bg-white shadow border border-line px-3.5 py-1.5 rounded-full flex items-center gap-1.5 select-none">
-            <Sparkles className="w-3.5 h-3.5 fill-current animate-pulse" />
-            Unlocks with Account
-          </span>
-          <p className="text-xs text-ink/75 font-bold mt-2.5 max-w-[200px] leading-normal text-center">
-            Unlock your <b className="text-plum">{teaser.feature}</b> and save it forever.
-          </p>
-        </div>
-      </div>
+      <Card elevation="sunken" padding="md" className="mx-auto mt-8 max-w-sm">
+        <Badge tone="primary" icon={<Sparkles />}>Unlocks with Account</Badge>
+        <p className="mt-2.5 text-xs font-bold leading-normal text-ink-600">
+          Unlock your <b className="font-bold text-plum-700">{teaser.feature}</b>.
+        </p>
+      </Card>
 
       {/* Redirection CTAs */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 max-w-md mx-auto">
-        <button 
-          onClick={() => navigate(`/login?redirect=/discover&testId=${curId}`)}
-          className="cursor-pointer flex-1 bg-plum hover:bg-plum/90 text-white font-extrabold text-[14.5px] py-4 rounded-full transition-all active:scale-[.97] shadow-lg shadow-plum/20 border-none"
-        >
-          Sign Up / Sign In
-        </button>
-        <button 
-          onClick={onBackClick}
-          className="cursor-pointer flex-1 px-6 py-3 rounded-full border-[1.5px] border-line text-ink-soft font-extrabold text-[14.5px] hover:bg-slate-50 transition active:scale-[.97] bg-transparent"
-        >
+      <div className="mx-auto mt-8 flex max-w-md flex-col items-stretch gap-3 sm:flex-row sm:justify-center">
+        <Button onClick={() => navigate(`/login?redirect=/discover&testId=${curId}`)}>
+          Sign up / Sign in
+        </Button>
+        <Button variant="outline" onClick={onBackClick}>
           Back to all tests
-        </button>
+        </Button>
       </div>
-      
-    </div>
+    </Card>
   );
 }
