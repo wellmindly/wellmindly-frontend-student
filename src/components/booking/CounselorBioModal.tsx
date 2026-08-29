@@ -1,88 +1,110 @@
-import { Star } from 'lucide-react';
-import { Sheet } from '../ui/Sheet';
-import type { Counselor } from './types';
+import { Star } from "lucide-react";
+import { Sheet, Button } from "../ui";
+import type { Counselor } from "./types";
+
+/* ============================================================================
+   CounselorBioModal
+   ----------------------------------------------------------------------------
+   Everything the thin picker card leaves out. This is where a student actually
+   decides, so the choose action lives here rather than on the card.
+   ========================================================================= */
 
 export interface CounselorBioModalProps {
-  bioModalCounselor: Counselor | null;
+  counselor: Counselor | null;
+  /** True when this is already the chosen counselor. */
+  selected: boolean;
   onClose: () => void;
-  onSelectCounselor: (counselor: Counselor) => void;
+  onSelect: (counselor: Counselor) => void;
 }
 
 export function CounselorBioModal({
-  bioModalCounselor,
+  counselor,
+  selected,
   onClose,
-  onSelectCounselor,
+  onSelect,
 }: CounselorBioModalProps) {
   return (
     <Sheet
-      open={bioModalCounselor !== null}
+      open={counselor !== null}
       onClose={onClose}
-      title={bioModalCounselor?.name ?? ''}
+      title={counselor?.name ?? ""}
+      description={counselor?.credentials}
       size="md"
+      footer={
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="ghost" onClick={onClose}>
+            Back to list
+          </Button>
+          <Button
+            onClick={() => {
+              if (counselor) onSelect(counselor);
+              onClose();
+            }}
+            data-autofocus
+          >
+            {selected ? "Keep this counselor" : "Choose this counselor"}
+          </Button>
+        </div>
+      }
     >
-      {bioModalCounselor && (
+      {counselor && (
         <div className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-plum-500 to-plum-600 text-plum-50 font-bold text-2xl flex items-center justify-center shadow-md overflow-hidden shrink-0">
-              {bioModalCounselor.avatarUrl ? (
-                <img src={bioModalCounselor.avatarUrl} alt={bioModalCounselor.name} className="w-full h-full object-cover" />
+          <div className="flex items-center gap-4">
+            <span className="block h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-plum-100">
+              {counselor.avatarUrl ? (
+                <img src={counselor.avatarUrl} alt="" className="h-full w-full object-cover" />
               ) : (
-                bioModalCounselor.name[0]
-              )}
-            </div>
-            <div>
-              <p className="text-plum-600 text-xs font-semibold">{bioModalCounselor.credentials}</p>
-              {bioModalCounselor.totalReviews > 0 ? (
-                <div className="flex items-center space-x-1 mt-1 text-gold-500 text-xs font-bold">
-                  <Star className="w-3.5 h-3.5 fill-gold-400" />
-                  <span>{bioModalCounselor.averageRating}</span>
-                  <span className="text-ink-400 font-normal">
-                    ({bioModalCounselor.totalReviews} {bioModalCounselor.totalReviews === 1 ? 'review' : 'reviews'})
-                  </span>
-                </div>
-              ) : (
-                <p className="text-xs text-ink-500 font-medium mt-1">No reviews yet</p>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-ink-500 uppercase tracking-wider">Background and Bio</h4>
-            <p className="text-ink-700 text-sm leading-relaxed whitespace-pre-line bg-paper p-4 rounded-2xl border border-ink-100">
-              {bioModalCounselor.bio}
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-ink-500 uppercase tracking-wider">Areas of Expertise</h4>
-            <div className="flex flex-wrap gap-1.5">
-              {bioModalCounselor.specializations.map((spec, i) => (
-                <span key={i} className="px-3 py-1 bg-plum-50 text-plum-700 rounded-lg text-xs font-semibold border border-plum-100">
-                  {spec}
+                <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-plum-700">
+                  {counselor.name.trim()[0]?.toUpperCase() ?? "?"}
                 </span>
-              ))}
+              )}
+            </span>
+            <div className="min-w-0">
+              {counselor.totalReviews > 0 ? (
+                <p className="flex items-center gap-1 text-xs font-bold text-gold-600">
+                  <Star className="h-3.5 w-3.5 fill-gold-400" aria-hidden="true" />
+                  <span>{counselor.averageRating}</span>
+                  <span className="font-normal text-ink-500">
+                    ({counselor.totalReviews} {counselor.totalReviews === 1 ? "review" : "reviews"})
+                  </span>
+                </p>
+              ) : (
+                <p className="text-xs font-medium text-ink-500">No reviews yet</p>
+              )}
+              {selected && (
+                <p className="mt-1 text-2xs font-bold uppercase tracking-wide text-plum-700">
+                  Currently selected
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="pt-2 flex space-x-3">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 py-3 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-2xl text-xs transition-colors"
-            >
-              Close
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onSelectCounselor(bioModalCounselor);
-                onClose();
-              }}
-              className="flex-1 py-3 bg-plum-600 hover:bg-plum-700 text-plum-50 font-bold rounded-2xl text-xs shadow-lg shadow-plum-200 transition-colors"
-            >
-              Select This Counselor
-            </button>
-          </div>
+          {counselor.bio && (
+            <section className="space-y-2">
+              <h3 className="text-2xs font-bold uppercase tracking-wide text-ink-500">About</h3>
+              <p className="whitespace-pre-line rounded-2xl border border-ink-100 bg-paper p-4 text-sm leading-relaxed text-ink-700">
+                {counselor.bio}
+              </p>
+            </section>
+          )}
+
+          {counselor.specializations.length > 0 && (
+            <section className="space-y-2">
+              <h3 className="text-2xs font-bold uppercase tracking-wide text-ink-500">
+                Areas of expertise
+              </h3>
+              <ul className="flex flex-wrap gap-1.5">
+                {counselor.specializations.map((spec) => (
+                  <li
+                    key={spec}
+                    className="rounded-lg border border-plum-100 bg-plum-50 px-3 py-1 text-xs font-semibold text-plum-700"
+                  >
+                    {spec}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       )}
     </Sheet>

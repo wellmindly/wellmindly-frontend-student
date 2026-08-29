@@ -23,22 +23,23 @@ export function TalkRoomList({
   onSelectRoom,
 }: TalkRoomListProps) {
   return (
-    <div className="h-full bg-paper overflow-y-auto px-6 py-8">
-      <div className="max-w-2xl mx-auto space-y-8 text-left">
-        {/* Header Row */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-display font-semibold text-3xl text-ink-900">TalkRooms</h2>
+    <div className="h-full bg-paper overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
+      <div className="max-w-2xl mx-auto space-y-6 text-left sm:space-y-8">
+        {/* Header Row. Wraps rather than squeezing: at 375px the identity chip and
+            the heading cannot share a line, and forcing them to broke both. */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display font-semibold text-2xl text-ink-900 sm:text-3xl">TalkRooms</h2>
             <p className="text-ink-500 text-xs mt-1">Enter any slow, warm room below to read and drop reflections.</p>
           </div>
-          
+
           {/* Short Profile summary in Room List */}
           {profile && (
-            <div className="flex items-center gap-2 bg-card border border-ink-200/70 p-2.5 rounded-full px-4">
-              <span className="text-xl">{getAvatarEmoji(profile.talkAvatar || "panda")}</span>
+            <div className="flex shrink-0 items-center gap-2 rounded-full border border-ink-200/70 bg-card px-3 py-2">
+              <span className="text-xl leading-none">{getAvatarEmoji(profile.talkAvatar || "panda")}</span>
               <div className="text-left">
-                <div className="text-2xs text-ink-500 uppercase font-bold">Posting as</div>
-                <div className="text-xs font-bold text-ink-800">{profile.talkNickname}</div>
+                <div className="text-2xs text-ink-500 uppercase font-bold whitespace-nowrap">Posting as</div>
+                <div className="text-xs font-bold text-ink-800 whitespace-nowrap">{profile.talkNickname}</div>
               </div>
             </div>
           )}

@@ -17,6 +17,7 @@ import type { ReactNode } from "react";
 import { config } from "../../config";
 import { cn } from "../../lib/cn";
 import { spring, tween } from "../../lib/motion";
+import { useScrollTopOnChange } from "../../lib/a11y";
 import { Avatar, CrisisBanner, IconButton } from "../ui";
 import logoPng from "../../assets/logo.png";
 
@@ -35,6 +36,8 @@ type FeatureId = "writemindly" | "talkmindly" | "sessionbooking";
 interface MenuItem {
   id: string;
   label: string;
+  /** Bottom-bar label. Five items share 375px, so the full name does not fit. */
+  shortLabel?: string;
   icon: typeof LayoutDashboard;
 }
 
@@ -43,14 +46,16 @@ const menuItems: MenuItem[] = [
   { id: "overview", label: "Home", icon: LayoutDashboard },
   { id: "checkin", label: "Check-in", icon: Heart },
   { id: "assessments", label: "My results", icon: ClipboardList },
-  { id: "discover", label: "Explore quizzes", icon: BrainCircuit },
-  { id: "writemindly", label: "WriteMindly", icon: PenTool },
-  { id: "talkmindly", label: "TalkMindly", icon: MessageSquare },
-  { id: "sessionbooking", label: "Book a session", icon: Calendar },
+  { id: "discover", label: "Explore quizzes", shortLabel: "Quizzes", icon: BrainCircuit },
+  { id: "writemindly", label: "WriteMindly", shortLabel: "Write", icon: PenTool },
+  { id: "talkmindly", label: "TalkMindly", shortLabel: "Talk", icon: MessageSquare },
+  { id: "sessionbooking", label: "Book a session", shortLabel: "Sessions", icon: Calendar },
 ];
 
 // The five that live on the mobile bottom bar; the rest live in the drawer.
-const bottomNavIds = ["overview", "checkin", "discover", "writemindly", "talkmindly"];
+// Booking is a primary destination and belongs here; Check-in gave up the slot
+// because it is one tap from Home and stays in the drawer and sidebar.
+const bottomNavIds = ["overview", "discover", "writemindly", "talkmindly", "sessionbooking"];
 
 // Tabs that take over the whole viewport (their own immersive UI).
 const immersiveTabs = new Set(["talkmindly"]);
@@ -73,6 +78,11 @@ interface DashboardLayoutProps {
 export function DashboardLayout(props: DashboardLayoutProps) {
   const { activeTab, setActiveTab, onComingSoonClick, children } = props;
   const navigate = useNavigate();
+
+  // Switching tabs is a navigation even though the URL barely changes, so it
+  // starts at the top like one. The immersive shell is exempt below - its
+  // children scroll themselves and the window never moves.
+  useScrollTopOnChange(activeTab);
 
   const isComingSoon = (id: string) => id === "writemindly" && !config.enableWriteMindly;
 
@@ -318,8 +328,9 @@ export function DashboardLayout(props: DashboardLayoutProps) {
                 type="button"
                 onClick={() => handleNav(item.id)}
                 aria-current={isActive ? "page" : undefined}
+                aria-label={item.label}
                 className={cn(
-                  "active-press relative flex min-h-12 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-none bg-transparent px-1 py-1",
+                  "active-press relative flex min-h-12 min-w-0 flex-1 cursor-pointer flex-col items-center justify-center gap-0.5 rounded-2xl border-none bg-transparent px-0.5 py-1",
                   isActive ? "text-plum-700" : "text-ink-400",
                 )}
               >
@@ -333,7 +344,11 @@ export function DashboardLayout(props: DashboardLayoutProps) {
                   )}
                   <Icon className={cn("relative h-5 w-5", isActive && "scale-110")} />
                 </span>
-                <span className="text-2xs font-semibold leading-none">{item.label}</span>
+                {/* One line, always: a wrapping label made the bar uneven and pushed
+                    the icons out of alignment across the five items. */}
+                <span className="w-full truncate text-center text-2xs font-semibold leading-none">
+                  {item.shortLabel ?? item.label}
+                </span>
               </button>
             );
           })}

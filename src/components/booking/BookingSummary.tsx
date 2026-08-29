@@ -1,66 +1,79 @@
-import { CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
-import type { Slot, Counselor } from './types';
+import { AlertCircle, CalendarCheck, User } from "lucide-react";
+import { cn } from "../../lib/cn";
+import { Button } from "../ui";
+import type { Counselor, SlotOption } from "./types";
+
+/* ============================================================================
+   BookingSummary
+   ----------------------------------------------------------------------------
+   The last thing standing between a student and a booked session, so it stays
+   on screen: sticky above the mobile bottom nav, and it says who and when in
+   full rather than making them scroll back up to check.
+   ========================================================================= */
 
 export interface BookingSummaryProps {
-  selectedSlot: Slot | null;
-  selectedCounselor: Counselor | null;
-  counselors: Counselor[];
+  counselor: Counselor | null;
+  slot: SlotOption | null;
   bookingError: string | null;
-  confirmingBooking: boolean;
-  onBookSession: () => void;
+  submitting: boolean;
+  onSubmit: () => void;
   formatSessionDateTime: (isoString: string) => string;
 }
 
 export function BookingSummary({
-  selectedSlot,
-  selectedCounselor,
-  counselors,
+  counselor,
+  slot,
   bookingError,
-  confirmingBooking,
-  onBookSession,
+  submitting,
+  onSubmit,
   formatSessionDateTime,
 }: BookingSummaryProps) {
   return (
-    <>
-      {/* Selection Summary Box */}
-      {selectedSlot && (
-        <div className="bg-plum-50/80 border border-plum-200/80 p-4 rounded-2xl space-y-2 text-xs">
-          <div className="font-bold text-plum-900 flex items-center space-x-1.5">
-            <CheckCircle2 className="w-4 h-4 text-plum-600 shrink-0" />
-            <span>Booking Summary</span>
-          </div>
-          <div className="space-y-1 text-plum-900 font-medium">
-            <p>
-              Counselor:{' '}
-              <strong>
-                {selectedCounselor
-                  ? selectedCounselor.name
-                  : selectedSlot.counselorName || counselors.find((c) => c.id === selectedSlot.counselorId)?.name}
-              </strong>
-            </p>
-            <p>
-              Time: <strong>{formatSessionDateTime(selectedSlot.startTime)}</strong>
-            </p>
-          </div>
-        </div>
+    <div
+      className={cn(
+        "sticky z-[var(--z-sticky)] mt-5 rounded-2xl border border-ink-200/70 bg-card/95 px-4 py-3 shadow-lg backdrop-blur-md sm:px-5",
+        // Clears the mobile bottom nav; on lg the nav is a sidebar, so it doesn't.
+        "bottom-[calc(var(--bottom-nav-height)+var(--safe-area-bottom)+0.5rem)] lg:bottom-4",
       )}
-
+    >
       {bookingError && (
-        <div className="p-3.5 rounded-2xl bg-coral-50 border border-coral-200 text-coral-800 text-xs flex items-center space-x-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-coral-600" />
+        <div
+          role="alert"
+          className="mb-3 flex items-start gap-2 rounded-2xl border border-coral-200 bg-coral-50 p-3 text-xs text-coral-800"
+        >
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-coral-600" aria-hidden="true" />
           <span>{bookingError}</span>
         </div>
       )}
 
-      {/* Main Booking CTA */}
-      <button
-        disabled={!selectedSlot || confirmingBooking}
-        onClick={onBookSession}
-        className="w-full py-4 bg-ink-900 hover:bg-ink-800 text-ink-50 font-bold text-sm rounded-2xl shadow-xl transition-all disabled:opacity-40 disabled:shadow-none flex items-center justify-center space-x-2"
-      >
-        <span>{confirmingBooking ? 'Booking Session...' : 'Confirm and Book Session'}</span>
-        <ArrowRight className="w-4 h-4" />
-      </button>
-    </>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <dl className="min-w-0 space-y-0.5 text-xs">
+          <div className="flex items-center gap-1.5">
+            <CalendarCheck className="h-3.5 w-3.5 shrink-0 text-plum-600" aria-hidden="true" />
+            <dt className="sr-only">Time</dt>
+            <dd className="min-w-0 truncate font-semibold text-ink-900">
+              {slot ? formatSessionDateTime(slot.startTime) : "No time picked yet"}
+            </dd>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <User className="h-3.5 w-3.5 shrink-0 text-plum-600" aria-hidden="true" />
+            <dt className="sr-only">Counselor</dt>
+            <dd className="min-w-0 truncate text-ink-600">
+              {counselor ? counselor.name : "Pick someone below"}
+            </dd>
+          </div>
+        </dl>
+
+        <Button
+          onClick={onSubmit}
+          disabled={!counselor || !slot}
+          loading={submitting}
+          loadingLabel="Booking your session"
+          className="w-full sm:w-auto"
+        >
+          Submit and book
+        </Button>
+      </div>
+    </div>
   );
 }

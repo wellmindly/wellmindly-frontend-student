@@ -19,6 +19,20 @@ export interface Slot {
   availableCount?: number;
 }
 
+/**
+ * One bookable time on the chosen date, collapsed across counselors.
+ *
+ * The API answers per counselor, but the student picks a *time* first and a
+ * person second - so everyone who is free at that exact time travels with the
+ * option, and step two just maps these ids back to counselors.
+ */
+export interface SlotOption {
+  startTime: string;
+  endTime: string;
+  /** Counselors with this slot free. Empty means the time exists but is taken. */
+  counselorIds: string[];
+}
+
 export interface BookedSession {
   id: string;
   status: string;

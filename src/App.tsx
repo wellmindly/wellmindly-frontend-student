@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppSplash } from "./components/AppSplash";
 import { ToastProvider } from "./components/ui";
+import { useScrollTopOnChange } from "./lib/a11y";
 
 /* ----------------------------------------------------------------------------
    Route-level code splitting.
@@ -62,6 +63,19 @@ function DiscoverRoute() {
   return <DiscoverPage />;
 }
 
+/**
+ * Every route change starts at the top of the new page. Without this, react-router
+ * keeps the window's scroll offset across navigations, so following a footer link
+ * lands you halfway down the next page. `useScrollTopOnChange` reads the
+ * reduced-motion preference, so this is smooth for most people and instant for
+ * anyone who asked for less movement.
+ */
+function ScrollToTopOnNavigate() {
+  const { pathname } = useLocation();
+  useScrollTopOnChange(pathname);
+  return null;
+}
+
 function LoginRoute() {
   const { user, isLoading } = useAuth();
   const location = useLocation();
@@ -95,6 +109,7 @@ function App() {
       <MotionConfig reducedMotion="user">
         <ToastProvider>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <ScrollToTopOnNavigate />
             <Suspense fallback={<AppSplash />}>
               <Routes>
                 <Route path="/" element={<LandingPage />} />

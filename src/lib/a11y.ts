@@ -226,12 +226,43 @@ export function scrollToElement(
   options?: ScrollIntoViewOptions,
 ) {
   if (!el) return;
-  const reduced =
-    typeof window !== "undefined" &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   el.scrollIntoView({
-    behavior: reduced ? "auto" : "smooth",
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
     ...options,
   });
 }
+
+/** Single place that reads the media query, so no caller can forget to. */
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+}
+
+/**
+ * Send the window back to the top, smoothly unless the user asked for less motion.
+ * Same caveat as `scrollToElement`: a programmatic smooth scroll ignores the
+ * stylesheet's `scroll-behavior` override, so the preference is read here.
+ */
+export function scrollToTop() {
+  if (typeof window === "undefined") return;
+  window.scrollTo({ top: 0, left: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+}
+
+/**
+ * Return to the top whenever `key` changes - a route path, a dashboard tab, a
+ * step in a flow. Skips the first run so landing deep in a page (or on a hash
+ * link) is not yanked upward.
+ */
+export function useScrollTopOnChange(key: unknown) {
+  const previous = useRef(key);
+  useEffect(() => {
+    if (previous.current === key) return;
+    previous.current = key;
+    scrollToTop();
+  }, [key]);
+}
+
 

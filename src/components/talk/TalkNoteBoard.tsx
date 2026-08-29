@@ -44,52 +44,66 @@ export function TalkNoteBoard({
 }: TalkNoteBoardProps) {
   return (
     <div className="h-full bg-paper flex flex-col">
-      {/* Sticky Room Subheader with controls */}
-      <div className="bg-paper border-b border-ink-200/70 px-6 py-4 shrink-0 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      {/* Room subheader. The title row and the sort control stack below `sm`: sharing
+          one line at 375px pushed the Recent/Interactive toggle off the right edge. */}
+      <div className="shrink-0 border-b border-ink-200/70 bg-paper px-4 py-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+        <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
             aria-label="Back to rooms"
             onClick={onBackToRooms}
-            className="p-2 hover:bg-ink-100 border border-ink-200/70 rounded-xl text-ink-500 hover:text-ink-900 cursor-pointer"
+            className="shrink-0 p-2 hover:bg-ink-100 border border-ink-200/70 rounded-xl text-ink-500 hover:text-ink-900 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           </button>
-          <div className="text-left">
-            <h3 className="font-display font-semibold text-ink-900 text-lg leading-tight">{selectedRoom?.name}</h3>
-            <p className="text-2xs text-ink-500 mt-0.5 truncate max-w-[200px] sm:max-w-md">
-              {selectedRoom?.description}
-            </p>
+          <div className="min-w-0 text-left">
+            <h3 className="font-display font-semibold text-ink-900 text-base leading-tight sm:text-lg">
+              {selectedRoom?.name}
+            </h3>
+            <p className="text-2xs text-ink-500 mt-0.5 truncate">{selectedRoom?.description}</p>
           </div>
         </div>
 
-        {/* Sorting Toggles */}
-        <SegmentedControl<"recent" | "interactive">
-          label="Sort notes"
-          size="sm"
-          value={sortOrder}
-          onChange={setSortOrder}
-          options={[
-            { value: "recent", label: "Recent" },
-            { value: "interactive", label: "Interactive" },
-          ]}
-        />
+        {/* Sorting Toggles - full width on its own row on mobile, inline from sm up. */}
+        <div className="mt-3 sm:mt-0 sm:shrink-0">
+          <SegmentedControl<"recent" | "interactive">
+            label="Sort notes"
+            size="sm"
+            value={sortOrder}
+            onChange={setSortOrder}
+            options={[
+              { value: "recent", label: "Recent" },
+              { value: "interactive", label: "Interactive" },
+            ]}
+          />
+        </div>
       </div>
 
-      {/* Main Grid notes area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
+      {/* Main Grid notes area. The tail padding clears the extended FAB, which floats
+          over this scroller - without it the last note sits under the button. */}
+      <div className="flex-1 overflow-y-auto px-4 py-5 pb-28 sm:px-6 sm:py-6 sm:pb-28">
         <div className="max-w-2xl mx-auto">
           {loadingNotes ? (
             <div className="flex justify-center py-20">
               <Loader2 className="w-8 h-8 text-plum-600 animate-spin" />
             </div>
           ) : notes.length === 0 ? (
-            <div className="bg-card border border-ink-200/70 p-12 text-center rounded-3xl shadow-sm">
+            <div className="bg-card border border-ink-200/70 p-8 text-center rounded-3xl shadow-sm sm:p-12">
               <MessageSquare className="w-12 h-12 text-ink-400 mx-auto mb-4" aria-hidden="true" />
               <h4 className="font-display font-semibold text-ink-900 text-lg">Quiet in here right now</h4>
               <p className="text-ink-500 text-xs mt-2 max-w-sm mx-auto leading-relaxed">
                 No notes dropped yet. Write something out to warm up the wall for classmates.
               </p>
+              {/* An empty board with only a floating icon gave no clue that writing was
+                  possible. This is the same action, spelled out where the eye already is. */}
+              <button
+                type="button"
+                onClick={onOpenDropNote}
+                className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-plum-500 px-5 text-sm font-bold text-plum-50 transition-colors hover:bg-plum-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 cursor-pointer border-none"
+              >
+                <PenLine className="h-4 w-4" aria-hidden="true" />
+                Drop the first note
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4">
@@ -242,16 +256,20 @@ export function TalkNoteBoard({
         </div>
       </div>
 
-      {/* Floating Action Button (FAB) to write note */}
-      <div className="fixed bottom-6 right-6 z-30">
-        <button
+      {/* Extended FAB. A bare 56px circle with a pen glyph read as decoration - nothing
+          on it said "you can write here". The label is always visible, and the button
+          sits above the home-indicator inset so it is reachable on a notched phone. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1.25rem+var(--safe-area-bottom))] z-[var(--z-nav)] flex justify-end px-4 sm:px-6">
+        <motion.button
           type="button"
-          aria-label="Write a note"
           onClick={onOpenDropNote}
-          className="h-14 w-14 rounded-full bg-plum-500 text-plum-50 shadow-lg hover:bg-plum-hover transition-all flex items-center justify-center scale-100 hover:scale-105 active:scale-95 cursor-pointer border-none"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="pointer-events-auto inline-flex min-h-14 items-center gap-2.5 rounded-full bg-plum-500 pl-5 pr-6 text-sm font-bold text-plum-50 shadow-lg transition-colors hover:bg-plum-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 cursor-pointer border-none"
         >
-          <PenLine className="w-6 h-6" aria-hidden="true" />
-        </button>
+          <PenLine className="h-5 w-5 shrink-0" aria-hidden="true" />
+          Drop a note
+        </motion.button>
       </div>
     </div>
   );
