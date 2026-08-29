@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 import type { TalkRoom, TalkNote, TalkProfile } from "../talk/types";
 import { ADJECTIVES, containsProfanity } from "../talk/types";
 import { TalkTermsScreen, TalkProfileScreen } from "../talk/TalkOnboarding";
@@ -182,7 +182,7 @@ export function TalkMindlyTab() {
       }
     } catch (err: any) {
       console.error("Failed to save talk profile:", err);
-      setProfileError(err.response?.data?.error || "Nickname might already be in use. Try rolling another.");
+      setProfileError(apiErrorMessage(err, "Nickname might already be in use. Try rolling another."));
     } finally {
       setSavingProfile(false);
     }

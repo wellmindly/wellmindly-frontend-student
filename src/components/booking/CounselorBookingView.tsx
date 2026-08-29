@@ -14,7 +14,7 @@ import { SessionFeedbackModal } from "./SessionFeedbackModal";
 import { Button, ConfirmSheet, SegmentedControl, StepDots, Skeleton } from "../ui";
 import { useScrollTopOnChange } from "../../lib/a11y";
 import { dayKey } from "../../lib/format";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 
 /* ============================================================================
    CounselorBookingView
@@ -303,9 +303,7 @@ export function CounselorBookingView() {
       }
     } catch (err: any) {
       setBookingError(
-        err.response?.data?.error?.message ||
-          err.response?.data?.error ||
-          "Failed to book session. Please try another slot.",
+        apiErrorMessage(err, "Failed to book session. Please try another slot."),
       );
     } finally {
       setSubmitting(false);
@@ -330,7 +328,7 @@ export function CounselorBookingView() {
       handleCloseFeedback();
       fetchMySessions();
     } catch (err: any) {
-      setFeedbackError(err.response?.data?.error || "Failed to submit feedback. Please try again.");
+      setFeedbackError(apiErrorMessage(err, "Failed to submit feedback. Please try again."));
     } finally {
       setSubmittingFeedback(false);
     }

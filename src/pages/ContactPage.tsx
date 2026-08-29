@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import api, { apiErrorMessage } from "../services/api";
 import { Mail, MessageSquare, Send, Check, AlertTriangle, Phone, Globe } from "lucide-react";
 import { Input, Textarea, Button, SocialLinks } from "../components/ui";
 
@@ -56,9 +56,10 @@ export function ContactPage() {
       console.error("General contact submit failed:", error);
       setStatus({
         type: "error",
-        message:
-          error.response?.data?.error ||
+        message: apiErrorMessage(
+          error,
           "Connection failed. Please check your network and try again.",
+        ),
       });
       statusRef.current?.focus();
     } finally {

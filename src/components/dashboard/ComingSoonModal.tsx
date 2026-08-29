@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Mail, Check, NotebookPen } from "lucide-react";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 import { Sheet, Input, Button } from "../ui";
 
 interface ComingSoonModalProps {
@@ -54,7 +54,7 @@ export function ComingSoonModal({ show, onClose, feature }: ComingSoonModalProps
       setEmail("");
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.error || "Failed to join waitlist. Please try again.");
+      setError(apiErrorMessage(err, "Failed to join waitlist. Please try again."));
     } finally {
       setSubmitting(false);
     }

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
 import { useNavigate } from "react-router-dom";
-import api from "../services/api";
+import api, { apiErrorMessage } from "../services/api";
 import { UserPlus, Award, Heart, Send, Check, AlertTriangle } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Input, Textarea } from "../components/ui/Field";
@@ -56,7 +56,7 @@ export function CounselorsPage() {
       console.error("Counselor contact submit failed:", error);
       setStatus({
         type: "error",
-        message: error.response?.data?.error || "Connection failed. Please check your network and try again.",
+        message: apiErrorMessage(error, "Connection failed. Please check your network and try again."),
       });
     } finally {
       setLoading(false);

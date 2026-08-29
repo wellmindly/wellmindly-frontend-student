@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Send, Check, AlertTriangle } from "lucide-react";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 import { Input, Textarea } from "../ui";
 import { Button } from "../ui";
 
@@ -50,9 +50,10 @@ export function UniversityOnboardingForm() {
       console.error("University contact submit failed:", error);
       setStatus({
         type: "error",
-        message:
-          error.response?.data?.error ||
+        message: apiErrorMessage(
+          error,
           "Connection failed. Please check your network and try again.",
+        ),
       });
       statusRef.current?.focus();
     } finally {
