@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Shield, Check, MessageCircleQuestion, MessagesSquare, Sparkles } from "lucide-react";
@@ -9,6 +9,7 @@ import { MoodFace } from "../ui/MoodFace";
 import { buttonClasses, Badge } from "../ui";
 import { cn } from "../../lib/cn";
 import { scrollToElement } from "../../lib/a11y";
+import api from "../../services/api";
 import studentPortraitClean from "../../assets/student_portrait_clean.webp";
 
 interface HeroSectionProps {
@@ -24,9 +25,55 @@ export function HeroSection({
 }: HeroSectionProps) {
   const { isAuthenticated } = useAuth();
   const [selectedMood, setSelectedMood] = useState<MoodRating | null>(null);
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  /** Taps are cheap and students change their mind mid-scale, so only the most
+   *  recent request is allowed to decide what the footer says. */
+  const tapSeq = useRef(0);
+
+  // A student who is signed in and already checked in today should not be asked
+  // as though they hadn't. Read the same endpoint the dashboard reads.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    api
+      .get("/students/me/daily-checkin")
+      .then((res) => {
+        const existing = res.data?.checkin;
+        // A tap that landed first wins - don't overwrite it with server state.
+        if (cancelled || tapSeq.current !== 0 || typeof existing !== "number") return;
+        setSelectedMood(existing as MoodRating);
+        setSaveState("saved");
+      })
+      .catch(() => {
+        // The widget still works without it; nothing worth alarming anyone over.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated]);
 
   const handleMoodTap = (rating: MoodRating) => {
-    setSelectedMood((prev) => (prev === rating ? null : rating));
+    const next = selectedMood === rating ? null : rating;
+    setSelectedMood(next);
+
+    const seq = ++tapSeq.current;
+    if (!isAuthenticated || next === null) {
+      setSaveState("idle");
+      return;
+    }
+
+    setSaveState("saving");
+    // Same route as the dashboard check-in. It updates today's row instead of
+    // inserting another, so re-tapping corrects the mood rather than stacking.
+    api
+      .post("/students/me/daily-checkin", { rating: next })
+      .then(() => {
+        if (seq === tapSeq.current) setSaveState("saved");
+      })
+      .catch((err) => {
+        console.error("Failed to save mood from the landing hero:", err);
+        if (seq === tapSeq.current) setSaveState("error");
+      });
   };
 
   const handleBubble = (bubbleId: "writemindly" | "talkmindly" | "blueprints") => {
@@ -147,13 +194,37 @@ export function HeroSection({
                     </p>
                   </div>
                 </div>
-                <p className="text-2xs text-ink-500 mt-3 pt-2.5 border-t border-ink-200/50">
-                  Nothing saved yet.{" "}
-                  <Link to="/login" className="font-semibold text-plum-700 underline hover:text-plum-900">
-                    Sign in
-                  </Link>{" "}
-                  to save your mood and watch it over time.
-                </p>
+                {isAuthenticated ? (
+                  <p
+                    className="text-2xs text-ink-500 mt-3 pt-2.5 border-t border-ink-200/50"
+                    aria-live="polite"
+                  >
+                    {saveState === "error" ? (
+                      "We couldn't save that just now. You can check in again from your dashboard."
+                    ) : saveState === "saved" ? (
+                      <>
+                        Saved to today's check-in.{" "}
+                        <Link
+                          to="/dashboard"
+                          className="font-semibold text-plum-700 underline hover:text-plum-900"
+                        >
+                          See it on your dashboard
+                        </Link>
+                        .
+                      </>
+                    ) : (
+                      "Saving this to today's check-in…"
+                    )}
+                  </p>
+                ) : (
+                  <p className="text-2xs text-ink-500 mt-3 pt-2.5 border-t border-ink-200/50">
+                    Nothing saved yet.{" "}
+                    <Link to="/login" className="font-semibold text-plum-700 underline hover:text-plum-900">
+                      Sign in
+                    </Link>{" "}
+                    to save your mood and watch it over time.
+                  </p>
+                )}
               </div>
             )}
           </div>

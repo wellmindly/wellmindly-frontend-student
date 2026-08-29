@@ -80,6 +80,12 @@ export function LandingPage() {
  
   const handleCrisisClick = () => navigate("/crisis");
   const handleCheckInClick = () => {
+    // Signed in, so use the check-in that actually reaches their account: the
+    // public /discover flow only ever writes results to localStorage.
+    if (isAuthenticated) {
+      navigate("/dashboard?tab=checkin");
+      return;
+    }
     sessionStorage.setItem("last_test_started", "checkin");
     navigate("/discover?start=checkin");
   };
@@ -107,9 +113,32 @@ export function LandingPage() {
     }
   };
  
+  /**
+   * Where "See availability" actually goes: the real booking flow in the
+   * dashboard, narrowed to that coach when the directory gave us their id.
+   * `/contacts/coaches` and `/v1/students/counselors` both key on
+   * `counselorProfile.id`, so the id travels between the two screens.
+   */
+  const bookingPathFor = (coach: CoachItem | null) =>
+    coach?.id
+      ? `/dashboard?tab=sessionbooking&counselor=${encodeURIComponent(coach.id)}`
+      : "/dashboard?tab=sessionbooking";
+
+  const handleSelectCoach = (coach: CoachItem) => {
+    // Signed in, so there is no reason to show example times behind a sign-in
+    // wall - send them to the coach's real availability.
+    if (isAuthenticated) {
+      navigate(bookingPathFor(coach));
+      return;
+    }
+    setSelectedCoach(coach);
+    setSelectedSlot(null);
+  };
+
+  // Only reachable while signed out: signed-in students never open the preview.
   const confirmBooking = () => {
     if (!selectedCoach || selectedSlot === null) return;
-    navigate(`/login?redirect=${encodeURIComponent("/dashboard?tab=sessionbooking")}`);
+    navigate(`/login?redirect=${encodeURIComponent(bookingPathFor(selectedCoach))}`);
   };
 
   return (
@@ -165,10 +194,7 @@ export function LandingPage() {
             loading={loadingCoaches}
             error={coachesError}
             onRetry={fetchCoaches}
-            onSelectCoach={(coach) => {
-              setSelectedCoach(coach);
-              setSelectedSlot(null);
-            }}
+            onSelectCoach={handleSelectCoach}
           />
 
           {/* Institutional Trust Section */}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, Clock, Globe, ShieldCheck, Users } from "lucide-react";
 import type { Counselor, Slot, SlotOption, BookedSession } from "./types";
 import { CounselorFilter } from "./CounselorFilter";
@@ -31,6 +32,10 @@ import api from "../../services/api";
    ========================================================================= */
 
 export function CounselorBookingView() {
+  const [searchParams] = useSearchParams();
+  /** Set when the student came from a coach card on the landing page. */
+  const requestedCounselorId = searchParams.get("counselor");
+
   const [activeTab, setActiveTab] = useState<"book" | "my-sessions">("book");
   const [step, setStep] = useState<1 | 2>(1);
 
@@ -97,11 +102,18 @@ export function CounselorBookingView() {
     api
       .get("/v1/students/counselors")
       .then((res) => {
-        if (res.data.success) setCounselors(res.data.data);
+        if (!res.data.success) return;
+        const list: Counselor[] = res.data.data;
+        setCounselors(list);
+        // Honour a coach deep link only if that coach is really in the
+        // directory - a stale id should show everyone, never nobody.
+        if (requestedCounselorId && list.some((c) => c.id === requestedCounselorId)) {
+          setFilterIds([requestedCounselorId]);
+        }
       })
       .catch((err) => console.error("Failed to load counselors:", err))
       .finally(() => setLoadingCounselors(false));
-  }, []);
+  }, [requestedCounselorId]);
 
   // One request per date, never per counselor: the response already carries
   // every counselor's slots, and the filter is a view over that same payload.
