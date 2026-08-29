@@ -63,8 +63,13 @@ export function TalkMindlyTab() {
     try {
       setLoadingProfile(true);
       const response = await api.get("/talk/profile");
-      if (response.data && response.data.profile) {
-        const prof = response.data.profile;
+      // GET /talk/profile responds with the profile fields at the top level, not
+      // wrapped in { profile }. Reading only the wrapped shape meant `prof` was
+      // always undefined: nothing was stored, and because `activeScreen` is
+      // initialised to "room-list" the student landed on a room list whose
+      // fetchRooms() had never run - an empty board with no failed request behind it.
+      const prof: TalkProfile | null = response.data?.profile ?? response.data ?? null;
+      if (prof) {
         setProfile(prof);
 
         if (!prof.talkTermsAccepted) {
@@ -76,6 +81,8 @@ export function TalkMindlyTab() {
           setActiveScreen("room-list");
           fetchRooms();
         }
+      } else {
+        setActiveScreen("onboarding-terms");
       }
     } catch (err) {
       console.error("Failed to load talk profile:", err);
@@ -97,8 +104,9 @@ export function TalkMindlyTab() {
         : response.data?.rooms || [];
       setRooms(roomList);
       if (roomList.length > 0) {
+        // Selecting the room is enough: the [selectedRoom, sortOrder] effect below
+        // issues the notes request, so calling fetchNotes here too would double it.
         setSelectedRoom(roomList[0]);
-        fetchNotes(roomList[0].id);
       }
     } catch (err) {
       console.error("Failed to load rooms:", err);
@@ -156,15 +164,19 @@ export function TalkMindlyTab() {
     try {
       setSavingProfile(true);
       setProfileError("");
+      // The route reads nickname/avatar/bio/acceptTerms. Posting talkNickname &co.
+      // sent it four fields it ignores, so the save was accepted as a no-op and the
+      // student never got past onboarding.
       const response = await api.post("/talk/profile", {
-        talkNickname: nicknameInput.trim(),
-        talkAvatar: avatarInput,
-        talkBio: bioInput.trim() || undefined,
-        talkTermsAccepted: true,
+        nickname: nicknameInput.trim(),
+        avatar: avatarInput,
+        bio: bioInput.trim() || undefined,
+        acceptTerms: true,
       });
 
-      if (response.data && response.data.profile) {
-        setProfile(response.data.profile);
+      const saved: TalkProfile | null = response.data?.profile ?? response.data ?? null;
+      if (saved) {
+        setProfile(saved);
         setActiveScreen("room-list");
         fetchRooms();
       }
@@ -257,9 +269,8 @@ export function TalkMindlyTab() {
 
       setReplyContent("");
       const fresh = await api.get(`/talk/rooms/${selectedRoom.id}/notes?sort=${sortOrder}`);
-      if (fresh.data && fresh.data.notes) {
-        setNotes(fresh.data.notes);
-      }
+      const freshNotes = Array.isArray(fresh.data) ? fresh.data : fresh.data?.notes || [];
+      setNotes(freshNotes);
     } catch (err: any) {
       console.error("Failed to post reply:", err);
     } finally {
@@ -268,47 +279,41 @@ export function TalkMindlyTab() {
   };
 
   const handleReact = async (noteId: string, type: string) => {
+    // The route answers { status: "added" | "removed" } and sends no reaction list back,
+    // so this optimistic update is the only version of the count on screen. Keep the
+    // pre-toggle notes and restore them if the write fails, rather than showing a
+    // reaction the server never stored.
+    const snapshot = notes;
+
+    setNotes((prevNotes) =>
+      prevNotes.map((note) => {
+        if (note.id !== noteId) return note;
+
+        const existingIdx = note.reactions.findIndex((r) => r.isMine && r.type === type);
+        const newReactions = [...note.reactions];
+        let newMeTooCount = note.meTooCount;
+
+        if (existingIdx >= 0) {
+          newReactions.splice(existingIdx, 1);
+          if (type === "METOO") newMeTooCount = Math.max(0, newMeTooCount - 1);
+        } else {
+          newReactions.push({ id: "temp-" + Date.now(), isMine: true, type });
+          if (type === "METOO") newMeTooCount += 1;
+        }
+
+        return {
+          ...note,
+          reactions: newReactions,
+          meTooCount: newMeTooCount,
+        };
+      })
+    );
+
     try {
-      setNotes((prevNotes) =>
-        prevNotes.map((note) => {
-          if (note.id !== noteId) return note;
-
-          const existingIdx = note.reactions.findIndex((r) => r.isMine && r.type === type);
-          let newReactions = [...note.reactions];
-          let newMeTooCount = note.meTooCount;
-
-          if (existingIdx >= 0) {
-            newReactions.splice(existingIdx, 1);
-            if (type === "METOO") newMeTooCount = Math.max(0, newMeTooCount - 1);
-          } else {
-            newReactions.push({ id: "temp-" + Date.now(), isMine: true, type });
-            if (type === "METOO") newMeTooCount += 1;
-          }
-
-          return {
-            ...note,
-            reactions: newReactions,
-            meTooCount: newMeTooCount,
-          };
-        })
-      );
-
-      const response = await api.post(`/talk/notes/${noteId}/react`, { type });
-      if (response.data && response.data.reactions) {
-        setNotes((prev) =>
-          prev.map((n) =>
-            n.id === noteId
-              ? {
-                  ...n,
-                  reactions: response.data.reactions,
-                  meTooCount: response.data.reactions.filter((r: any) => r.type === "METOO").length,
-                }
-              : n
-          )
-        );
-      }
+      await api.post(`/talk/notes/${noteId}/react`, { type });
     } catch (err) {
       console.error("Failed to send reaction:", err);
+      setNotes(snapshot);
     }
   };
 
