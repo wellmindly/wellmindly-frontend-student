@@ -52,7 +52,9 @@ export function TalkNoteBoard({
             type="button"
             aria-label="Back to rooms"
             onClick={onBackToRooms}
-            className="shrink-0 p-2 hover:bg-ink-100 border border-ink-200/70 rounded-xl text-ink-500 hover:text-ink-900 cursor-pointer"
+            // This is the only way back to the room list, and p-2 around a
+            // 16px icon measured 34x34 at 375. Sized to the 44px target.
+            className="flex min-h-11 min-w-11 shrink-0 items-center justify-center hover:bg-ink-100 border border-ink-200/70 rounded-xl text-ink-500 hover:text-ink-900 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -68,7 +70,6 @@ export function TalkNoteBoard({
         <div className="mt-3 sm:mt-0 sm:shrink-0">
           <SegmentedControl<"recent" | "interactive">
             label="Sort notes"
-            size="sm"
             value={sortOrder}
             onChange={setSortOrder}
             options={[
@@ -164,13 +165,17 @@ export function TalkNoteBoard({
                           </div>
                         </div>
 
+                        {/* Delete and Report sit next to each other and do very
+                            different things, so at 26x26 (p-1.5 around a 14px
+                            icon) a mis-tap on mobile was cheap. Both are 44px
+                            targets now; the icons themselves are unchanged. */}
                         <div className="flex gap-1">
                           {note.isMine && (
                             <button
                               type="button"
                               aria-label="Delete your note"
                               onClick={() => onRequestDeleteNote(note.id)}
-                              className="p-1.5 text-ink-400 hover:text-coral-600 rounded-lg hover:bg-ink-100 transition-all duration-200 border-none bg-transparent cursor-pointer"
+                              className="flex h-11 w-11 items-center justify-center text-ink-400 hover:text-coral-600 rounded-lg hover:bg-ink-100 transition-all duration-200 border-none bg-transparent cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                             </button>
@@ -180,7 +185,7 @@ export function TalkNoteBoard({
                               type="button"
                               aria-label="Report this note"
                               onClick={() => onRequestReportNote(note.id)}
-                              className="p-1.5 text-ink-400 hover:text-gold-600 rounded-lg hover:bg-ink-100 transition-all duration-200 border-none bg-transparent cursor-pointer"
+                              className="flex h-11 w-11 items-center justify-center text-ink-400 hover:text-gold-600 rounded-lg hover:bg-ink-100 transition-all duration-200 border-none bg-transparent cursor-pointer"
                             >
                               <Flag className="w-3.5 h-3.5" aria-hidden="true" />
                             </button>
@@ -242,7 +247,10 @@ export function TalkNoteBoard({
                       <button
                         type="button"
                         onClick={() => onSelectNote(note)}
-                        className="text-xs font-bold text-plum-600 hover:text-plum-hover flex items-center gap-1 cursor-pointer border-none bg-transparent"
+                        // The reaction buttons beside this are already min-h-11;
+                        // this one was 20px tall, which made the replies drawer
+                        // the hardest thing on the card to open on a phone.
+                        className="min-h-11 text-xs font-bold text-plum-600 hover:text-plum-hover flex items-center gap-1 cursor-pointer border-none bg-transparent"
                       >
                         <MessageSquare className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>{note.replies.length} replies</span>

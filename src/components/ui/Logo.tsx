@@ -13,7 +13,10 @@ export function Logo({ size = "md", className }: LogoProps) {
     <Link
       to="/"
       className={cn(
-        "inline-flex items-center rounded-lg transition-opacity hover:opacity-85",
+        // The image is 24-32px tall, so the link needs its own vertical padding
+        // to reach the 44px touch target - otherwise the home link is the one
+        // undersized control in the header and the footer.
+        "inline-flex min-h-11 items-center rounded-lg transition-opacity hover:opacity-85",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
         className,
       )}

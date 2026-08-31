@@ -129,7 +129,10 @@ export function RepliesDrawer({
                           type="button"
                           aria-label="Delete your reply"
                           onClick={() => onRequestDeleteReply(reply.id)}
-                          className="p-1 text-ink-400 hover:text-coral-600 rounded hover:bg-ink-100 transition-all duration-200 border-none bg-transparent cursor-pointer"
+                          // 22x22 for a delete is too small to aim at on a
+                          // phone - matched to the 44px targets the note card
+                          // now uses for the same action.
+                          className="flex h-11 w-11 shrink-0 items-center justify-center text-ink-400 hover:text-coral-600 rounded-lg hover:bg-ink-100 transition-all duration-200 border-none bg-transparent cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                         </button>

@@ -91,7 +91,10 @@ export function TodayCard({
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="text-xs font-semibold text-plum hover:text-plum-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum cursor-pointer"
+                // min-h-11 only; the label is already 138px wide, so the
+                // target was failing on height alone. No extra horizontal
+                // padding - the row is tight at 375.
+                className="inline-flex min-h-11 items-center text-xs font-semibold text-plum hover:text-plum-700 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum cursor-pointer"
               >
                 Change today's mood
               </button>

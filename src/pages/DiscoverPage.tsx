@@ -255,6 +255,8 @@ export function DiscoverPage() {
                   ) : (
                     <GatedResultView 
                       curId={curId!}
+                      cur={cur}
+                      data={resultData}
                       onBackClick={() => goTo('hub')}
                     />
                   )}

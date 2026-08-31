@@ -128,12 +128,14 @@ export function HeroSection({
                 Go to dashboard
               </Link>
             ) : (
-              <Link
-                to="/login"
-                className={buttonClasses("primary", "lg", "w-full sm:w-auto justify-center min-h-12 text-center")}
+              <button
+                type="button"
+                onClick={onCheckInClick}
+                className={buttonClasses("primary", "lg", "w-full sm:w-auto justify-center min-h-12 text-center inline-flex items-center gap-2 shadow-sm")}
               >
-                Get started free
-              </Link>
+                <Sparkles className="w-4 h-4 text-gold-300" aria-hidden="true" />
+                Take 2-min Emotional Check-in
+              </button>
             )}
 
             <a
@@ -144,7 +146,7 @@ export function HeroSection({
               }}
               className={buttonClasses("ghost", "lg", "w-full sm:w-auto justify-center min-h-12 text-center")}
             >
-              See how it works
+              Explore how it works
             </a>
           </div>
 
@@ -262,7 +264,7 @@ export function HeroSection({
             <button
               type="button"
               onClick={onCheckInClick}
-              className="static sm:absolute sm:bottom-6 sm:-left-6 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-none sm:max-w-[220px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+              className="static sm:absolute sm:bottom-6 sm:left-0 lg:-left-6 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-none sm:max-w-[220px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
               aria-label="Preview: Today's tone check-in card"
             >
               <div className="flex flex-col items-start gap-1 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-0">
@@ -282,7 +284,7 @@ export function HeroSection({
             <button
               type="button"
               onClick={handleBook}
-              className="static sm:absolute sm:top-8 sm:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-none sm:max-w-[230px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+              className="static sm:absolute sm:top-8 sm:right-0 lg:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-none sm:max-w-[230px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
               aria-label="Preview: Next session with coach card"
             >
               <div className="hidden sm:flex w-8 h-8 bg-coral-100 text-coral-700 rounded-xl items-center justify-center font-bold text-xs shrink-0 select-none">
@@ -304,7 +306,7 @@ export function HeroSection({
           <button
             type="button"
             onClick={() => handleBubble("writemindly")}
-            className="hidden sm:flex absolute top-4 sm:-left-8 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-teal-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[170px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
+            className="hidden sm:flex absolute top-4 sm:left-0 lg:-left-8 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-teal-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[170px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
           >
             <MessageCircleQuestion className="h-3.5 w-3.5" aria-hidden="true" /> who even am I rn
           </button>
@@ -313,7 +315,7 @@ export function HeroSection({
           <button
             type="button"
             onClick={() => handleBubble("talkmindly")}
-            className="hidden sm:flex absolute bottom-32 sm:-right-6 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[160px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
+            className="hidden sm:flex absolute bottom-32 sm:right-0 lg:-right-6 bg-card/90 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl px-4 py-2.5 min-h-11 shadow-md text-xs font-semibold text-ink-600 hover:text-ink-900 max-w-[160px] z-10 select-none cursor-pointer transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 items-center gap-1.5"
           >
             <MessagesSquare className="h-3.5 w-3.5" aria-hidden="true" /> is it just me or...
           </button>

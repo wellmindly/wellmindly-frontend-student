@@ -5,7 +5,8 @@ import { TESTS } from "../discover/types";
 import type { PictureOption } from "../discover/types";
 import type { DiscoverResultData } from "../../hooks/useDashboard";
 import type { RefObject } from "react";
-import { SectionHeader, SkeletonCard, SkeletonText } from "../ui";
+import { SectionHeader } from "../ui";
+import { InteractiveQuizLoader } from "../discover/InteractiveQuizLoader";
 
 interface DiscoverTabProps {
   discoverView: "hub" | "test" | "result" | "results";
@@ -63,15 +64,10 @@ export function DiscoverTab({
   };
 
   if (discoverLoading) {
+    const curTitle = curDiscoverId && TESTS[curDiscoverId] ? TESTS[curDiscoverId].title : "your assessment";
     return (
-      <div className="space-y-6">
-        <SkeletonText lines={2} />
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
+      <div className="py-8 animate-fade-in flex justify-center">
+        <InteractiveQuizLoader quizTitle={curTitle} />
       </div>
     );
   }

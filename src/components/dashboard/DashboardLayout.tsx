@@ -117,7 +117,11 @@ export function DashboardLayout(props: DashboardLayoutProps) {
             type="button"
             onClick={() => setActiveTab("overview")}
             className={cn(
-              "inline-flex min-h-9 items-center gap-2 rounded-full border border-ink-700 bg-ink-800 px-4",
+              // min-h-11, not min-h-9: this is the only way out of the
+              // immersive shell (there is no sidebar or bottom nav here), so
+              // it has to be a full-size touch target. The header is
+              // min-h-16, so 44px fits without moving anything.
+              "inline-flex min-h-11 items-center gap-2 rounded-full border border-ink-700 bg-ink-800 px-4",
               "text-xs font-semibold text-ink-100 transition-colors hover:bg-ink-700",
               "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
             )}
@@ -271,7 +275,13 @@ export function DashboardLayout(props: DashboardLayoutProps) {
             <button
               type="button"
               onClick={props.onLogoClick}
-              className="flex cursor-pointer items-center transition-opacity hover:opacity-85"
+              // The logo image is 24px tall, so the button needs its own
+              // vertical padding to reach the 44px target - see ui/Logo.tsx,
+              // which solves the same problem for the public header/footer.
+              className={cn(
+                "flex min-h-11 cursor-pointer items-center rounded-lg transition-opacity hover:opacity-85",
+                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
+              )}
             >
               <img src={logoPng} alt="WellMindly - home" className="block h-6 w-auto" />
             </button>

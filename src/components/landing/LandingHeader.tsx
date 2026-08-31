@@ -99,11 +99,11 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
           {/* Mobile Menu Button & CTA */}
           <div className="flex md:hidden items-center gap-3">
             {user ? (
-              <Link to="/dashboard" className={buttonClasses("primary", "xs")}>
+              <Link to="/dashboard" className={buttonClasses("primary", "sm")}>
                 Dashboard
               </Link>
             ) : (
-              <Link to="/login" className={buttonClasses("secondary", "xs")}>
+              <Link to="/login" className={buttonClasses("secondary", "sm")}>
                 Sign In
               </Link>
             )}
