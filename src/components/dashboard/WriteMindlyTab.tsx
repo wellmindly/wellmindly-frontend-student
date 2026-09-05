@@ -222,19 +222,24 @@ export function WriteMindlyTab() {
   };
 
   // End and Reset Session
-  const endSession = async () => {
-    try {
-      await api.delete(`/chat/session/${sessionId}`);
-    } catch (err) {
-      console.error("Failed to delete session on backend:", err);
-    }
-
-    // Generate a new temporary session ID
+  const endSession = () => {
+    // ConfirmSheet leaves closing to the caller so a slow confirm can show a
+    // spinner. This one never closed at all, so after "End session" the
+    // conversation reset behind a dialog that stayed put, and the only way back
+    // to the fresh page was the Cancel button.
+    //
+    // Nothing here is worth waiting on: DELETE /chat/session/:id is a no-op on
+    // the server (chat is stateless - see backend/src/routes/chat.ts) and the
+    // transcript only ever lived in this component's state. So clear the screen
+    // and close immediately, then let the request and the quota refresh land on
+    // their own. Ending a session must never be a thing that can hang.
+    const endedSessionId = sessionId;
     const newTempSessionId = "wm-" + Math.random().toString(36).substring(2) + "-" + Date.now().toString(36);
-    setSessionId(newTempSessionId);
-    await fetchSessionLimits(newTempSessionId);
-    setInputValue("");
 
+    setConfirmOpen(false);
+    setSessionId(newTempSessionId);
+    setInputValue("");
+    setError(null);
     setMessages([
       {
         sender: "model",
@@ -242,6 +247,11 @@ export function WriteMindlyTab() {
         timestamp: new Date()
       }
     ]);
+
+    api
+      .delete(`/chat/session/${endedSessionId}`)
+      .catch((err) => console.error("Failed to delete session on backend:", err));
+    fetchSessionLimits(newTempSessionId);
   };
 
   // SVG Gauge variables

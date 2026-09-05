@@ -54,6 +54,24 @@ export function MySessionsList({
             const canCancel = !isCancelled && !isCompleted && isUpcoming && diffMinutes >= 30;
             const tooCloseToCancel = !isCancelled && !isCompleted && isUpcoming && diffMinutes < 30;
 
+            /* Nothing on the API moves a finished session out of CONFIRMED, so
+               status alone cannot say whether a room is worth opening: a booking
+               from last week was still offering a green "Join Meeting" that led
+               to an empty Jitsi room. The clock decides instead - the room opens
+               10 minutes early and stays open half an hour past the end, so an
+               overrunning session never loses its link. */
+            const endTime = session.endTime
+              ? new Date(session.endTime).getTime()
+              : sessionTime + 60 * 60 * 1000;
+            const now = Date.now();
+            const canJoin =
+              isConfirmed && !isCancelled && now >= sessionTime - 10 * 60 * 1000 && now <= endTime + 30 * 60 * 1000;
+            /* And a session that has not happened yet cannot be rated. This used
+               to appear the moment a booking was made, which asks the student to
+               score a conversation they have not had and feeds those scores into
+               the counselor's public rating. */
+            const canGiveFeedback = !session.studentFeedback && !isCancelled && now >= endTime;
+
             return (
               <div
                 key={session.id}
@@ -95,7 +113,7 @@ export function MySessionsList({
                     </span>
                   )}
 
-                  {isConfirmed && !isCancelled && (
+                  {canJoin && (
                     <a
                       href={session.meetingLink}
                       target="_blank"
@@ -107,7 +125,15 @@ export function MySessionsList({
                     </a>
                   )}
 
-                  {!session.studentFeedback && !isCancelled && (
+                  {/* Says where the link went, so a booking made for next week
+                      does not look like one that failed to get a room. */}
+                  {isConfirmed && !isCancelled && !canJoin && isUpcoming && (
+                    <span className="text-xs text-ink-400 font-medium">
+                      Join link opens 10 minutes before
+                    </span>
+                  )}
+
+                  {canGiveFeedback && (
                     <button
                       type="button"
                       onClick={() => onOpenFeedback(session)}

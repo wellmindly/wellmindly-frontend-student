@@ -102,6 +102,17 @@ export function SlotGrid({
                     const count = slot.counselorIds.length;
                     const isOpen = count > 0;
                     const isSelected = selectedSlot?.startTime === slot.startTime;
+                    // Every closed row used to read "fully booked". On today's
+                    // date most of them are simply hours that have gone by, and
+                    // telling a student the service is full when it is not is
+                    // both untrue and discouraging. The server distinguishes the
+                    // three cases; so does this.
+                    const closedLabel =
+                      slot.unavailableReason === "SLOT_IN_THE_PAST"
+                        ? "already passed"
+                        : slot.unavailableReason === "BLOCKED_BY_COUNSELOR"
+                          ? "not offered"
+                          : "fully booked";
 
                     return (
                       <button
@@ -113,21 +124,26 @@ export function SlotGrid({
                         aria-label={
                           isOpen
                             ? `${timeStr}, ${count} ${count === 1 ? "counselor" : "counselors"} free`
-                            : `${timeStr}, fully booked`
+                            : `${timeStr}, ${closedLabel}`
                         }
                         className={cn(
                           "flex min-h-12 items-center justify-between gap-2 rounded-xl border px-3.5 text-left",
                           "text-sm font-semibold transition-colors",
                           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
                           !isOpen
-                            ? "cursor-not-allowed border-ink-200 bg-ink-50 text-ink-400 line-through"
+                            ? "cursor-not-allowed border-ink-200 bg-ink-50 text-ink-400"
                             : isSelected
                               ? "cursor-pointer border-plum-600 bg-plum-600 text-plum-50 shadow-sm"
                               : "cursor-pointer border-ink-200/80 bg-card text-ink-800 hover:border-plum-300 hover:bg-plum-50",
                         )}
                       >
-                        <span className="min-w-0 truncate">{timeStr}</span>
-                        {isOpen && (
+                        {/* The strike belongs to the time, not to the row: it
+                            used to be set on the button, which struck through
+                            the reason label too. */}
+                        <span className={cn("min-w-0 truncate", !isOpen && "line-through")}>
+                          {timeStr}
+                        </span>
+                        {isOpen ? (
                           <span
                             aria-hidden="true"
                             className={cn(
@@ -136,6 +152,13 @@ export function SlotGrid({
                             )}
                           >
                             {count}
+                          </span>
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="shrink-0 text-2xs font-bold text-ink-400"
+                          >
+                            {closedLabel}
                           </span>
                         )}
                       </button>

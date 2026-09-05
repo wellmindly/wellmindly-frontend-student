@@ -210,7 +210,12 @@ export function useDashboard() {
           setDailyMood(response.data.checkin);
           setShowCheckinPopup(false);
         } else {
-          setShowCheckinPopup(true);
+          // Only prompt on the tab whose job is the daily pulse. A student who
+          // deep-linked (or reloaded) into Book a session, TalkMindly or a quiz
+          // asked for that thing, and a mood modal over it is an interruption,
+          // not a nudge - Home still asks, and the Check-in tab is one tap away.
+          const landedOn = normalizeTab(new URLSearchParams(window.location.search).get("tab"));
+          setShowCheckinPopup(landedOn === "overview");
         }
       } catch (err) {
         console.error("Failed to fetch daily check-in:", err);

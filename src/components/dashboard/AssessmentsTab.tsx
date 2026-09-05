@@ -178,7 +178,12 @@ export function AssessmentsTab({
               <EmptyState
                 size="sm"
                 title="Nothing here yet"
-                description="Completed check-ins and Discover quizzes will show up here."
+                // This list renders resultsData.timeline, which is the server's
+                // check-in history. The five Discover quizzes are saved in the
+                // browser (discover/types.ts saveResult) and never reach this
+                // endpoint, so promising them here sent students looking in the
+                // wrong tab. Points at where they actually live instead.
+                description="Completed check-ins will show up here. Your Discover quiz results are kept under Explore quizzes → My collection."
               />
             ) : (
               (() => {

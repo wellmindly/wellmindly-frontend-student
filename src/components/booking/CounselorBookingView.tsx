@@ -1,7 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ArrowLeft, CalendarDays, Clock, Globe, ShieldCheck, Users } from "lucide-react";
-import type { Counselor, Slot, SlotOption, BookedSession } from "./types";
+import type {
+  Counselor,
+  Slot,
+  SlotOption,
+  SlotUnavailableReason,
+  BookedSession,
+} from "./types";
 import { CounselorFilter } from "./CounselorFilter";
 import { CounselorPickerCard } from "./CounselorPickerCard";
 import { DateStrip } from "./DateStrip";
@@ -186,13 +192,24 @@ export function CounselorBookingView() {
    * Collapse the per-counselor slots into one row per start time. A time with
    * nobody free is kept (with an empty id list) so the day still reads as a
    * shape rather than as an arbitrary list of survivors.
+   *
+   * The server says *why* each counselor cannot take a time, so the collapsed
+   * row keeps that too: "already gone by" is unanimous when it applies (the
+   * clock is the same for every counselor), a booking is not, and a row must
+   * not claim to be fully booked when the hour has merely passed.
    */
   const slotOptions = useMemo<SlotOption[]>(() => {
     const relevant =
       filterIds.length > 0 ? rawSlots.filter((s) => filterIds.includes(s.counselorId)) : rawSlots;
 
     const byStart = new Map<string, SlotOption>();
+    const reasonsByStart = new Map<string, Array<SlotUnavailableReason | undefined>>();
+
     relevant.forEach((s) => {
+      const reasons = reasonsByStart.get(s.startTime);
+      if (reasons) reasons.push(s.reason);
+      else reasonsByStart.set(s.startTime, [s.reason]);
+
       const existing = byStart.get(s.startTime);
       if (!existing) {
         byStart.set(s.startTime, {
@@ -207,9 +224,20 @@ export function CounselorBookingView() {
       }
     });
 
-    return Array.from(byStart.values()).sort(
-      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-    );
+    return Array.from(byStart.values())
+      .map((slot) => {
+        if (slot.counselorIds.length > 0) return slot;
+        const reasons = reasonsByStart.get(slot.startTime) ?? [];
+        const unavailableReason: SlotUnavailableReason = reasons.every(
+          (r) => r === "SLOT_IN_THE_PAST",
+        )
+          ? "SLOT_IN_THE_PAST"
+          : reasons.includes("SLOT_ALREADY_BOOKED")
+            ? "SLOT_ALREADY_BOOKED"
+            : "BLOCKED_BY_COUNSELOR";
+        return { ...slot, unavailableReason };
+      })
+      .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [rawSlots, filterIds]);
 
   // A slot chosen before a filter change can stop being bookable. Drop it

@@ -10,6 +10,12 @@ export interface Counselor {
   totalReviews: number;
 }
 
+/** Why a slot is not bookable. Sent by the server's slot generator. */
+export type SlotUnavailableReason =
+  | "SLOT_ALREADY_BOOKED"
+  | "BLOCKED_BY_COUNSELOR"
+  | "SLOT_IN_THE_PAST";
+
 export interface Slot {
   startTime: string;
   endTime: string;
@@ -17,6 +23,8 @@ export interface Slot {
   counselorName?: string;
   isAvailable: boolean;
   availableCount?: number;
+  /** Absent when the slot is bookable. See services/slotGenerator on the API. */
+  reason?: SlotUnavailableReason;
 }
 
 /**
@@ -31,6 +39,13 @@ export interface SlotOption {
   endTime: string;
   /** Counselors with this slot free. Empty means the time exists but is taken. */
   counselorIds: string[];
+  /**
+   * Why nobody is free, when `counselorIds` is empty. The three cases read very
+   * differently to a student - an hour that has simply gone by is not the same
+   * news as a fully subscribed one - so the row is labelled from this rather
+   * than from the absence of ids.
+   */
+  unavailableReason?: SlotUnavailableReason;
 }
 
 export interface BookedSession {

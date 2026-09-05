@@ -37,7 +37,10 @@ export function BookingSuccessModal({
               {counselors.find((c) => c.id === bookingSuccess.counselorId)?.name || selectedCounselor?.name}
             </p>
             <p><strong>Scheduled Time:</strong> {formatSessionDateTime(bookingSuccess.startTime)}</p>
-            <p className="truncate">
+            {/* `truncate` cut the link off mid-UUID ("...d994dc86-e45b-4055…"),
+                which on the one screen that hands the student their video room
+                is the wrong place to save a line. It wraps instead. */}
+            <p className="break-all">
               <strong>Meeting Link:</strong>{' '}
               <a href={bookingSuccess.meetingLink} target="_blank" rel="noreferrer" className="text-plum-600 underline">
                 {bookingSuccess.meetingLink}
