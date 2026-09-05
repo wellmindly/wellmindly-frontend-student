@@ -35,7 +35,10 @@ export function NextStep({
   if (latestResult === null) {
     tone = "primary";
     title = "You haven't done a wellbeing snapshot yet";
-    support = "Two minutes, nine questions. It gives the chart below something to plot.";
+    // Home's CTA opens the Emotional check-in (TESTS.checkin, six items) - the
+    // Assessments tab's same-named button opens the five-item Wellbeing
+    // check-in instead. Count the questions the student will actually be asked.
+    support = "Two minutes, six questions. It gives the chart below something to plot.";
     ctaLabel = "Start the check-in";
     onCtaClick = onStartScreening;
     icon = <ClipboardList className="h-5 w-5 text-plum" aria-hidden="true" />;

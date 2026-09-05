@@ -2,7 +2,7 @@ import { LineChart } from "lucide-react";
 import { Card, Button, EmptyState } from "../ui";
 import { formatDayMonth, formatFullDate } from "../../lib/format";
 import { cn } from "../../lib/cn";
-import { displayQuizTitle } from "../../lib/wellbeing";
+import { displayQuizTitle, hasRealScore, isCheckinResult } from "../../lib/wellbeing";
 import type { TimelinePoint } from "../../types/student";
 
 export interface WellbeingChartProps {
@@ -18,7 +18,20 @@ const yFor = (percentage: number) =>
   VB_H - (Math.max(0, Math.min(100, percentage)) / 100) * VB_H;
 
 export function WellbeingChart({ timeline, onViewDetails }: WellbeingChartProps) {
-  const points = (timeline || []).map((report, idx, arr) => {
+  /* Every Discover quiz posts to /quizzes/submit, so this timeline is not a list
+     of wellbeing scores - it is a list of everything the student has finished.
+     The five unscored quizzes send a placeholder overallScore of 100, and
+     `percentage` is computed from it server-side, so a two-minute Values sort
+     landed on this chart as a 100% wellbeing reading (clamped there by `yFor`,
+     which hid the 250% cases but not the 100% ones). A line called "Well-being
+     Trajectory" plots one instrument family over time: the check-ins, which is
+     also the server's own definition of a screening result. `hasRealScore` is the
+     second half of the guard - a check-in row still has to carry a sane total. */
+  const scored = (timeline || []).filter(
+    (t) => isCheckinResult(t.quizTitle) && hasRealScore(t.quizTitle, t.score, t.maxScore)
+  );
+
+  const points = scored.map((report, idx, arr) => {
     const N = arr.length;
     const x = N > 1 ? (idx / (N - 1)) * VB_W : VB_W / 2;
     const y = yFor(report.percentage);
@@ -59,7 +72,7 @@ export function WellbeingChart({ timeline, onViewDetails }: WellbeingChartProps)
   }
 
   const uniqueTitles = Array.from(
-    new Set((timeline || []).map((t) => displayQuizTitle(t.quizTitle)).filter(Boolean))
+    new Set(scored.map((t) => displayQuizTitle(t.quizTitle)).filter(Boolean))
   ).sort();
 
   return (
@@ -89,7 +102,14 @@ export function WellbeingChart({ timeline, onViewDetails }: WellbeingChartProps)
             size="sm"
             icon={<LineChart className="h-6 w-6" aria-hidden="true" />}
             title="Nothing to plot yet"
-            description="Your wellbeing snapshots appear here as a line you can follow. The first one gives it a starting point."
+            // A student who has finished three Discover quizzes and no check-in
+            // would otherwise read "nothing to plot" as a bug. Say which kind of
+            // result this line is made of.
+            description={
+              (timeline || []).length > 0
+                ? "This line is made of your check-in results. Your other quiz results are in My results - they describe you rather than score you, so there is nothing to plot from them."
+                : "Your wellbeing snapshots appear here as a line you can follow. The first one gives it a starting point."
+            }
             action={{ label: "See assessments", onClick: onViewDetails }}
           />
         ) : (

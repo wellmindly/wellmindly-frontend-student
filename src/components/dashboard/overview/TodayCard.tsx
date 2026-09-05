@@ -6,7 +6,11 @@ import { MOODS, moodByRating } from "../../../lib/mood";
 import { formatFullDate, formatRelative, dayKey } from "../../../lib/format";
 import { spring } from "../../../lib/motion";
 import { cn } from "../../../lib/cn";
-import { displayQuizTitle, displayClassification } from "../../../lib/wellbeing";
+import {
+  displayQuizTitle,
+  displayClassification,
+  hasRealScore,
+} from "../../../lib/wellbeing";
 import type { DailyCheckinRow, LatestResult } from "../../../types/student";
 
 export interface TodayCardProps {
@@ -168,9 +172,18 @@ export function TodayCard({
                   {displayQuizTitle(latestResult.quizTitle)}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-ink-700">
-                    {latestResult.score}/{latestResult.maxScore}
-                  </span>
+                  {/* An unscored Discover quiz stores a placeholder 100 against a
+                      denominator taken from the Quiz row, so this footer read
+                      "100/40". See hasRealScore in lib/wellbeing.ts. */}
+                  {hasRealScore(
+                    latestResult.quizTitle,
+                    latestResult.score,
+                    latestResult.maxScore
+                  ) && (
+                    <span className="font-semibold text-ink-700">
+                      {latestResult.score}/{latestResult.maxScore}
+                    </span>
+                  )}
                   <Badge tone="primary">
                     {displayClassification(
                       latestResult.quizTitle,

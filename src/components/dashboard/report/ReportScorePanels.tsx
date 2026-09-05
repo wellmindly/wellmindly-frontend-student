@@ -1,25 +1,32 @@
-import { displayClassification } from "../../../lib/wellbeing";
+import { displayClassification, hasRealScore } from "../../../lib/wellbeing";
 import type { TimelinePoint } from "../../../types/student";
 
 export function ReportScorePanels({ report }: { report: TimelinePoint }) {
+  // The five unscored Discover quizzes store a placeholder 100 against a
+  // denominator taken from their Quiz row, so this panel read "100 / 40" with a
+  // bar at 250%. See hasRealScore in lib/wellbeing.ts.
+  const showScore = hasRealScore(report.quizTitle, report.score, report.maxScore);
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <div className={`grid grid-cols-1 gap-6 mb-8 ${showScore ? "md:grid-cols-2" : ""}`}>
       {/* Score Section */}
-      <div className="bg-paper-2 rounded-3xl p-6 border border-ink-100 flex flex-col justify-center text-center sm:text-left">
-        <h4 className="text-2xs font-black text-ink-400 uppercase tracking-widest mb-3">
-          Overall Score
-        </h4>
-        <div className="flex items-baseline gap-2 justify-center sm:justify-start">
-          <span className="text-6xl font-black text-ink-900 tracking-tighter">
-            {report.score}
-          </span>
-          <span className="text-xl font-bold text-ink-400">/ {report.maxScore}</span>
+      {showScore && (
+        <div className="bg-paper-2 rounded-3xl p-6 border border-ink-100 flex flex-col justify-center text-center sm:text-left">
+          <h4 className="text-2xs font-black text-ink-400 uppercase tracking-widest mb-3">
+            Overall Score
+          </h4>
+          <div className="flex items-baseline gap-2 justify-center sm:justify-start">
+            <span className="text-6xl font-black text-ink-900 tracking-tighter">
+              {report.score}
+            </span>
+            <span className="text-xl font-bold text-ink-400">/ {report.maxScore}</span>
+          </div>
+          <p className="text-xs text-ink-500 font-medium mt-4 leading-relaxed">
+            Your total across the questions you answered. It is one number,
+            not a measurement of separate areas of your life.
+          </p>
         </div>
-        <p className="text-xs text-ink-500 font-medium mt-4 leading-relaxed">
-          Your total across the questions you answered. It is one number,
-          not a measurement of separate areas of your life.
-        </p>
-      </div>
+      )}
 
       {/* What the score suggests.
           Heading was "Severity Evaluation" and the value was the raw
@@ -30,19 +37,25 @@ export function ReportScorePanels({ report }: { report: TimelinePoint }) {
         <h4 className="text-2xs font-black text-plum/70 uppercase tracking-widest mb-2.5">
           What this suggests
         </h4>
-        <span className="text-2xl font-black text-plum leading-tight mb-4">
+        <span
+          className={`text-2xl font-black text-plum leading-tight ${
+            showScore ? "mb-4" : ""
+          }`}
+        >
           {displayClassification(
             report.quizTitle,
             report.classification,
             report.score
           )}
         </span>
-        <div className="w-full bg-plum/10 h-3 rounded-full overflow-hidden">
-          <div
-            className="bg-plum h-full rounded-full transition-all duration-1000"
-            style={{ width: `${report.percentage}%` }}
-          />
-        </div>
+        {showScore && (
+          <div className="w-full bg-plum/10 h-3 rounded-full overflow-hidden">
+            <div
+              className="bg-plum h-full rounded-full transition-all duration-1000"
+              style={{ width: `${report.percentage}%` }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

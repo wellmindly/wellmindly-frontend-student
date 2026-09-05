@@ -29,6 +29,18 @@ export function OverviewTab({
   onStartScreening,
   onComingSoonClick,
 }: OverviewTabProps) {
+  /* Both cards speak about the check-in specifically. `latestResult` is already
+     the server's own screening filter (students.ts `screeningResults`: the title
+     contains "check-in" or "phq-9", or the category is Self-check / Wellbeing /
+     Clinical / Depression), and none of the five unscored Discover quizzes match
+     it - Mood snapshot is "Quick", What matters most is "Values", Strength &
+     shadow is "Insight" - so a two-minute Values sort cannot make this page claim
+     a snapshot the student never took. Deriving it from the timeline instead would
+     narrow it further and drop seeded wellbeing checks like "Running on empty".
+     TodayCard still asks `hasRealScore` before printing a fraction: passing the
+     screening filter does not make a row's total sane. */
+  const latestCheckinResult = resultsData?.latestResult ?? null;
+
   return (
     <div className="space-y-6 sm:space-y-8">
       <TodayCard
@@ -36,13 +48,13 @@ export function OverviewTab({
         firstName={firstName}
         dailyMood={dailyMood}
         historicalCheckins={historicalCheckins}
-        latestResult={resultsData?.latestResult ?? null}
+        latestResult={latestCheckinResult}
         onDailyCheckin={onDailyCheckin}
       />
 
       <NextStep
         dailyMood={dailyMood}
-        latestResult={resultsData?.latestResult ?? null}
+        latestResult={latestCheckinResult}
         onStartScreening={onStartScreening}
         onExploreDiscover={onExploreDiscover}
       />

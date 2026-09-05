@@ -54,6 +54,17 @@ export function ResultView({
 
   const isWellbeing = isWellbeingCheckin(cur.title);
 
+  // Only the two overall-scored instruments (Wellbeing check-in, Emotional
+  // check-in) produce a number worth showing. The rest submit a placeholder 100
+  // and take their denominator from the Quiz row, which is sized from the item
+  // count - so Strength & shadow rendered "Score: 100 / 40", a score above its
+  // own maximum, under a result whose actual answer is "The Peacemaker".
+  //
+  // This screen has the TestDef in hand, so it can read `overall` directly. The
+  // surfaces that only have a stored row ask `hasRealScore` in lib/wellbeing.ts,
+  // which recovers the same answer from the title.
+  const instrumentIsScored = cur.overall === true;
+
   // Filter and sort historical attempts for this test.
   // An exact `r.quizTitle === cur.title` match would have dropped every attempt
   // a student made before the rename - their stored rows still say
@@ -468,7 +479,7 @@ export function ResultView({
                         {d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </p>
                     </div>
-                    {att.score !== undefined && (
+                    {instrumentIsScored && typeof att.score === 'number' && att.maxScore > 0 && att.score <= att.maxScore && (
                       <span className="flex items-center gap-1.5 rounded-lg border border-line bg-paper-2 px-2.5 py-0.5 text-xs font-bold text-ink-600">
                         Score: {att.score} / {att.maxScore}
                         {diff !== null && diff !== 0 && (

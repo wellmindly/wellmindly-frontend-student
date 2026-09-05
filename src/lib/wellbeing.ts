@@ -183,6 +183,75 @@ export function displayClassification(
 }
 
 /**
+ * The five Discover instruments that do not produce a score, by stored title.
+ *
+ * `discover/types.ts` marks the two that do with `overall: true` - the Wellbeing
+ * check-in and the Emotional check-in. The other five are profiles, rankings,
+ * pair comparisons and a mood picker, and `submitDiscoverToBackend` still has to
+ * post a number, so they post a placeholder `overallScore: 100`. Add a title here
+ * when you add an instrument there without `overall: true`.
+ *
+ * A deny-list rather than an allow-list because the database also holds older
+ * scored quizzes that are none of this app's business to hide - "Mental load"
+ * (max 20), "Headspace" (25), "Running on empty" (25), "Your circle" (25),
+ * "Your season" (4). Those totals are real and stay visible.
+ */
+const UNSCORED_TITLES: readonly string[] = [
+  "mood snapshot",
+  "signature strengths",
+  "personality profile",
+  "what matters most",
+  "strength & shadow",
+];
+
+/**
+ * Whether a stored result carries a number that can honestly be shown to the
+ * student as a score.
+ *
+ * Two things went wrong without this. The placeholder 100 the unscored quizzes
+ * post is displayed against a denominator that was never theirs: `POST
+ * /quizzes/submit` creates the `Quiz` row once, from the first submission's
+ * `maxScore`, and never updates it, and `QuizResult` has no per-result maxScore
+ * column - so display reads `quiz.maxScore`. In this database that is 40 for
+ * Strength & shadow, 50 for Personality profile, 60 for Signature strengths and
+ * **8** for What matters most, so the fraction rendered as "100 / 40" or
+ * "100 / 8": a score above its own maximum, with progress bars animating to
+ * 250% and 1250% of their track. Where the row happens to hold 100/100 it reads
+ * as a perfect score on a quiz that has no scoring, which is worse than absurd.
+ *
+ * Every surface that prints the fraction asks this first and shows the
+ * classification alone when the answer is no. The real fix is a per-result
+ * maxScore column plus a nullable score; until that migration exists, this keeps
+ * the UI from asserting arithmetic that isn't true.
+ */
+export function hasRealScore(
+  quizTitle: string | null | undefined,
+  score: number | null | undefined,
+  maxScore: number | null | undefined,
+): boolean {
+  const t = (quizTitle ?? "").trim().toLowerCase();
+  if (!t || UNSCORED_TITLES.includes(t)) return false;
+  if (typeof score !== "number" || typeof maxScore !== "number") return false;
+  if (!Number.isFinite(score) || !Number.isFinite(maxScore)) return false;
+  return maxScore > 0 && score >= 0 && score <= maxScore;
+}
+
+/**
+ * Whether a stored result came from one of the check-in instruments - the family
+ * the wellbeing trajectory is made of. Mirrors the server's own definition of a
+ * screening result (`students.ts` `screeningResults`) on the title alone.
+ *
+ * A line called "Well-being Trajectory" has to be one instrument family plotted
+ * over time. Percentages of unrelated maxima - a 4-point reflective quiz next to
+ * a 35-point check-in - are not a trajectory even when each number is real.
+ */
+export function isCheckinResult(quizTitle?: string | null): boolean {
+  const t = (quizTitle ?? "").toLowerCase();
+  if (!t) return false;
+  return t.includes("check-in") || t.includes("phq") || t.includes("screening");
+}
+
+/**
  * Answer wording for the 0-3 frequency scale, given a 0-100 normalised
  * per-question value. Matches the scale in `TESTS.phq9.scale`.
  */

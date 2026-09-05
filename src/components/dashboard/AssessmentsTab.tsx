@@ -7,7 +7,11 @@ import {
   ChevronRight,
   Sparkles,
 } from "lucide-react";
-import { displayQuizTitle, displayClassification } from "../../lib/wellbeing";
+import {
+  displayQuizTitle,
+  displayClassification,
+  hasRealScore,
+} from "../../lib/wellbeing";
 import type { ResultsData, TimelinePoint } from "../../types/student";
 import { Button, EmptyState } from "../ui";
 
@@ -36,7 +40,26 @@ export function AssessmentsTab({
   const latestMaxScore = latestResult?.maxScore ?? 0;
   const latestScore = latestResult?.score ?? 0;
 
-  const pct = latestMaxScore > 0 ? latestScore / latestMaxScore : 0;
+  // The five unscored Discover quizzes submit a placeholder overallScore of 100
+  // against a denominator taken from their Quiz row, so this card rendered a
+  // Strength & shadow run as "100 / 40" - a score above its own maximum, with the
+  // bar below animating to 250% of its track. See hasRealScore in lib/wellbeing.ts.
+  const showLatestScore = hasRealScore(
+    latestResult?.quizTitle,
+    latestScore,
+    latestMaxScore
+  );
+
+  const pct = showLatestScore ? latestScore / latestMaxScore : 0;
+
+  // This card shows whichever quiz was taken last, so the caption under the
+  // score cannot hardcode a question count: it read "your total across the five
+  // questions" over a six-question Emotional check-in, and would have said the
+  // same over a Big Five run scored 100/100. Every likert submission stores the
+  // answers it collected, so count those and stay quiet when there are none.
+  const latestAnswerCount = Array.isArray(latestResult?.answers?.responses)
+    ? latestResult.answers.responses.length
+    : null;
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -101,24 +124,31 @@ export function AssessmentsTab({
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="bg-paper-2 rounded-2xl p-8 border border-ink-100 flex flex-col justify-center">
-                      <h4 className="text-xs font-black text-ink-400 uppercase tracking-widest mb-3">
-                        Overall Score
-                      </h4>
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-6xl font-black text-ink-900 tracking-tighter">
-                          {latestScore}
-                        </span>
-                        <span className="text-xl font-bold text-ink-400">
-                          / {latestMaxScore}
-                        </span>
+                  <div
+                    className={`grid grid-cols-1 gap-6 ${
+                      showLatestScore ? "sm:grid-cols-2" : ""
+                    }`}
+                  >
+                    {showLatestScore && (
+                      <div className="bg-paper-2 rounded-2xl p-8 border border-ink-100 flex flex-col justify-center">
+                        <h4 className="text-xs font-black text-ink-400 uppercase tracking-widest mb-3">
+                          Overall Score
+                        </h4>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-6xl font-black text-ink-900 tracking-tighter">
+                            {latestScore}
+                          </span>
+                          <span className="text-xl font-bold text-ink-400">
+                            / {latestMaxScore}
+                          </span>
+                        </div>
+                        <p className="text-xs text-ink-500 font-medium mt-4 leading-relaxed">
+                          {latestAnswerCount
+                            ? `Your total across the ${latestAnswerCount} questions in this check.`
+                            : "Your overall score for this check."}
+                        </p>
                       </div>
-                      <p className="text-xs text-ink-500 font-medium mt-4 leading-relaxed">
-                        Your total across the five questions. Higher means more of
-                        these turned up for you over the last two weeks.
-                      </p>
-                    </div>
+                    )}
 
                     <div className="bg-plum/5 rounded-2xl p-8 border border-plum/10 flex flex-col justify-center">
                       <h4 className="text-xs font-black text-plum/70 uppercase tracking-widest mb-3">
@@ -131,16 +161,18 @@ export function AssessmentsTab({
                           latestScore
                         )}
                       </span>
-                      <div className="mt-6 w-full bg-plum-200/50 h-3 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{
-                            width: `${pct * 100}%`,
-                          }}
-                          transition={{ duration: 1, delay: 0.2 }}
-                          className="bg-plum h-full rounded-full"
-                        />
-                      </div>
+                      {showLatestScore && (
+                        <div className="mt-6 w-full bg-plum-200/50 h-3 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{
+                              width: `${pct * 100}%`,
+                            }}
+                            transition={{ duration: 1, delay: 0.2 }}
+                            className="bg-plum h-full rounded-full"
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -205,6 +237,14 @@ export function AssessmentsTab({
                           day: "numeric",
                           year: "numeric",
                         });
+                        // Same reason as the card above: the unscored quizzes in
+                        // this history print a placeholder over a denominator
+                        // that was never theirs.
+                        const showScore = hasRealScore(
+                          report.quizTitle,
+                          report.score,
+                          report.maxScore
+                        );
                         return (
                           <button
                             key={report.id}
@@ -232,14 +272,16 @@ export function AssessmentsTab({
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <div className="text-right">
-                                <span className="text-lg font-black text-ink-800">
-                                  {report.score}
-                                </span>
-                                <span className="text-xs text-ink-400 font-bold">
-                                  /{report.maxScore}
-                                </span>
-                              </div>
+                              {showScore && (
+                                <div className="text-right">
+                                  <span className="text-lg font-black text-ink-800">
+                                    {report.score}
+                                  </span>
+                                  <span className="text-xs text-ink-400 font-bold">
+                                    /{report.maxScore}
+                                  </span>
+                                </div>
+                              )}
                               <ChevronRight className="h-4 w-4 text-ink-400 group-hover:translate-x-0.5 transition-transform" />
                             </div>
                           </button>
