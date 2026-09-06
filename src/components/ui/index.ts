@@ -56,3 +56,5 @@ export type { CrisisBannerProps } from "./CrisisBanner";
 
 export { SocialLinks } from "./SocialLinks";
 export type { SocialLinksProps, SocialPlatform } from "./SocialLinks";
+
+export { PresenceSwap } from "./PresenceSwap";

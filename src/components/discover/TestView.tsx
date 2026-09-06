@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { Button, Card, ProgressBar } from "../ui";
+import { Button, Card, PresenceSwap, ProgressBar } from "../ui";
 import type { TestDef, PictureOption } from "./types";
 import { PictureMode } from "./PictureMode";
 import { PairMode } from "./PairMode";
@@ -56,9 +56,9 @@ export function TestView({
         />
 
         {/* Question body */}
-        <AnimatePresence mode="wait">
-          <motion.div 
-            key={qi} 
+        <PresenceSwap>
+          <motion.div
+            key={qi}
             ref={questionRef}
             tabIndex={-1}
             role="group"
@@ -85,7 +85,7 @@ export function TestView({
               />
             )}
           </motion.div>
-        </AnimatePresence>
+        </PresenceSwap>
 
         {/* Nav buttons */}
         {cur.kind !== 'picture' && cur.kind !== 'pairs' && (

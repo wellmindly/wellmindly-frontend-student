@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Heart, Wind, Gamepad2, BrainCircuit } from "lucide-react";
 import { cn } from "../../lib/cn";
+import { PresenceSwap } from "../ui/PresenceSwap";
 
 interface BubbleItem {
   id: number;
@@ -283,7 +284,7 @@ export function InteractiveQuizLoader({
       {/* Rotating Uplifting Thought Footer */}
       <div className="mt-5 p-3.5 rounded-2xl bg-plum-50/70 border border-plum-200/60 flex items-start gap-2.5 text-left">
         <Heart className="w-4 h-4 text-plum-600 shrink-0 mt-0.5" />
-        <AnimatePresence mode="wait">
+        <PresenceSwap>
           <motion.p
             key={affirmationIdx}
             initial={{ opacity: 0, y: 4 }}
@@ -294,7 +295,7 @@ export function InteractiveQuizLoader({
           >
             {ROTATING_AFFIRMATIONS[affirmationIdx]}
           </motion.p>
-        </AnimatePresence>
+        </PresenceSwap>
       </div>
     </div>
   );

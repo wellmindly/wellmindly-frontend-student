@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
-import { Logo, SkipLink, useToast } from '../components/ui';
+import { Logo, PresenceSwap, SkipLink, useToast } from '../components/ui';
 import { fadeUp } from '../lib/motion';
 
 import { HubView } from '../components/discover/HubView';
@@ -186,7 +186,7 @@ export function DiscoverPage() {
         </nav>
 
         <main id="main-content" tabIndex={-1} className="max-w-[920px] mx-auto px-5 pb-20 relative z-[1]">
-          <AnimatePresence mode="wait">
+          <PresenceSwap>
             {/* ═══ HUB VIEW ═══ */}
             {view === 'hub' && (
               <motion.div 
@@ -276,7 +276,7 @@ export function DiscoverPage() {
                 <CollectionView startTest={startTest} goTo={goTo} showToast={toast} />
               </motion.div>
             )}
-          </AnimatePresence>
+          </PresenceSwap>
         </main>
       </div>
 

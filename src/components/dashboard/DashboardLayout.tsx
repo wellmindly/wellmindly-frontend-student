@@ -18,7 +18,7 @@ import { config } from "../../config";
 import { cn } from "../../lib/cn";
 import { spring, tween } from "../../lib/motion";
 import { useScrollTopOnChange } from "../../lib/a11y";
-import { Avatar, CrisisBanner, IconButton } from "../ui";
+import { Avatar, CrisisBanner, IconButton, PresenceSwap } from "../ui";
 import logoPng from "../../assets/logo.png";
 
 /* ============================================================================
@@ -307,7 +307,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
             {menuItems.find((m) => m.id === activeTab)?.label ?? "Dashboard"}
           </h1>
           <div className="mx-auto max-w-6xl">
-            <AnimatePresence mode="wait">
+            <PresenceSwap>
               <motion.div
                 key={activeTab}
                 initial={{ opacity: 0, y: 8 }}
@@ -317,7 +317,7 @@ export function DashboardLayout(props: DashboardLayoutProps) {
               >
                 {children}
               </motion.div>
-            </AnimatePresence>
+            </PresenceSwap>
           </div>
         </main>
       </div>

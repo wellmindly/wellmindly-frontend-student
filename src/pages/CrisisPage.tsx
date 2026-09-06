@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { HelpCircle, Search, X } from "lucide-react";
 import api from "../services/api";
 import { LandingHeader } from "../components/landing/LandingHeader";
@@ -12,6 +12,7 @@ import { Input } from "../components/ui/Field";
 import { IconButton } from "../components/ui/Button";
 import { SkeletonCard } from "../components/ui/Skeleton";
 import { ErrorState, EmptyState } from "../components/ui/EmptyState";
+import { PresenceSwap } from "../components/ui/PresenceSwap";
 import { scrollToElement } from "../lib/a11y";
 
 export function CrisisPage() {
@@ -177,7 +178,7 @@ export function CrisisPage() {
                 retrying={loading}
               />
             ) : filteredHotlines.length > 0 ? (
-              <AnimatePresence mode="wait">
+              <PresenceSwap>
                 <motion.div
                   key={selectedCountry}
                   initial={{ opacity: 0, y: 15 }}
@@ -190,7 +191,7 @@ export function CrisisPage() {
                     <HotlineCard key={hotline.id} hotline={hotline} />
                   ))}
                 </motion.div>
-              </AnimatePresence>
+              </PresenceSwap>
             ) : hotlineSearchQuery ? (
               <EmptyState
                 icon={<HelpCircle className="w-6 h-6 text-ink-600" />}
