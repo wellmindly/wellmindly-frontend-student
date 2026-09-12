@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Check, MessageCircleQuestion, MessagesSquare, Sparkles } from "lucide-react";
+import { Shield, Check, MessageCircleQuestion, MessagesSquare, Sparkles, Video } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { MOODS, moodByRating } from "../../lib/mood";
 import type { MoodRating } from "../../lib/mood";
@@ -280,23 +280,23 @@ export function HeroSection({
               </div>
             </button>
 
-            {/* Preview Card 2: Next Session with Coach */}
+            {/* Preview Card 2: 1-on-1 Support / Book a Coach Online */}
             <button
               type="button"
               onClick={handleBook}
-              className="static sm:absolute sm:top-8 sm:right-0 lg:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-none sm:max-w-[230px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
-              aria-label="Preview: Next session with coach card"
+              className="static sm:absolute sm:top-8 sm:right-0 lg:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-none sm:max-w-[240px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+              aria-label="Preview: Book a coach online"
             >
-              <div className="hidden sm:flex w-8 h-8 bg-coral-100 text-coral-700 rounded-xl items-center justify-center font-bold text-xs shrink-0 select-none">
-                VK
+              <div className="hidden sm:flex w-8 h-8 bg-coral-100 text-coral-700 rounded-xl items-center justify-center shrink-0 select-none">
+                <Video className="w-4 h-4" aria-hidden="true" />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-col items-start gap-1 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-0 mb-0.5">
-                  <span className="text-2xs text-ink-500 font-bold uppercase tracking-wider sm:truncate">Next Session</span>
+                  <span className="text-2xs text-ink-500 font-bold uppercase tracking-wider sm:truncate">1-on-1 Support</span>
                   <Badge tone="coral" size="sm">Preview</Badge>
                 </div>
                 <div className="text-xs font-bold text-ink-900 hover:text-coral-700 transition-colors sm:truncate">
-                  Coach Vinayak &middot; Thu 5pm
+                  Book a coach online &rarr;
                 </div>
               </div>
             </button>

@@ -1,5 +1,6 @@
+import * as React from "react";
 import { motion } from "framer-motion";
-import { Users } from "lucide-react";
+import { Users, ChevronLeft, ChevronRight } from "lucide-react";
 import type { CoachItem } from "./types";
 import { Button, Card, Avatar, EmptyState, ErrorState, SkeletonCard } from "../../ui";
 
@@ -59,34 +60,103 @@ export function CoachingSection({
           className="my-8"
         />
       ) : (
-        <>
-          {/* Mobile Snap Row */}
-          <div className="flex md:hidden snap-x snap-mandatory overflow-x-auto gap-4 -mx-6 px-6 pb-4 no-scrollbar">
-            {coaches.map((coach) => (
-              <div
-                key={coach.name}
-                className="snap-start shrink-0 w-[80%] max-w-[300px]"
-              >
-                <CoachCard coach={coach} onSelectCoach={onSelectCoach} />
-              </div>
-            ))}
-          </div>
-
-          {/* Desktop Grid */}
-          <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
-            {coaches.map((coach) => (
-              <div key={coach.name} className="h-full">
-                <CoachCard coach={coach} onSelectCoach={onSelectCoach} />
-              </div>
-            ))}
-          </div>
-        </>
+        <CoachCarousel coaches={coaches} onSelectCoach={onSelectCoach} />
       )}
 
       <p className="text-xs text-ink-500 text-center max-w-2xl mx-auto mt-8 leading-relaxed">
         Our coaches are trained peer mentors focused on wellbeing, stress relief, and academic resilience. Professional clinical care guidance is provided whenever specialized support is needed.
       </p>
     </section>
+  );
+}
+
+function CoachCarousel({
+  coaches,
+  onSelectCoach,
+}: {
+  coaches: CoachItem[];
+  onSelectCoach: (coach: CoachItem) => void;
+}) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(coaches.length > 4);
+
+  const checkScroll = React.useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollLeft, scrollWidth, clientWidth } = el;
+    setCanScrollLeft(scrollLeft > 8);
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 8);
+  }, []);
+
+  React.useEffect(() => {
+    checkScroll();
+    const el = scrollRef.current;
+    if (!el) return;
+    window.addEventListener("resize", checkScroll);
+    return () => window.removeEventListener("resize", checkScroll);
+  }, [checkScroll, coaches.length]);
+
+  const handleScroll = (direction: "left" | "right") => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const scrollAmount = el.clientWidth * 0.9;
+    el.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  return (
+    <div className="relative group/carousel">
+      {/* Navigation Header / Controls */}
+      {coaches.length > 4 && (
+        <div className="flex justify-end items-center gap-2 mb-4 px-1">
+          <span className="text-2xs font-semibold text-ink-400 mr-1">
+            Scroll to see all ({coaches.length})
+          </span>
+          <button
+            type="button"
+            onClick={() => handleScroll("left")}
+            disabled={!canScrollLeft}
+            className="w-8 h-8 rounded-full border border-ink-200 bg-card/90 backdrop-blur-sm text-ink-700 flex items-center justify-center hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-plum-500 cursor-pointer"
+            aria-label="Previous coaches"
+          >
+            <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handleScroll("right")}
+            disabled={!canScrollRight}
+            className="w-8 h-8 rounded-full border border-ink-200 bg-card/90 backdrop-blur-sm text-ink-700 flex items-center justify-center hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-plum-500 cursor-pointer"
+            aria-label="Next coaches"
+          >
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+
+      {/* Carousel Track */}
+      <div
+        ref={scrollRef}
+        onScroll={checkScroll}
+        className="flex snap-x snap-mandatory overflow-x-auto gap-5 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar scroll-smooth focus-visible:outline-none"
+        tabIndex={0}
+        role="region"
+        aria-label="Counselor directory carousel"
+      >
+        {coaches.map((coach) => (
+          <div
+            key={coach.name}
+            className="snap-start shrink-0 w-[80%] max-w-[300px] sm:w-[calc((100%-1.25rem)/2)] sm:max-w-none lg:w-[calc((100%-3.75rem)/4)] flex"
+          >
+            <div className="w-full h-full">
+              <CoachCard coach={coach} onSelectCoach={onSelectCoach} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

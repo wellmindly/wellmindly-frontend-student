@@ -540,7 +540,20 @@ export function ResultView({
           <Button variant="outline" onClick={onRetake}>Take again</Button>
           <Button
             variant="outline"
-            onClick={() => window.print()}
+            onClick={async () => {
+              const { downloadAssessmentPdf } = await import("./assessmentPdf");
+              await downloadAssessmentPdf({
+                title: cur.title,
+                category: cur.tag?.split(" · ")[0],
+                score: (data as any)?.overallScore || (data as any)?.score,
+                maxScore: cur.items ? cur.items.length * 5 : 100,
+                classification: (data as any)?.classification,
+                headline: data.aiFeedback?.headline,
+                narrative: data.aiFeedback?.narrative,
+                tip: data.aiFeedback?.tip,
+              });
+              try { window.print(); } catch (_) {}
+            }}
             leadingIcon={<Printer className="h-4 w-4" />}
           >
             Print / Save PDF
