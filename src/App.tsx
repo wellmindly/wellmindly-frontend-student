@@ -55,8 +55,9 @@ function DiscoverRoute() {
   if (user) {
     const params = new URLSearchParams(location.search);
     const showResult = params.get("showResult") || params.get("testId");
+    const tab = showResult === "checkin" ? "checkin" : "discover";
     const redirectUrl = showResult
-      ? `/dashboard?tab=discover&showResult=${encodeURIComponent(showResult)}`
+      ? `/dashboard?tab=${tab}&showResult=${encodeURIComponent(showResult)}`
       : "/dashboard?tab=discover";
     return <Navigate to={redirectUrl} replace />;
   }
@@ -85,14 +86,18 @@ function LoginRoute() {
   if (user) {
     const params = new URLSearchParams(location.search);
     const redirectParam = params.get("redirect");
-    const testIdParam = params.get("testId");
+    const testIdParam = params.get("testId") || params.get("showResult");
     if (redirectParam) {
       // `redirect` may already carry its own query (e.g. /dashboard?tab=talkmindly),
       // so append with the correct separator instead of assuming there is none.
-      const target = testIdParam
+      const target = testIdParam && !redirectParam.includes("showResult=")
         ? `${redirectParam}${redirectParam.includes("?") ? "&" : "?"}showResult=${encodeURIComponent(testIdParam)}`
         : redirectParam;
       return <Navigate to={target} replace />;
+    }
+    if (testIdParam) {
+      const tab = testIdParam === "checkin" ? "checkin" : "discover";
+      return <Navigate to={`/dashboard?tab=${tab}&showResult=${encodeURIComponent(testIdParam)}`} replace />;
     }
     return <Navigate to="/dashboard" replace />;
   }

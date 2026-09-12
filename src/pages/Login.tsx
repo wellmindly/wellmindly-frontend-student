@@ -10,9 +10,14 @@ import { AuthBrandPanel, AuthAlerts, GoogleAuthButtons, AuthForm } from '../comp
 /** Resolve the ?redirect= param to a safe in-app path, appending showResult if present. */
 function resolveRedirect(params: URLSearchParams, testIdParam: string | null): string {
   const raw = params.get("redirect");
-  const safe = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/dashboard";
-  if (!testIdParam) return safe;
-  return `${safe}${safe.includes("?") ? "&" : "?"}showResult=${testIdParam}`;
+  const resultParam = testIdParam || params.get("showResult") || params.get("testId");
+  const fallback = resultParam
+    ? `/dashboard?tab=${resultParam === "checkin" ? "checkin" : "discover"}&showResult=${encodeURIComponent(resultParam)}`
+    : "/dashboard";
+  const safe = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : fallback;
+  if (!resultParam) return safe;
+  if (safe.includes("showResult=")) return safe;
+  return `${safe}${safe.includes("?") ? "&" : "?"}showResult=${encodeURIComponent(resultParam)}`;
 }
 
 export function LoginPage() {
@@ -23,7 +28,7 @@ export function LoginPage() {
   useEffect(() => {
     if (user) {
       const params = new URLSearchParams(window.location.search);
-      const testIdParam = params.get("testId");
+      const testIdParam = params.get("testId") || params.get("showResult");
       navigate(resolveRedirect(params, testIdParam), { replace: true });
     }
   }, [user, navigate]);
@@ -117,8 +122,8 @@ export function LoginPage() {
 
   const navigateAfterAuth = () => {
     const params = new URLSearchParams(window.location.search);
-    const testIdParam = params.get("testId");
-    if (params.has("redirect")) {
+    const testIdParam = params.get("testId") || params.get("showResult");
+    if (params.has("redirect") || testIdParam) {
       navigate(resolveRedirect(params, testIdParam));
     } else {
       const pendingTest = sessionStorage.getItem("last_test_started");

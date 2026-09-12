@@ -172,7 +172,7 @@ export function GatedResultView({ curId, cur: _cur, data: _data, onBackClick }: 
             size="lg"
             variant="primary"
             className="w-full justify-center text-sm font-bold shadow-md inline-flex items-center gap-2"
-            onClick={() => navigate(`/login?redirect=/discover&showResult=${curId}`)}
+            onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/dashboard?tab=${curId === 'checkin' ? 'checkin' : 'discover'}&showResult=${curId}`)}&showResult=${encodeURIComponent(curId)}`)}
           >
             <span>Sign up / Sign in to reveal results</span>
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
