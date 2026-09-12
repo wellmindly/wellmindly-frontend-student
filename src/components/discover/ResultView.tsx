@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, CalendarDays, LifeBuoy, MessageCircle, Sparkle } from "lucide-react";
+import { ArrowRight, CalendarDays, LifeBuoy, MessageCircle, Printer, Sparkle } from "lucide-react";
 import { rankDims, toneWord, VALUE_DESC } from "./types";
 import {
   bandForResult,
@@ -536,7 +536,16 @@ export function ResultView({
 
       {/* Nav row */}
       <div className="no-print mt-8 flex flex-wrap items-center justify-between gap-3.5 border-t border-line/40 pt-4">
-        <Button variant="outline" onClick={onRetake}>Take again</Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={onRetake}>Take again</Button>
+          <Button
+            variant="outline"
+            onClick={() => window.print()}
+            leadingIcon={<Printer className="h-4 w-4" />}
+          >
+            Print / Save PDF
+          </Button>
+        </div>
         <Button variant="ghost" onClick={() => goTo('hub')} trailingIcon={<ArrowRight />}>
           Explore more tests
         </Button>
