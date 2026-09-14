@@ -43,7 +43,7 @@ export function CounselorsPage() {
       if (response.data?.success) {
         setStatus({
           type: "success",
-          message: "Application submitted. Our clinical team will review your credentials and email you at the address above.",
+          message: "Application submitted. Our counselor onboarding team will review your credentials and email you at the address above.",
         });
         setFormData({ name: "", email: "", phone: "", credentials: "", experience: "", message: "" });
       } else {
@@ -77,7 +77,7 @@ export function CounselorsPage() {
     {
       icon: <UserPlus className="w-8 h-8 text-plum" />,
       title: "Collaborative Community",
-      description: "Connect with our panel of clinical psychologists and coaches. Gain access to modern training, toolkits, and case peer reviews.",
+      description: "Connect with our panel of wellbeing counselors and coaches. Gain access to modern training, toolkits, and case peer reviews.",
     },
   ];
 
@@ -94,7 +94,7 @@ export function CounselorsPage() {
               animate={{ opacity: 1 }}
               className="inline-block px-3 py-1 bg-plum-500/20 text-plum-200 border border-plum-400/30 rounded-full text-xs font-semibold uppercase tracking-wider mb-4"
             >
-              Clinical Network
+              Counselor Network
             </motion.span>
             <motion.h1 
               initial={{ opacity: 0, y: 15 }}
@@ -139,7 +139,7 @@ export function CounselorsPage() {
             <div className="space-y-6">
               <h2 className="text-3xl font-extrabold text-ink-900 font-display leading-snug">Become an Active Partner</h2>
               <p className="text-sm text-ink-soft leading-relaxed">
-                We value professionalism and clinical safety. Every counselor and coach on our platform undergoes a detailed credentials and license audit before onboarding.
+                We value professionalism and student safety. Every counselor and coach on our platform undergoes a detailed credentials and license audit before onboarding.
               </p>
 
               <div className="space-y-6 pt-4">
@@ -169,7 +169,7 @@ export function CounselorsPage() {
                     Earn and Support
                   </h4>
                   <p className="text-xs text-ink-soft mt-1 leading-relaxed pl-7">
-                    Log into our clinical dashboard, claim student assessment consultation tickets, and conduct private chat reviews. Earn steady payouts processed twice a month.
+                    Log into our counselor dashboard, claim student reflection consultation tickets, and conduct private chat reviews. Earn steady payouts processed twice a month.
                   </p>
                 </div>
               </div>
@@ -215,7 +215,7 @@ export function CounselorsPage() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    placeholder="sarah@clinic.com"
+                    placeholder="sarah@counseling.com"
                     className="text-base"
                   />
                 </div>

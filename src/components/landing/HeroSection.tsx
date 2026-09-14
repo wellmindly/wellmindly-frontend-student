@@ -115,7 +115,7 @@ export function HeroSection({
 
           {/* Subhead */}
           <p className="mt-5 text-base sm:text-lg text-ink-600 max-w-xl text-pretty leading-relaxed">
-            A warm, anonymous space to pause, check in, and unpack what you're carrying. No pressure, no clinical labels. Just a space to understand yourself.
+            A warm, anonymous space to pause, check in, and unpack what you're carrying. No pressure, no diagnostic labels. Just a space to understand yourself.
           </p>
 
           {/* Exactly two CTAs */}

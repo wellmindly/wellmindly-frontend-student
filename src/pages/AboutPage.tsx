@@ -17,7 +17,7 @@ export function AboutPage() {
       icon: <Compass className="w-6 h-6 text-plum" />,
       title: "Interactive Blueprints",
       description:
-        "Self-discovery modules covering mental load, headspace, seasons, and personality without diagnostic clinical labels.",
+        "Self-discovery modules covering mental load, headspace, seasons, and personality without diagnostic labels.",
     },
     {
       icon: <Shield className="w-6 h-6 text-teal" />,
@@ -29,7 +29,7 @@ export function AboutPage() {
       icon: <Users className="w-6 h-6 text-coral" />,
       title: "Peer Engagement",
       description:
-        "TalkMindly moderated chat rooms offering students community support without corporate clinical branding.",
+        "TalkMindly moderated chat rooms offering students community support without corporate branding.",
     },
   ];
 
@@ -102,7 +102,7 @@ export function AboutPage() {
               Bridging the Gap in Higher Education
             </h2>
             <p className="text-ink-600 text-sm leading-relaxed mb-6 text-center">
-              Modern campus counseling centers are overwhelmed. WellMindly offers a preventative gateway that acts as a safe, anonymous precursor to clinical support systems.
+              Modern campus counseling centers are overwhelmed. WellMindly offers a preventative gateway that acts as a safe, anonymous precursor to professional campus support.
             </p>
             <ul className="space-y-3.5 max-w-xl mx-auto">
               <li className="flex items-start gap-3">

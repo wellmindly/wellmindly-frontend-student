@@ -22,12 +22,12 @@ export async function downloadAssessmentPdf(params: {
   doc.setTextColor(255, 255, 255);
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(18);
-  doc.text("WellMindly Clinical Assessment Report", 15, 16);
+  doc.text("WellMindly Wellness Assessment Report", 15, 16);
 
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(230, 230, 230);
-  doc.text("Student Wellness Dossier & Personalized Clinical Summary", 15, 24);
+  doc.text("Student Wellness Dossier & Personalized Summary", 15, 24);
   doc.text(`Generated: ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`, 15, 31);
 
   // Metadata Card
@@ -47,15 +47,15 @@ export async function downloadAssessmentPdf(params: {
   doc.text(`Category: ${params.category || "General Wellbeing"}`, 20, 70);
 
   if (params.score !== undefined) {
-    doc.text(`Clinical Score: ${params.score} / ${params.maxScore || 100}`, 110, 63);
+    doc.text(`Score: ${params.score} / ${params.maxScore || 100}`, 110, 63);
     doc.text(`Severity Tier: ${params.classification || "Optimal"}`, 110, 70);
   }
 
-  // Section: Clinical Insights
+  // Section: Wellbeing Insights
   doc.setFont("Helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(77, 41, 91);
-  doc.text("1. Clinical Summary & Narrative", 15, 90);
+  doc.text("1. Wellbeing Summary & Narrative", 15, 90);
 
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(10);

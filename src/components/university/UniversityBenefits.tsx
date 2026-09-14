@@ -17,7 +17,7 @@ const BENEFITS = [
     icon: <School className="w-8 h-8 text-coral" />,
     title: "Integration With On-Campus Care",
     description:
-      "Connect students who flag high distress directly to your campus counseling center, local hotlines, and health clinics.",
+      "Connect students who flag high distress directly to your campus counseling center, local hotlines, and student wellness resources.",
   },
 ];
 

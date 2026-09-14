@@ -4,7 +4,6 @@ import { HelpCircle, Search, X } from "lucide-react";
 import api from "../services/api";
 import { LandingHeader } from "../components/landing/LandingHeader";
 import { LandingFooter } from "../components/landing/LandingFooter";
-import { BreathingExercise } from "../components/crisis/BreathingExercise";
 import { CountrySelect } from "../components/crisis/CountrySelect";
 import { HotlineCard } from "../components/crisis/HotlineCard";
 import type { CrisisHotline } from "../components/crisis/hotlines";
@@ -112,9 +111,6 @@ export function CrisisPage() {
               These are free, confidential resources with real people trained to support you.
             </p>
           </div>
-
-          {/* Interactive De-escalation Breathing Exercise */}
-          <BreathingExercise />
 
           {/* Controls Bar: Country Selector & Hotline Search */}
           <div className="max-w-3xl mx-auto mb-16">
