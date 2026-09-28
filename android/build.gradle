@@ -38,8 +38,21 @@ subprojects {
                 }
             }
         }
+
+        // @capacitor/filesystem (and any other Kotlin-based plugin) compiles its
+        // Kotlin at the JDK's default target (21 here), while Java is pinned to 17
+        // above - Gradle rejects the mismatch. Pin Kotlin to 17 too. Matched by
+        // task class name so this stays valid for non-Kotlin modules and needs no
+        // Kotlin plugin on the root buildscript classpath.
+        project.tasks.configureEach { task ->
+            if (task.class.name.contains('KotlinCompile')) {
+                task.kotlinOptions {
+                    jvmTarget = '17'
+                }
+            }
+        }
     }
-    
+
     tasks.withType(JavaCompile) {
         sourceCompatibility = '17'
         targetCompatibility = '17'
