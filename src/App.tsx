@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { MotionConfig } from "framer-motion";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -6,6 +6,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AppSplash } from "./components/AppSplash";
 import { ToastProvider } from "./components/ui";
 import { useScrollTopOnChange } from "./lib/a11y";
+import { hideSplash } from "./lib/native";
 
 /* ----------------------------------------------------------------------------
    Route-level code splitting.
@@ -105,6 +106,13 @@ function LoginRoute() {
 }
 
 function App() {
+  // The native launch splash stays up (launchAutoHide:false) until React has
+  // painted the first frame, so a returning student never sees the white webview
+  // flash that gives a wrapped webpage away. No-op on the web build.
+  useEffect(() => {
+    hideSplash();
+  }, []);
+
   return (
     <AuthProvider>
       {/* Respect the OS-level reduce-motion setting on every platform, native

@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -19,6 +20,7 @@ import { cn } from "../../lib/cn";
 import { spring, tween } from "../../lib/motion";
 import { useScrollTopOnChange } from "../../lib/a11y";
 import { Avatar, CrisisBanner, IconButton, PresenceSwap } from "../ui";
+import { hapticTap, setStatusBarTheme, registerBackHandler } from "../../lib/native";
 import logoPng from "../../assets/logo.png";
 
 /* ============================================================================
@@ -84,9 +86,32 @@ export function DashboardLayout(props: DashboardLayoutProps) {
   // children scroll themselves and the window never moves.
   useScrollTopOnChange(activeTab);
 
+  const isImmersive = immersiveTabs.has(activeTab);
+
+  // Match the native status bar icons to the surface beneath them: dark icons on
+  // the light app, light icons on the immersive dark chat shell. No-op on web.
+  useEffect(() => {
+    setStatusBarTheme(isImmersive ? "dark" : "light");
+    return () => setStatusBarTheme("light");
+  }, [isImmersive]);
+
+  // Android hardware back closes the drawer first. Tab and immersive navigation
+  // already live in the SPA history, so the global handler's history.back()
+  // covers those; here we only intercept the one thing that is pure state.
+  useEffect(() => {
+    return registerBackHandler(() => {
+      if (props.mobileMenuOpen) {
+        props.setMobileMenuOpen(false);
+        return true;
+      }
+      return false;
+    });
+  }, [props.mobileMenuOpen, props]);
+
   const isComingSoon = (id: string) => id === "writemindly" && !config.enableWriteMindly;
 
   const handleNav = (id: string, alsoCloseDrawer = false) => {
+    hapticTap();
     if (isComingSoon(id)) {
       onComingSoonClick?.(id as FeatureId);
     } else {
@@ -115,7 +140,10 @@ export function DashboardLayout(props: DashboardLayoutProps) {
           </div>
           <button
             type="button"
-            onClick={() => setActiveTab("overview")}
+            onClick={() => {
+              hapticTap();
+              setActiveTab("overview");
+            }}
             className={cn(
               // min-h-11, not min-h-9: this is the only way out of the
               // immersive shell (there is no sidebar or bottom nav here), so
@@ -269,7 +297,10 @@ export function DashboardLayout(props: DashboardLayoutProps) {
               size="sm"
               variant="ghost"
               icon={<Menu />}
-              onClick={() => props.setMobileMenuOpen(true)}
+              onClick={() => {
+                hapticTap();
+                props.setMobileMenuOpen(true);
+              }}
               className="-ml-1"
             />
             <button

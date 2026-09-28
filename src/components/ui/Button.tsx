@@ -1,7 +1,8 @@
 import { forwardRef } from "react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { cn } from "../../lib/cn";
+import { hapticTap } from "../../lib/native";
 
 /* ============================================================================
    Button
@@ -122,11 +123,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     children,
     disabled,
     type = "button",
+    onClick,
     ...rest
   },
   ref,
 ) {
   const isBlocked = disabled || loading;
+
+  // Every primary action taps back on device. Light impact, fired on activation
+  // (so it covers keyboard too) and only after the caller's own handler runs.
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    hapticTap();
+    onClick?.(e);
+  };
 
   return (
     <button
@@ -134,6 +143,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       type={type}
       disabled={isBlocked}
       aria-busy={loading || undefined}
+      onClick={handleClick}
       className={cn(
         buttonBase,
         VARIANTS[variant],
@@ -194,15 +204,20 @@ const ICON_BUTTON_SIZES: Record<Exclude<ButtonSize, "xs">, string> = {
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   function IconButton(
-    { variant = "ghost", size = "md", label, icon, round, className, type = "button", ...rest },
+    { variant = "ghost", size = "md", label, icon, round, className, type = "button", onClick, ...rest },
     ref,
   ) {
+    const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+      hapticTap();
+      onClick?.(e);
+    };
     return (
       <button
         ref={ref}
         type={type}
         aria-label={label}
         title={label}
+        onClick={handleClick}
         className={cn(
           buttonBase,
           VARIANTS[variant],

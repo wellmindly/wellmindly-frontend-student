@@ -4,6 +4,7 @@ import { Check, Send } from "lucide-react";
 import api from "../../services/api";
 import { Button, Card, Chip, Textarea } from "../ui";
 import { scaleIn } from "../../lib/motion";
+import { hapticSuccess } from "../../lib/native";
 
 interface FeedbackFormProps {
   resultId: string;
@@ -61,6 +62,7 @@ export function FeedbackForm({ resultId, onComplete }: FeedbackFormProps) {
         comments: formattedComments,
       });
       setSuccess(true);
+      hapticSuccess();
       setTimeout(() => {
         onComplete();
       }, 2500);

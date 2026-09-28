@@ -2,10 +2,15 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { initNativeShell } from './lib/native'
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'mock-client-id';
+
+// Status bar, keyboard resize and the hardware back button, before first paint.
+// No-op on the web build.
+initNativeShell();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

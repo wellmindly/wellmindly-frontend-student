@@ -6,6 +6,7 @@ import { MOODS, moodByRating } from "../../../lib/mood";
 import { formatFullDate, formatRelative, dayKey } from "../../../lib/format";
 import { spring } from "../../../lib/motion";
 import { cn } from "../../../lib/cn";
+import { hapticTap, hapticSuccess } from "../../../lib/native";
 import {
   displayQuizTitle,
   displayClassification,
@@ -94,7 +95,10 @@ export function TodayCard({
 
               <button
                 type="button"
-                onClick={() => setEditing(true)}
+                onClick={() => {
+                  hapticTap();
+                  setEditing(true);
+                }}
                 // min-h-11 only; the label is already 138px wide, so the
                 // target was failing on height alone. No extra horizontal
                 // padding - the row is tight at 375.
@@ -121,6 +125,7 @@ export function TodayCard({
                   key={mood.rating}
                   type="button"
                   onClick={() => {
+                    hapticSuccess();
                     onDailyCheckin(mood.rating);
                     setEditing(false);
                   }}

@@ -435,6 +435,33 @@ button, [role="button"], nav, label:has(input) {
   -webkit-overflow-scrolling: touch;
 }
 
+/* --- Native shell (Capacitor) -------------------------------------------- */
+/* `initNativeShell()` adds `.native` to <html> on the Android/iOS build only,
+   so these rules never touch the web experience shipped from the same bundle.
+   The goal: the webview should behave like an app surface, not a web document. */
+html.native,
+html.native body {
+  /* No pull-to-refresh, no blue rubber-band glow at the scroll edges. */
+  overscroll-behavior: none;
+}
+html.native body {
+  /* App chrome is not selectable text - long-pressing a label or a nav item
+     shouldn't pop a selection handle the way it does in a browser. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* Real content the student may genuinely want to copy stays selectable. */
+html.native p,
+html.native input,
+html.native textarea,
+html.native [contenteditable="true"],
+html.native .selectable,
+html.native .selectable * {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* Horizontal snap rails (coach carousels, mood pickers, chip rows). */
 @utility snap-rail {
   display: flex;
