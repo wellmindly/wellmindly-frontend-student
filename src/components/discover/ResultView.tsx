@@ -552,11 +552,14 @@ export function ResultView({
                 narrative: data.aiFeedback?.narrative,
                 tip: data.aiFeedback?.tip,
               });
-              try { window.print(); } catch (_) {}
+              // downloadAssessmentPdf already produces the file (browser download on
+              // web, OS share sheet on native). The old window.print() ran a second,
+              // redundant browser print dialog on top of it - and did nothing useful
+              // in the Android WebView. Removed so one tap = one clear action.
             }}
             leadingIcon={<Printer className="h-4 w-4" />}
           >
-            Print / Save PDF
+            Save PDF
           </Button>
         </div>
         <Button variant="ghost" onClick={() => goTo('hub')} trailingIcon={<ArrowRight />}>
@@ -580,10 +583,10 @@ function ResultHeadline({
 }) {
   return (
     <div className={className}>
-      <h2 className="font-display text-2xl font-medium leading-tight text-ink-900 sm:text-3xl">
+      <h2 className="font-display text-xl font-semibold leading-tight text-ink-900 sm:text-2xl">
         {headline}
       </h2>
-      <p className="mt-1 font-display text-lg font-medium leading-relaxed text-ink-600">
+      <p className="mt-1.5 text-sm font-medium leading-relaxed text-ink-600 sm:text-base">
         {narrative}
       </p>
     </div>
@@ -652,7 +655,7 @@ function ShareCard({
   return (
     <div
       ref={cardRef}
-      className="relative overflow-hidden rounded-2xl p-8 text-on-primary shadow-xl"
+      className="relative overflow-hidden rounded-2xl p-6 text-on-primary shadow-xl sm:p-8"
       style={{ background: `linear-gradient(135deg, ${accent}, ${accentTo || accent})` }}
     >
       {children}

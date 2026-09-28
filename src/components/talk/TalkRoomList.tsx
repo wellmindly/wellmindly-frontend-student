@@ -23,8 +23,7 @@ export function TalkRoomList({
   onSelectRoom,
 }: TalkRoomListProps) {
   return (
-    <div className="h-full bg-paper overflow-y-auto px-4 py-6 sm:px-6 sm:py-8">
-      <div className="max-w-2xl mx-auto space-y-6 text-left sm:space-y-8">
+    <div className="mx-auto max-w-2xl space-y-6 text-left sm:space-y-8">
         {/* Header Row. Wraps rather than squeezing: at 375px the identity chip and
             the heading cannot share a line, and forcing them to broke both. */}
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -93,7 +92,6 @@ export function TalkRoomList({
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

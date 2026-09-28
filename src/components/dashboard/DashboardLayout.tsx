@@ -60,7 +60,11 @@ const menuItems: MenuItem[] = [
 const bottomNavIds = ["overview", "discover", "writemindly", "talkmindly", "sessionbooking"];
 
 // Tabs that take over the whole viewport (their own immersive UI).
-const immersiveTabs = new Set(["talkmindly"]);
+// TalkMindly used to live here, but a full-viewport dark shell dropped the
+// bottom nav and sidebar, so the space read as a separate app the student had
+// to "escape" from. It now renders in the normal shell (light, with nav intact)
+// like every other tab; its own light components supply the room/board chrome.
+const immersiveTabs = new Set<string>([]);
 
 interface DashboardLayoutProps {
   activeTab: string;

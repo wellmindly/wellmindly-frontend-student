@@ -43,10 +43,10 @@ export function TalkNoteBoard({
   onRequestDeleteNote,
 }: TalkNoteBoardProps) {
   return (
-    <div className="h-full bg-paper flex flex-col">
+    <div className="animate-fade-in">
       {/* Room subheader. The title row and the sort control stack below `sm`: sharing
           one line at 375px pushed the Recent/Interactive toggle off the right edge. */}
-      <div className="shrink-0 border-b border-ink-200/70 bg-paper px-4 py-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+      <div className="border-b border-ink-200/70 py-3 sm:flex sm:items-center sm:justify-between sm:gap-4 sm:py-4">
         <div className="flex min-w-0 items-center gap-3">
           <button
             type="button"
@@ -80,9 +80,10 @@ export function TalkNoteBoard({
         </div>
       </div>
 
-      {/* Main Grid notes area. The tail padding clears the extended FAB, which floats
-          over this scroller - without it the last note sits under the button. */}
-      <div className="flex-1 overflow-y-auto px-4 py-5 pb-28 sm:px-6 sm:py-6 sm:pb-28">
+      {/* Notes area. The tail padding clears the extended FAB, which floats over the
+          page (and, on mobile, above the bottom nav) - without it the last note hides
+          under the button. */}
+      <div className="py-5 pb-24 sm:py-6">
         <div className="max-w-2xl mx-auto">
           {loadingNotes ? (
             <div className="flex justify-center py-20">
@@ -265,9 +266,10 @@ export function TalkNoteBoard({
       </div>
 
       {/* Extended FAB. A bare 56px circle with a pen glyph read as decoration - nothing
-          on it said "you can write here". The label is always visible, and the button
-          sits above the home-indicator inset so it is reachable on a notched phone. */}
-      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(1.25rem+var(--safe-area-bottom))] z-[var(--z-nav)] flex justify-end px-4 sm:px-6">
+          on it said "you can write here". The label is always visible. It floats above
+          the mobile bottom nav (and the home-indicator inset), and drops to the normal
+          corner on desktop where there is no bottom nav. */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-[calc(var(--bottom-nav-height)+1rem+var(--safe-area-bottom))] z-[var(--z-nav)] flex justify-end px-4 sm:px-6 lg:bottom-[calc(1.5rem+var(--safe-area-bottom))]">
         <motion.button
           type="button"
           onClick={onOpenDropNote}

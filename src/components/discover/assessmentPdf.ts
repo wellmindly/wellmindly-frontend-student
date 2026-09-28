@@ -9,6 +9,7 @@ export async function downloadAssessmentPdf(params: {
   tip?: string;
 }): Promise<void> {
   const { jsPDF } = await import("jspdf");
+  const { isNativeApp } = await import("../../lib/native");
   const doc = new jsPDF({
     orientation: "portrait",
     unit: "mm",
@@ -89,5 +90,37 @@ export async function downloadAssessmentPdf(params: {
     280
   );
 
-  doc.save("WellMindly_Assessment_Report.pdf");
+  const fileName = "WellMindly_Assessment_Report.pdf";
+
+  // Web: jsPDF's blob download works. Native (Capacitor Android/iOS): the WebView
+  // has no download bridge, so doc.save() silently does nothing - the "Save PDF"
+  // button appeared broken. Instead write the file into the app cache and hand it
+  // to the OS share sheet, which lets the student save to Files/Drive or send it on.
+  if (isNativeApp()) {
+    try {
+      const [{ Filesystem, Directory }, { Share }] = await Promise.all([
+        import("@capacitor/filesystem"),
+        import("@capacitor/share"),
+      ]);
+      const base64 = doc.output("datauristring").split(",")[1];
+      const { uri } = await Filesystem.writeFile({
+        path: fileName,
+        data: base64,
+        directory: Directory.Cache,
+      });
+      await Share.share({
+        title: "WellMindly Assessment Report",
+        text: "Your WellMindly wellness assessment report.",
+        url: uri,
+        dialogTitle: "Save or share your report",
+      });
+      return;
+    } catch (err) {
+      // Bridge/plugin unavailable - fall back to the browser save below rather
+      // than leaving the student with nothing.
+      console.error("Native PDF share failed; falling back to browser save:", err);
+    }
+  }
+
+  doc.save(fileName);
 }

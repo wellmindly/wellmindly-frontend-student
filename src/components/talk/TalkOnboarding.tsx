@@ -10,7 +10,7 @@ interface TalkTermsScreenProps {
 
 export function TalkTermsScreen({ onAcceptTerms }: TalkTermsScreenProps) {
   return (
-    <div className="h-full flex items-center justify-center bg-paper p-6 overflow-y-auto">
+    <div className="flex min-h-[70vh] items-center justify-center bg-paper p-2 sm:p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -82,7 +82,7 @@ export function TalkProfileScreen({
   const avatarGroupId = useId();
 
   return (
-    <div className="h-full flex items-center justify-center bg-paper p-6 overflow-y-auto">
+    <div className="flex min-h-[70vh] items-center justify-center bg-paper p-2 sm:p-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

@@ -18,8 +18,8 @@ const INITIAL_BUBBLES: Omit<BubbleItem, "id">[] = [
   { text: "Breathe", emoji: "🌿", x: 18, y: 25, size: 76, color: "from-teal-400/20 to-teal-500/30 border-teal-300/60 text-teal-800" },
   { text: "Calm", emoji: "✨", x: 68, y: 20, size: 70, color: "from-plum-400/20 to-plum-500/30 border-plum-300/60 text-plum-800" },
   { text: "Release", emoji: "🍃", x: 42, y: 55, size: 82, color: "from-sage-400/20 to-sage-500/30 border-sage-300/60 text-sage-800" },
-  { text: "Clarity", emoji: "🌊", x: 12, y: 70, size: 74, color: "from-sky-400/20 to-sky-500/30 border-sky-300/60 text-sky-800" },
-  { text: "Kindness", emoji: "💜", x: 74, y: 65, size: 80, color: "from-violet-400/20 to-violet-500/30 border-violet-300/60 text-violet-800" },
+  { text: "Clarity", emoji: "🌊", x: 12, y: 70, size: 74, color: "from-coral-400/20 to-coral-500/30 border-coral-300/60 text-coral-800" },
+  { text: "Kindness", emoji: "💜", x: 74, y: 65, size: 80, color: "from-teal-400/20 to-teal-500/30 border-teal-300/60 text-teal-800" },
   { text: "Patience", emoji: "🌸", x: 82, y: 35, size: 68, color: "from-rose-400/20 to-rose-500/30 border-rose-300/60 text-rose-800" },
 ];
 
@@ -102,11 +102,11 @@ export function InteractiveQuizLoader({
     setTimeout(() => {
       const randomWords = [
         { text: "Peace", emoji: "🕊️", color: "from-teal-400/20 to-teal-500/30 border-teal-300/60 text-teal-800" },
-        { text: "Grounded", emoji: "🌱", color: "from-emerald-400/20 to-emerald-500/30 border-emerald-300/60 text-emerald-800" },
+        { text: "Grounded", emoji: "🌱", color: "from-sage-400/20 to-sage-500/30 border-sage-300/60 text-sage-800" },
         { text: "Space", emoji: "🌌", color: "from-plum-400/20 to-plum-500/30 border-plum-300/60 text-plum-800" },
         { text: "Courage", emoji: "🦁", color: "from-coral-400/20 to-coral-500/30 border-coral-300/60 text-coral-800" },
-        { text: "Balance", emoji: "⚖️", color: "from-violet-400/20 to-violet-500/30 border-violet-300/60 text-violet-800" },
-        { text: "Rest", emoji: "🌙", color: "from-sky-400/20 to-sky-500/30 border-sky-300/60 text-sky-800" },
+        { text: "Balance", emoji: "⚖️", color: "from-rose-400/20 to-rose-500/30 border-rose-300/60 text-rose-800" },
+        { text: "Rest", emoji: "🌙", color: "from-teal-400/20 to-teal-500/30 border-teal-300/60 text-teal-800" },
       ];
       const pick = randomWords[Math.floor(Math.random() * randomWords.length)];
       const newBubble: BubbleItem = {
@@ -123,13 +123,13 @@ export function InteractiveQuizLoader({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto my-6 rounded-3xl border border-ink-200/80 bg-card/90 backdrop-blur-md p-6 sm:p-8 shadow-xl overflow-hidden relative">
+    <div className="w-full max-w-2xl mx-auto my-2 sm:my-6 rounded-3xl border border-ink-200/80 bg-card/90 backdrop-blur-md p-4 sm:p-8 shadow-xl overflow-hidden relative">
       {/* Background ambient glow */}
       <div className="pointer-events-none absolute -top-12 -left-12 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-drift" />
       <div className="pointer-events-none absolute -bottom-12 -right-12 w-64 h-64 bg-plum-500/10 rounded-full blur-3xl animate-drift" style={{ animationDelay: "-4s" }} />
 
       {/* Header Area */}
-      <div className="text-center relative z-10 mb-6">
+      <div className="text-center relative z-10 mb-4 sm:mb-6">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-plum-100/80 text-plum-800 border border-plum-200/70 text-xs font-bold shadow-2xs mb-3">
           <BrainCircuit className="w-4 h-4 animate-pulse text-plum-600" />
           <span>Generating AI Insights</span>
@@ -170,7 +170,7 @@ export function InteractiveQuizLoader({
           className={cn(
             "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
             mode === "bubbles"
-              ? "bg-plum-600 text-white shadow-sm"
+              ? "bg-plum-600 text-plum-50 shadow-sm"
               : "bg-paper-2 hover:bg-ink-100 text-ink-600 border border-ink-200/60"
           )}
         >
@@ -184,7 +184,7 @@ export function InteractiveQuizLoader({
           className={cn(
             "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer",
             mode === "breathing"
-              ? "bg-plum-600 text-white shadow-sm"
+              ? "bg-plum-600 text-plum-50 shadow-sm"
               : "bg-paper-2 hover:bg-ink-100 text-ink-600 border border-ink-200/60"
           )}
         >
@@ -194,7 +194,7 @@ export function InteractiveQuizLoader({
       </div>
 
       {/* Interactive Activity Canvas */}
-      <div className="relative w-full h-64 sm:h-72 rounded-2xl bg-paper/60 border border-ink-200/60 overflow-hidden shadow-inner flex items-center justify-center">
+      <div className="relative w-full h-52 sm:h-72 rounded-2xl bg-paper/60 border border-ink-200/60 overflow-hidden shadow-inner flex items-center justify-center">
         {mode === "bubbles" ? (
           <>
             {/* Pop Score Counter */}

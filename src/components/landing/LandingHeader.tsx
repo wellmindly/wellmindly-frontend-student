@@ -45,13 +45,18 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
       {/* Skip to main content link for keyboard & a11y */}
       <SkipLink />
 
-      {/* Global Crisis Support Banner */}
-      <CrisisBanner onAction={onCrisisClick} />
+      {/* Sticky top region: crisis banner + nav share one safe-area inset so the
+          status bar clears the crisis bar (native) and there is no empty gap
+          between the two bars. Kept as one sticky block so the safe inset always
+          sits at the true viewport top, scrolled or not. */}
+      <div className="sticky top-0 z-[var(--z-nav)] w-full">
+        {/* Crisis banner owns the status-bar clearance (raw inset, no extra gap). */}
+        <CrisisBanner onAction={onCrisisClick} className="pt-[var(--safe-area-top)]" />
 
-      {/* Header Navigation */}
-      <header className="sticky top-0 z-[var(--z-nav)] w-full border-b border-ink-200/60 bg-paper/85 backdrop-blur-md pt-safe">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <Logo size="md" />
+        {/* Header Navigation */}
+        <header className="w-full border-b border-ink-200/60 bg-paper/85 backdrop-blur-md">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+            <Logo size="md" />
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
@@ -170,6 +175,7 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
           )}
         </AnimatePresence>
       </header>
+      </div>
     </>
   );
 }

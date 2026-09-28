@@ -363,7 +363,7 @@ export function TalkMindlyTab() {
 
   if (loadingProfile) {
     return (
-      <div className="flex h-full items-center justify-center bg-paper">
+      <div className="flex min-h-[40vh] items-center justify-center">
         <Loader2 className="w-8 h-8 text-plum-600 animate-spin" />
       </div>
     );

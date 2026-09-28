@@ -6,6 +6,7 @@ import type { PictureOption } from "../discover/types";
 import type { DiscoverResultData } from "../../hooks/useDashboard";
 import type { RefObject } from "react";
 import { SectionHeader } from "../ui";
+import { cn } from "../../lib/cn";
 import { InteractiveQuizLoader } from "../discover/InteractiveQuizLoader";
 
 interface DiscoverTabProps {
@@ -73,17 +74,24 @@ export function DiscoverTab({
   }
 
   return (
-    <div className="space-y-8 animate-fade-in pb-12">
-      <SectionHeader
-        as="h1"
-        title={isCheckinMode ? "Emotional check-in" : "Explore tests"}
-        description={
-          isCheckinMode
-            ? "A two-minute wellbeing snapshot. See how you're really doing"
-            : "Discover insights about your strengths, personality, and values"
-        }
-        className="border-b border-ink-200/70 pb-5"
-      />
+    <div className={cn("animate-fade-in", isCheckinMode ? "space-y-4 pb-8" : "space-y-8 pb-12")}>
+      {isCheckinMode ? (
+        <header className="border-b border-ink-200/70 pb-3">
+          <h1 className="font-display text-xl font-semibold leading-tight text-ink-900 sm:text-2xl">
+            Emotional check-in
+          </h1>
+          <p className="mt-1 text-sm leading-relaxed text-ink-500">
+            A two-minute wellbeing snapshot.
+          </p>
+        </header>
+      ) : (
+        <SectionHeader
+          as="h1"
+          title="Explore tests"
+          description="Discover insights about your strengths, personality, and values"
+          className="border-b border-ink-200/70 pb-5"
+        />
+      )}
 
       <div className="max-w-4xl mx-auto">
         {discoverView === "hub" && <HubView startTest={startDiscoverTest} goTo={goTo} as="h2" />}

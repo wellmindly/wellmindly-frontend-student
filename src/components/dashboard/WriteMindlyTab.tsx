@@ -7,10 +7,12 @@ import {
   Trash2,
   Loader2,
   Heart,
-  ShieldCheck
+  ShieldCheck,
+  ChevronDown
 } from "lucide-react";
 import api from "../../services/api";
 import { Button, ConfirmSheet, IconButton, Input } from "../ui";
+import { cn } from "../../lib/cn";
 import { scrollToElement } from "../../lib/a11y";
 
 interface Message {
@@ -28,6 +30,7 @@ export function WriteMindlyTab() {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -262,21 +265,21 @@ export function WriteMindlyTab() {
   return (
     <div className="flex flex-col h-[calc(100dvh-12rem)] min-h-[500px] bg-card rounded-3xl border border-ink-100 shadow-sm overflow-hidden">
       {/* 1. Header Area */}
-      <header className="px-6 py-4 border-b border-ink-100 flex items-center justify-between shrink-0 bg-paper-2">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-plum-100 text-plum-600 flex items-center justify-center shadow-inner shrink-0">
-            <Heart className="h-5 w-5 fill-current" aria-hidden="true" />
+      <header className="px-4 py-3 sm:px-6 sm:py-4 border-b border-ink-100 flex items-center justify-between gap-2 shrink-0 bg-paper-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-plum-100 text-plum-600 flex items-center justify-center shadow-inner shrink-0">
+            <Heart className="h-4 w-4 sm:h-5 sm:w-5 fill-current" aria-hidden="true" />
           </div>
-          <div>
-            <h2 className="text-xl font-black text-ink-900 font-display leading-none">WriteMindly</h2>
-            <p className="text-xs text-ink-500 font-medium mt-1">Temporary, fully private AI companion.</p>
+          <div className="min-w-0">
+            <h2 className="text-base sm:text-xl font-black text-ink-900 font-display leading-none">WriteMindly</h2>
+            <p className="text-2xs sm:text-xs text-ink-500 font-medium mt-1 truncate">Temporary, fully private AI companion.</p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           {/* Circular Context Gauge */}
-          <div className="flex items-center gap-2 bg-card px-3 py-1.5 rounded-2xl border border-ink-100 shadow-sm select-none">
+          <div className="flex items-center gap-2 bg-card px-2 py-1 sm:px-3 sm:py-1.5 rounded-2xl border border-ink-100 shadow-sm select-none">
             <span className="sr-only">{remainingPercent}% of today's messages left. Resets tomorrow.</span>
             <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90" aria-hidden="true">
@@ -329,16 +332,40 @@ export function WriteMindlyTab() {
       </header>
 
       {/* 2. Chat History Viewport */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4 bg-gradient-to-b from-paper-2/40 to-card relative">
-        {/* Anonymity Banner */}
-        <div className="max-w-xl mx-auto bg-paper-2 border border-ink-100 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-ink-600 select-none shadow-sm">
-          <ShieldCheck className="w-5 h-5 text-sage-600 shrink-0" aria-hidden="true" />
-          <div>
-            <p className="font-black text-ink-900 mb-0.5">What happens to what you write here</p>
-            <p className="font-medium text-ink-500">
-              What you type is sent to our AI provider so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
-            </p>
-          </div>
+      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 space-y-4 bg-gradient-to-b from-paper-2/40 to-card relative">
+        {/* Anonymity Banner - condensed + expandable so it doesn't dominate the phone */}
+        <div className="max-w-xl mx-auto bg-paper-2 border border-ink-100 rounded-2xl shadow-sm select-none overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setPrivacyOpen((v) => !v)}
+            aria-expanded={privacyOpen}
+            className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+          >
+            <ShieldCheck className="w-4 h-4 text-sage-600 shrink-0" aria-hidden="true" />
+            <span className="flex-1 text-xs font-bold text-ink-800 leading-snug">
+              Private &mdash; we don&rsquo;t save what you write.
+            </span>
+            <span className="text-2xs font-semibold text-ink-400 shrink-0">{privacyOpen ? "Hide" : "How"}</span>
+            <ChevronDown
+              className={cn("w-4 h-4 text-ink-400 shrink-0 transition-transform", privacyOpen && "rotate-180")}
+              aria-hidden="true"
+            />
+          </button>
+          <AnimatePresence initial={false}>
+            {privacyOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <p className="px-3.5 pb-3.5 text-xs leading-relaxed text-ink-500 font-medium">
+                  What you type is sent to our AI provider so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Message Log */}
@@ -413,7 +440,7 @@ export function WriteMindlyTab() {
       )}
 
       {/* 4. Chat Typing Input Bar */}
-      <footer className="px-6 py-4 border-t border-ink-100 shrink-0 bg-paper-2">
+      <footer className="px-4 py-3 sm:px-6 sm:py-4 border-t border-ink-100 shrink-0 bg-paper-2">
         <p role="status" aria-live="polite" className="min-h-5 text-center text-xs font-medium text-danger mb-2">
           {error}
         </p>
