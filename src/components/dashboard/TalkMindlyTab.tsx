@@ -38,6 +38,7 @@ export function TalkMindlyTab() {
   const [noteContent, setNoteContent] = useState("");
   const [submittingNote, setSubmittingNote] = useState(false);
   const [profanityWarning, setProfanityWarning] = useState(false);
+  const [replyProfanityWarning, setReplyProfanityWarning] = useState(false);
 
   // Selected Note / Replies Drawer State
   const [selectedNote, setSelectedNote] = useState<TalkNote | null>(null);
@@ -225,7 +226,9 @@ export function TalkMindlyTab() {
           if (polledNotes.length > 0) {
             setNotes(polledNotes);
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error("Post-drop note poll failed:", e);
+        }
       }, 3000);
     } catch (err: any) {
       console.error("Failed to drop note:", err);
@@ -239,9 +242,10 @@ export function TalkMindlyTab() {
     if (!selectedNote || !selectedRoom || !replyContent.trim()) return;
 
     if (containsProfanity(replyContent)) {
-      alert("Please keep your peer reply supportive and respectful.");
+      setReplyProfanityWarning(true);
       return;
     }
+    setReplyProfanityWarning(false);
 
     try {
       setSubmittingReply(true);
@@ -452,6 +456,7 @@ export function TalkMindlyTab() {
         onClose={() => setSelectedNote(null)}
         replyContent={replyContent}
         setReplyContent={setReplyContent}
+        replyProfanityWarning={replyProfanityWarning}
         submittingReply={submittingReply}
         profile={profile}
         onPostReply={handlePostReply}

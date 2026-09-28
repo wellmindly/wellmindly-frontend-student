@@ -29,3 +29,9 @@ dist-ssr
 /blob-report/
 e2e/.auth/
 
+# Environment files - never commit real secrets or per-env build config.
+# .env.local is already covered by *.local above; this covers the rest.
+.env
+.env.*
+!.env.example
+

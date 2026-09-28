@@ -12,7 +12,6 @@ import {
   PenTool,
   MessageSquare,
   Calendar,
-  ArrowLeft,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { config } from "../../config";
@@ -29,8 +28,8 @@ import logoPng from "../../assets/logo.png";
    One shell for every signed-in surface. The previous version forked into a
    separate hard-coded dark tree for TalkMindly (losing the nav entirely) and
    used h-screen/w-screen with four different greys. This unifies on the design
-   system while keeping the two things that were genuinely right: a focused
-   immersive mode for the chat/community space, and a persistent crisis banner.
+   system: every tab renders in the same light shell with the nav intact, and a
+   persistent crisis banner is always reachable.
    ========================================================================= */
 
 type FeatureId = "writemindly" | "talkmindly" | "sessionbooking";
@@ -59,13 +58,6 @@ const menuItems: MenuItem[] = [
 // because it is one tap from Home and stays in the drawer and sidebar.
 const bottomNavIds = ["overview", "discover", "writemindly", "talkmindly", "sessionbooking"];
 
-// Tabs that take over the whole viewport (their own immersive UI).
-// TalkMindly used to live here, but a full-viewport dark shell dropped the
-// bottom nav and sidebar, so the space read as a separate app the student had
-// to "escape" from. It now renders in the normal shell (light, with nav intact)
-// like every other tab; its own light components supply the room/board chrome.
-const immersiveTabs = new Set<string>([]);
-
 interface DashboardLayoutProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
@@ -86,22 +78,19 @@ export function DashboardLayout(props: DashboardLayoutProps) {
   const navigate = useNavigate();
 
   // Switching tabs is a navigation even though the URL barely changes, so it
-  // starts at the top like one. The immersive shell is exempt below - its
-  // children scroll themselves and the window never moves.
+  // starts at the top like one.
   useScrollTopOnChange(activeTab);
 
-  const isImmersive = immersiveTabs.has(activeTab);
-
-  // Match the native status bar icons to the surface beneath them: dark icons on
-  // the light app, light icons on the immersive dark chat shell. No-op on web.
+  // Keep the native status bar icons dark to match the light app shell. No-op
+  // on web.
   useEffect(() => {
-    setStatusBarTheme(isImmersive ? "dark" : "light");
+    setStatusBarTheme("light");
     return () => setStatusBarTheme("light");
-  }, [isImmersive]);
+  }, []);
 
-  // Android hardware back closes the drawer first. Tab and immersive navigation
-  // already live in the SPA history, so the global handler's history.back()
-  // covers those; here we only intercept the one thing that is pure state.
+  // Android hardware back closes the drawer first. Tab navigation already lives
+  // in the SPA history, so the global handler's history.back() covers those;
+  // here we only intercept the one thing that is pure state.
   useEffect(() => {
     return registerBackHandler(() => {
       if (props.mobileMenuOpen) {
@@ -123,52 +112,6 @@ export function DashboardLayout(props: DashboardLayoutProps) {
     }
     if (alsoCloseDrawer) props.setMobileMenuOpen(false);
   };
-
-  /* ---------------------------------------------------- immersive (chat) mode */
-  if (immersiveTabs.has(activeTab)) {
-    return (
-      // h-dvh, not min-h-dvh: this is a fixed-viewport app shell whose <main> is
-      // overflow-hidden and whose children own their own scrolling. With min-h-dvh the
-      // container height stays indefinite, so `h-full` on a child resolves to auto and
-      // the child's own background collapses to content height — which is how the
-      // TalkRooms list ended up as a strip of paper on top of the dark shell.
-      <div className="flex h-dvh flex-col bg-ink-900 text-ink-50">
-        <header className="z-[var(--z-nav)] flex min-h-16 shrink-0 items-center justify-between border-b border-ink-700 bg-ink-800 px-4 pt-safe sm:px-6">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-plum-500 text-plum-50">
-              <MessageSquare className="h-4 w-4" />
-            </span>
-            <span className="font-display text-lg font-semibold text-ink-50">
-              {activeTab === "talkmindly" ? "TalkMindly" : "WellMindly"}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              hapticTap();
-              setActiveTab("overview");
-            }}
-            className={cn(
-              // min-h-11, not min-h-9: this is the only way out of the
-              // immersive shell (there is no sidebar or bottom nav here), so
-              // it has to be a full-size touch target. The header is
-              // min-h-16, so 44px fits without moving anything.
-              "inline-flex min-h-11 items-center gap-2 rounded-full border border-ink-700 bg-ink-800 px-4",
-              "text-xs font-semibold text-ink-100 transition-colors hover:bg-ink-700",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
-            )}
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Dashboard
-          </button>
-        </header>
-        <main className="relative flex-1 overflow-hidden">
-          <h1 className="sr-only">{activeTab === "talkmindly" ? "TalkMindly" : "WellMindly"}</h1>
-          {children}
-        </main>
-      </div>
-    );
-  }
 
   /* ------------------------------------------------------------- normal shell */
   return (

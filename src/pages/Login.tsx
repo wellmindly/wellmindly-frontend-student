@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Logo, SkipLink } from '../components/ui';
 import { AuthBrandPanel, AuthAlerts, GoogleAuthButtons, AuthForm } from '../components/auth';
+import { config } from '../config';
 
 /** Resolve the ?redirect= param to a safe in-app path, appending showResult if present. */
 function resolveRedirect(params: URLSearchParams, testIdParam: string | null): string {
@@ -155,7 +156,7 @@ export function LoginPage() {
       setSubmitting(true);
       const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
       await GoogleAuth.initialize({
-        clientId: '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com',
+        clientId: config.googleClientId,
         scopes: ['profile', 'email'],
         grantOfflineAccess: true,
       });
@@ -171,17 +172,14 @@ export function LoginPage() {
         throw new Error("No ID Token returned from Google Sign-In.");
       }
     } catch (err: any) {
+      // Keep the technical detail (code + message) in the console for debugging,
+      // but never surface Google's raw developer error codes to a student.
       console.error("Native Google Auth Error:", err);
       const errStr = `${err.message || ''} ${err.code || ''}`;
       if (errStr.includes('12501') || errStr.toLowerCase().includes('cancel')) {
         // User cancelled, do nothing
-      } else if (errStr.includes('10')) {
-        setGlobalError("Google Sign-In Developer Error (10): Ensure Web Client ID is used in configs, and Android Client ID (com.wellmindly.app + SHA-1) is registered in the SAME Google project.");
-      } else if (errStr.includes('12500')) {
-        setGlobalError("Google Sign-In Failed (12500): Check if package name or SHA-1 fingerprint matches your keystore, or verify Google Play Services account state.");
       } else {
-        const errorMsg = err.message || "Google Authentication failed.";
-        setGlobalError(`${errorMsg} (Code: ${err.code || 'unknown'})`);
+        setGlobalError("We couldn't sign you in with Google right now. Please try again, or use your email and password.");
       }
     } finally {
       setSubmitting(false);

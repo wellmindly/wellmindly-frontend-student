@@ -9,6 +9,7 @@ interface RepliesDrawerProps {
   onClose: () => void;
   replyContent: string;
   setReplyContent: (content: string) => void;
+  replyProfanityWarning: boolean;
   submittingReply: boolean;
   profile: TalkProfile | null;
   onPostReply: (e: React.FormEvent) => void;
@@ -20,6 +21,7 @@ export function RepliesDrawer({
   onClose,
   replyContent,
   setReplyContent,
+  replyProfanityWarning,
   submittingReply,
   profile,
   onPostReply,
@@ -42,6 +44,7 @@ export function RepliesDrawer({
             onChange={(e) => setReplyContent(e.target.value)}
             placeholder="Add a friendly reply..."
             required
+            error={replyProfanityWarning ? "Please keep words friendly" : null}
             trailing={
               <IconButton
                 type="submit"
