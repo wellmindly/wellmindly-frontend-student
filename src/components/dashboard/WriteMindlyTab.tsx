@@ -7,11 +7,10 @@ import {
   Trash2,
   Loader2,
   Heart,
-  ShieldCheck,
-  ChevronDown
+  ShieldCheck
 } from "lucide-react";
 import api from "../../services/api";
-import { Button, ConfirmSheet, IconButton, Input } from "../ui";
+import { Button, ConfirmSheet, IconButton, Input, Sheet } from "../ui";
 import { cn } from "../../lib/cn";
 import { scrollToElement } from "../../lib/a11y";
 
@@ -19,6 +18,41 @@ interface Message {
   sender: "user" | "model";
   text: string;
   timestamp: Date;
+}
+
+/**
+ * Daily-quota ring. Rendered small in the header (a glanceable, tappable status
+ * control) and larger inside the Session & privacy sheet. One component so the
+ * two never drift. Colour steps from calm plum → gold → coral as the allowance
+ * runs low.
+ */
+function QuotaRing({ percent, className }: { percent: number; className?: string }) {
+  const radius = 16;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percent / 100) * circumference;
+  return (
+    <div className={cn("relative flex items-center justify-center shrink-0", className)}>
+      <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90" aria-hidden="true">
+        <circle cx="18" cy="18" r={radius} className="stroke-ink-100" strokeWidth="3.5" fill="transparent" />
+        <circle
+          cx="18"
+          cy="18"
+          r={radius}
+          className={`transition-all duration-500 ${
+            percent > 50 ? "stroke-plum-500" : percent > 20 ? "stroke-gold-500" : "stroke-coral-500"
+          }`}
+          strokeWidth="3.5"
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+        />
+      </svg>
+      <span aria-hidden="true" className="absolute text-2xs font-black text-ink-700">
+        {percent}%
+      </span>
+    </div>
+  );
 }
 
 export function WriteMindlyTab() {
@@ -30,7 +64,7 @@ export function WriteMindlyTab() {
   const [isRecording, setIsRecording] = useState(false);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [sessionOpen, setSessionOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -257,11 +291,6 @@ export function WriteMindlyTab() {
     fetchSessionLimits(newTempSessionId);
   };
 
-  // SVG Gauge variables
-  const radius = 16;
-  const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (remainingPercent / 100) * circumference;
-
   return (
     <div className="flex flex-col h-[calc(100dvh-12rem)] min-h-[500px] bg-card rounded-3xl border border-ink-100 shadow-sm overflow-hidden">
       {/* 1. Header Area */}
@@ -272,50 +301,28 @@ export function WriteMindlyTab() {
           </div>
           <div className="min-w-0">
             <h2 className="text-base sm:text-xl font-black text-ink-900 font-display leading-none">WriteMindly</h2>
-            <p className="text-2xs sm:text-xs text-ink-500 font-medium mt-1 truncate">Temporary, fully private AI companion.</p>
+            <p className="hidden sm:block text-2xs sm:text-xs text-ink-500 font-medium mt-1 truncate">Temporary, fully private AI companion.</p>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          {/* Circular Context Gauge */}
-          <div className="flex items-center gap-2 bg-card px-2 py-1 sm:px-3 sm:py-1.5 rounded-2xl border border-ink-100 shadow-sm select-none">
-            <span className="sr-only">{remainingPercent}% of today's messages left. Resets tomorrow.</span>
-            <div className="relative h-9 w-9 flex items-center justify-center shrink-0">
-              <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90" aria-hidden="true">
-                <circle
-                  cx="18"
-                  cy="18"
-                  r={radius}
-                  className="stroke-ink-100"
-                  strokeWidth="3.5"
-                  fill="transparent"
-                />
-                <circle
-                  cx="18"
-                  cy="18"
-                  r={radius}
-                  className={`transition-all duration-500 ${
-                    remainingPercent > 50
-                      ? "stroke-plum-500"
-                      : remainingPercent > 20
-                      ? "stroke-gold-500"
-                      : "stroke-coral-500"
-                  }`}
-                  strokeWidth="3.5"
-                  fill="transparent"
-                  strokeDasharray={circumference}
-                  strokeDashoffset={strokeDashoffset}
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span aria-hidden="true" className="absolute text-2xs font-black text-ink-700">{remainingPercent}%</span>
-            </div>
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {/* Session status - a glanceable quota ring that opens the full
+              quota + privacy detail sheet. On the phone it's just the ring
+              (32px); the two label lines appear from sm up. */}
+          <button
+            type="button"
+            onClick={() => setSessionOpen(true)}
+            aria-haspopup="dialog"
+            className="flex items-center gap-2 min-h-11 bg-card px-2 py-1 sm:px-3 sm:py-1.5 rounded-2xl border border-ink-100 shadow-sm hover:border-ink-200 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+          >
+            <span className="sr-only">{remainingPercent}% of today's messages left, resets tomorrow. View session and privacy details.</span>
+            <QuotaRing percent={remainingPercent} className="h-8 w-8 sm:h-9 sm:w-9" />
             <div className="hidden sm:block text-left text-2xs leading-tight">
               <p className="font-extrabold text-ink-900 uppercase">Messages left</p>
               <p className="font-semibold text-ink-400">Resets tomorrow</p>
             </div>
-          </div>
+          </button>
 
           {/* End Session Button */}
           <Button
@@ -333,39 +340,20 @@ export function WriteMindlyTab() {
 
       {/* 2. Chat History Viewport */}
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 space-y-4 bg-gradient-to-b from-paper-2/40 to-card relative">
-        {/* Anonymity Banner - condensed + expandable so it doesn't dominate the phone */}
-        <div className="max-w-xl mx-auto bg-paper-2 border border-ink-100 rounded-2xl shadow-sm select-none overflow-hidden">
+        {/* Privacy cue - the full explanation lives in the Session & privacy
+            sheet so it never crowds the conversation on a phone. */}
+        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 px-2 text-center">
+          <span className="inline-flex items-center gap-1.5 text-2xs font-semibold text-ink-500">
+            <ShieldCheck className="w-3.5 h-3.5 text-sage-600 shrink-0" aria-hidden="true" />
+            Private &mdash; we don&rsquo;t save what you write.
+          </span>
           <button
             type="button"
-            onClick={() => setPrivacyOpen((v) => !v)}
-            aria-expanded={privacyOpen}
-            className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            onClick={() => setSessionOpen(true)}
+            className="text-2xs font-bold text-plum-600 underline underline-offset-2 hover:text-plum-700 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
           >
-            <ShieldCheck className="w-4 h-4 text-sage-600 shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-xs font-bold text-ink-800 leading-snug">
-              Private &mdash; we don&rsquo;t save what you write.
-            </span>
-            <span className="text-2xs font-semibold text-ink-400 shrink-0">{privacyOpen ? "Hide" : "How"}</span>
-            <ChevronDown
-              className={cn("w-4 h-4 text-ink-400 shrink-0 transition-transform", privacyOpen && "rotate-180")}
-              aria-hidden="true"
-            />
+            How it works
           </button>
-          <AnimatePresence initial={false}>
-            {privacyOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <p className="px-3.5 pb-3.5 text-xs leading-relaxed text-ink-500 font-medium">
-                  What you type is sent to our AI provider so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Message Log */}
@@ -495,6 +483,32 @@ export function WriteMindlyTab() {
         confirmLabel="End session"
         destructive
       />
+
+      {/* Session & privacy detail - opened from the header status control or the
+          "How it works" link. Holds the quota readout and the full privacy note
+          so neither has to sit on the main screen. */}
+      <Sheet
+        open={sessionOpen}
+        onClose={() => setSessionOpen(false)}
+        title="Session & privacy"
+        size="sm"
+      >
+        <div className="space-y-5 pb-2 text-left">
+          <div className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-paper-2 p-4">
+            <QuotaRing percent={remainingPercent} className="h-12 w-12" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-ink-900">{remainingPercent}% of today&rsquo;s messages left</p>
+              <p className="text-xs font-medium text-ink-500">Your full allowance returns tomorrow.</p>
+            </div>
+          </div>
+          <div className="flex gap-2.5">
+            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sage-600" aria-hidden="true" />
+            <p className="text-xs font-medium leading-relaxed text-ink-600">
+              What you type is sent to our AI provider so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
+            </p>
+          </div>
+        </div>
+      </Sheet>
     </div>
   );
 }
