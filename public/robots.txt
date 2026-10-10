@@ -1,0 +1,6 @@
+# WellMindly — allow crawling of the public marketing & resource pages.
+# The dashboard is behind auth and renders client-side, so there is nothing
+# there for a crawler to index.
+User-agent: *
+Allow: /
+Disallow: /dashboard

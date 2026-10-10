@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { MotionConfig } from "framer-motion";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AppSplash } from "./components/AppSplash";
 import { ToastProvider } from "./components/ui";
 import { useScrollTopOnChange } from "./lib/a11y";
@@ -121,30 +122,32 @@ function App() {
           composites on the GPU and stays smooth in the Android webview. */}
       <MotionConfig reducedMotion="user">
         <ToastProvider>
-          <BrowserRouter basename={import.meta.env.BASE_URL}>
-            <ScrollToTopOnNavigate />
-            <Suspense fallback={<AppSplash />}>
-              <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/login" element={<LoginRoute />} />
-                <Route path="/discover" element={<DiscoverRoute />} />
-                <Route path="/crisis" element={<CrisisPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/university" element={<UniversityPage />} />
-                <Route path="/counselors" element={<CounselorsPage />} />
-                <Route
-                  path="/dashboard"
-                  element={
-                    <ProtectedRoute allowedRoles={["STUDENT"]}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+          <ErrorBoundary>
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
+              <ScrollToTopOnNavigate />
+              <Suspense fallback={<AppSplash />}>
+                <Routes>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/login" element={<LoginRoute />} />
+                  <Route path="/discover" element={<DiscoverRoute />} />
+                  <Route path="/crisis" element={<CrisisPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/university" element={<UniversityPage />} />
+                  <Route path="/counselors" element={<CounselorsPage />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute allowedRoles={["STUDENT"]}>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </ErrorBoundary>
         </ToastProvider>
       </MotionConfig>
     </AuthProvider>
