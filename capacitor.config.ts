@@ -5,11 +5,10 @@ const config: CapacitorConfig = {
   appName: 'WellMindly',
   webDir: 'dist',
   server: {
-    androidScheme: 'http',
-    cleartext: true,
+    androidScheme: 'https',
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
   },
   plugins: {
     GoogleAuth: {
