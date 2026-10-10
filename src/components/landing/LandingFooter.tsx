@@ -74,6 +74,21 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
 
             <SocialLinks links={SOCIAL_LINKS} />
 
+            <nav className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1" aria-label="Footer legal links">
+              <Link
+                to="/privacy"
+                className="text-2xs text-ink-500 hover:text-plum-600 min-h-11 inline-flex items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-md"
+              >
+                Privacy Policy
+              </Link>
+              <Link
+                to="/terms"
+                className="text-2xs text-ink-500 hover:text-plum-600 min-h-11 inline-flex items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-md"
+              >
+                Terms of Service
+              </Link>
+            </nav>
+
             <p className="text-2xs text-ink-500 mt-auto">
               &copy; {new Date().getFullYear()} WellMindly. All rights reserved.
             </p>
