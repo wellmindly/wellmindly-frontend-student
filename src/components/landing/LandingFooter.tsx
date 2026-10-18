@@ -32,17 +32,6 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
             <p className="text-sm text-ink-600 max-w-sm leading-relaxed mt-1">
               A space for self-discovery and peer support. We fit alongside campus care to help you understand what you carry.
             </p>
-            <p className="text-2xs text-ink-500 mt-2">
-              Developed by{" "}
-              <a
-                href="https://www.linkedin.com/in/jai-malani"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-plum-600 font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-sm"
-              >
-                Jai Malani
-              </a>
-            </p>
           </div>
 
           {/* Column 2: Secondary Navigation */}
