@@ -44,6 +44,12 @@ const UniversityPage = lazy(() =>
 const CounselorsPage = lazy(() =>
   import("./pages/CounselorsPage").then((m) => ({ default: m.CounselorsPage })),
 );
+const PrivacyPage = lazy(() =>
+  import("./pages/PrivacyPage").then((m) => ({ default: m.PrivacyPage })),
+);
+const TermsPage = lazy(() =>
+  import("./pages/TermsPage").then((m) => ({ default: m.TermsPage })),
+);
 
 /**
  * `/discover` is the guest-accessible quiz surface. A signed-in student belongs
@@ -135,6 +141,8 @@ function App() {
                   <Route path="/contact" element={<ContactPage />} />
                   <Route path="/university" element={<UniversityPage />} />
                   <Route path="/counselors" element={<CounselorsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
                   <Route
                     path="/dashboard"
                     element={
