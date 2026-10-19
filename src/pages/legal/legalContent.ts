@@ -79,7 +79,7 @@ export const PRIVACY_POLICY: LegalDoc = {
           "Keep the Service safe and reliable — detect abuse, prevent fraud, debug problems, and protect users.",
           "Meet legal obligations — where applicable law requires it.",
         ]),
-        p("We do not sell your personal information. We do not show third-party advertising. This version of the Service does not use third-party advertising or analytics trackers."),
+        p("We do not sell your personal information. We do not show third-party advertising. We use privacy-conscious analytics services (such as Google Analytics with anonymized IP and Microsoft Clarity) to understand aggregate usage and improve user experience. Sensitive text inputs, private journal entries, and chat reflections are protected and masked from session recordings."),
       ],
     },
     {
@@ -127,9 +127,10 @@ export const PRIVACY_POLICY: LegalDoc = {
       heading: "6. Google Sign-In and Google Fonts",
       blocks: [
         p("If you choose Google Sign-In, Google authenticates you and shares the profile details described in Section 1 with us. Your use of Google Sign-In is also governed by Google's own privacy policy."),
-        p("The web app loads fonts from Google Fonts, which may receive your IP address when the page loads them. We do not use Google Analytics or Google advertising services in this version of the Service."),
+        p("The web app loads fonts from Google Fonts, which may receive your IP address when the page loads them. We use Google Analytics with IP anonymization and Microsoft Clarity to understand aggregate usage trends and improve usability. We do not use Google advertising or remarketing services."),
       ],
     },
+
     {
       id: "retention",
       heading: "7. How long we keep your information",

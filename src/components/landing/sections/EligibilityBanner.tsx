@@ -3,6 +3,7 @@ import { Sparkles, Check, ArrowRight, Bell } from "lucide-react";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../ui";
 import api from "../../../services/api";
+import { trackEvent } from "../../../lib/analytics";
 
 export interface EligibilityBannerProps {
   className?: string;
@@ -25,14 +26,17 @@ export function EligibilityBanner({ className }: EligibilityBannerProps) {
         subject: "Waitlist: Human Counselling for All Students",
         message: "Requested newsletter notification when human coaching opens up to all students.",
       });
+      trackEvent("newsletter_signup_submitted", { source: "eligibility_banner" });
       setStatus("success");
       setEmail("");
     } catch {
       // Even if offline/api unreachable, treat as subscribed in client so visitor is assured
+      trackEvent("newsletter_signup_submitted", { source: "eligibility_banner" });
       setStatus("success");
       setEmail("");
     }
   };
+
 
   return (
     <div

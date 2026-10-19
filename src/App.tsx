@@ -8,6 +8,8 @@ import { AppSplash } from "./components/AppSplash";
 import { ToastProvider } from "./components/ui";
 import { useScrollTopOnChange } from "./lib/a11y";
 import { hideSplash } from "./lib/native";
+import { AnalyticsTracker } from "./components/AnalyticsTracker";
+
 
 /* ----------------------------------------------------------------------------
    Route-level code splitting.
@@ -131,7 +133,9 @@ function App() {
           <ErrorBoundary>
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <ScrollToTopOnNavigate />
+              <AnalyticsTracker />
               <Suspense fallback={<AppSplash />}>
+
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/login" element={<LoginRoute />} />

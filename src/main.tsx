@@ -6,6 +6,7 @@ import { initNativeShell } from './lib/native'
 import { config } from './config'
 
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { initAnalytics } from './lib/analytics';
 
 // Google auth relies on a client ID. If the build didn't supply one we fall back
 // to the bundled demo ID rather than a bogus 'mock-client-id' that fails
@@ -18,9 +19,13 @@ if (!config.googleClientIdFromEnv) {
   );
 }
 
+// Initialize analytics (GA4 & Microsoft Clarity) if configured
+initAnalytics();
+
 // Status bar, keyboard resize and the hardware back button, before first paint.
 // No-op on the web build.
 initNativeShell();
+
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

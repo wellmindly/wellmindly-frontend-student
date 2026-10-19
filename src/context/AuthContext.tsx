@@ -8,6 +8,8 @@ import {
 import type { ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import type { User } from '../types';
+import api from '../services/api';
+
 
 // ------- Types -------
 
@@ -63,13 +65,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const storedUser = localStorage.getItem(USER_KEY);
 
     if (storedToken && storedUser && !isTokenExpired(storedToken)) {
+      const parsedUser = JSON.parse(storedUser) as User;
       const handle = setTimeout(() => {
         setToken(storedToken);
-        setUser(JSON.parse(storedUser) as User);
+        setUser(parsedUser);
         setIsLoading(false);
       }, 0);
+
+      // Background refresh to reflect real-time university domain / bypass whitelist updates
+      api.get('/auth/me')
+        .then((res) => {
+          if (res.data?.user) {
+            setUser(res.data.user);
+            localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
+          }
+        })
+        .catch(() => {
+          // Keep stored session if offline
+        });
+
       return () => clearTimeout(handle);
     } else {
+
       // Clear stale / expired data
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);

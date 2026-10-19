@@ -7,6 +7,8 @@ const DEMO_GOOGLE_CLIENT_ID =
   '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com';
 
 const envGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
+const envGaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;
+const envClarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID as string | undefined;
 
 export const config = {
   enableWriteMindly: import.meta.env.VITE_ENABLE_WRITEMINDLY === 'true',
@@ -14,4 +16,9 @@ export const config = {
   googleClientId: envGoogleClientId || DEMO_GOOGLE_CLIENT_ID,
   /** True when VITE_GOOGLE_CLIENT_ID was supplied for this build (vs. the demo fallback). */
   googleClientIdFromEnv: Boolean(envGoogleClientId),
+  /** Google Analytics 4 Measurement ID (e.g. G-XXXXXXXXXX) */
+  gaMeasurementId: (envGaMeasurementId || '').trim(),
+  /** Microsoft Clarity Project ID (e.g. abcdef1234) */
+  clarityProjectId: (envClarityProjectId || '').trim(),
 };
+

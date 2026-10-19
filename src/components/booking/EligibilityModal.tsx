@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Sparkles, Check, Bell, MessageSquare, PenTool } from "lucide-react";
 import { Sheet, Button } from "../ui";
 import api from "../../services/api";
+import { trackEvent } from "../../lib/analytics";
 
 export interface EligibilityModalProps {
   open: boolean;
@@ -25,13 +26,16 @@ export function EligibilityModal({ open, onClose, onNavigateTab }: EligibilityMo
         subject: "Waitlist: Human Counselling for All Students",
         message: "Requested newsletter notification when human coaching opens up to all students.",
       });
+      trackEvent("newsletter_signup_submitted", { source: "eligibility_modal" });
       setStatus("success");
       setEmail("");
     } catch {
+      trackEvent("newsletter_signup_submitted", { source: "eligibility_modal" });
       setStatus("success");
       setEmail("");
     }
   };
+
 
   return (
     <Sheet

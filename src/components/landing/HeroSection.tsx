@@ -9,8 +9,11 @@ import { MoodFace } from "../ui/MoodFace";
 import { buttonClasses, Badge } from "../ui";
 import { cn } from "../../lib/cn";
 import { scrollToElement } from "../../lib/a11y";
+import { trackEvent } from "../../lib/analytics";
 import api from "../../services/api";
+
 import studentPortraitClean from "../../assets/student_portrait_clean.webp";
+
 
 interface HeroSectionProps {
   onCheckInClick?: () => void;
@@ -56,7 +59,12 @@ export function HeroSection({
     const next = selectedMood === rating ? null : rating;
     setSelectedMood(next);
 
+    if (next !== null) {
+      trackEvent("hero_mood_selected", { rating: next });
+    }
+
     const seq = ++tapSeq.current;
+
     if (!isAuthenticated || next === null) {
       setSaveState("idle");
       return;

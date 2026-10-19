@@ -23,6 +23,8 @@ import { useScrollTopOnChange } from "../../lib/a11y";
 import { dayKey } from "../../lib/format";
 import { useAuth } from "../../context/AuthContext";
 import api, { apiErrorMessage } from "../../services/api";
+import { trackEvent } from "../../lib/analytics";
+
 
 /* ============================================================================
    CounselorBookingView
@@ -316,6 +318,10 @@ export function CounselorBookingView() {
 
   const handleBookSession = async () => {
     if (!isUniversityStudent) {
+      trackEvent("booking_intercepted_non_uni", {
+        counselor_name: chosenCounselor?.name,
+        counselor_id: chosenCounselor?.id,
+      });
       setShowEligibilityModal(true);
       setBookingError(
         "Human coaching is currently reserved for university students. Sign up for our newsletter to get notified when it opens to all students!",
@@ -339,11 +345,18 @@ export function CounselorBookingView() {
       });
 
       if (res.data.success) {
+        trackEvent("session_booked_successfully", {
+          counselor_name: chosenCounselor.name,
+          counselor_id: chosenCounselor.id,
+        });
         setBookingSuccess(res.data.data);
       } else {
         setBookingError("We could not confirm that booking. Please try another time.");
       }
     } catch (err: any) {
+      trackEvent("session_booking_failed", {
+        counselor_name: chosenCounselor.name,
+      });
       setBookingError(
         apiErrorMessage(err, "Failed to book session. Please try another slot."),
       );
@@ -351,6 +364,7 @@ export function CounselorBookingView() {
       setSubmitting(false);
     }
   };
+
 
   const handleSubmitFeedback = async () => {
     if (!activeFeedbackSession) return;
