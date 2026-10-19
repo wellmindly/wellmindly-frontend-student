@@ -71,7 +71,7 @@ export function BookingSummary({
           loadingLabel="Booking your session"
           className="w-full sm:w-auto"
         >
-          Submit and book
+          Book a session
         </Button>
       </div>
     </div>
