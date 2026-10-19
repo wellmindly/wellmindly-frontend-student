@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Sparkles } from "lucide-react";
 import type { CoachItem } from "./types";
 import { Sheet, Button, Badge } from "../../ui";
 
@@ -9,6 +10,7 @@ export interface CoachBookingModalProps {
   onSelectSlot: (slotIndex: number) => void;
   onClose: () => void;
   onConfirm: () => void;
+  onOpenEligibility?: () => void;
 }
 
 export function CoachBookingModal({
@@ -18,6 +20,7 @@ export function CoachBookingModal({
   onSelectSlot,
   onClose,
   onConfirm,
+  onOpenEligibility,
 }: CoachBookingModalProps) {
   const lastCoachRef = useRef<CoachItem | null>(null);
   if (selectedCoach) {
@@ -33,6 +36,29 @@ export function CoachBookingModal({
       description={coach?.role}
       size="sm"
     >
+      {/* Eligibility Notice */}
+      <div className="flex items-start gap-2.5 rounded-2xl border border-plum-200 bg-plum-50/90 p-3 mb-4 text-xs">
+        <Sparkles className="h-4 w-4 shrink-0 text-plum-600 mt-0.5" aria-hidden="true" />
+        <div className="min-w-0">
+          <p className="font-bold text-plum-900">University students only for now</p>
+          <p className="text-2xs text-plum-700 leading-relaxed mt-0.5">
+            1-on-1 human coaching is currently open to university students. Not in uni?{" "}
+            {onOpenEligibility && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenEligibility();
+                }}
+                className="font-bold text-plum-900 underline hover:text-plum-700 cursor-pointer bg-transparent border-none p-0 inline"
+              >
+                Sign up for updates &rarr;
+              </button>
+            )}
+          </p>
+        </div>
+      </div>
+
       <div className="flex items-center justify-between gap-2 mb-3">
         <span className="text-xs font-bold text-ink-900 uppercase tracking-wider">
           Example slots
@@ -60,7 +86,7 @@ export function CoachBookingModal({
       </div>
 
       <p className="text-2xs text-ink-500 text-center mb-3">
-        These are example times. Sign in to see when this coach is actually free.
+        These are example times. Sign in as a university student to book your session.
       </p>
 
       <Button
@@ -70,7 +96,7 @@ export function CoachBookingModal({
         disabled={selectedSlot === null}
         onClick={onConfirm}
       >
-        Sign in to book
+        Book a session
       </Button>
     </Sheet>
   );

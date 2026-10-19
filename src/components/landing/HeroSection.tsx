@@ -298,6 +298,9 @@ export function HeroSection({
                 <div className="text-xs font-bold text-ink-900 hover:text-coral-700 transition-colors sm:truncate">
                   Book a coach online &rarr;
                 </div>
+                <div className="text-2xs text-coral-700 font-semibold truncate">
+                  Uni students only for now
+                </div>
               </div>
             </button>
           </div>

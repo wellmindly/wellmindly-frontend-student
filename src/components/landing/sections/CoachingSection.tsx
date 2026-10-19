@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Users, ChevronLeft, ChevronRight } from "lucide-react";
 import type { CoachItem } from "./types";
 import { Button, Card, Avatar, EmptyState, ErrorState, SkeletonCard } from "../../ui";
+import { EligibilityBanner } from "./EligibilityBanner";
 
 export interface CoachingSectionProps {
   coaches: CoachItem[];
@@ -21,18 +22,28 @@ export function CoachingSection({
 }: CoachingSectionProps) {
   return (
     <section className="py-16 sm:py-20 border-t border-ink-200/60" id="coaching-section">
-      {/* Header */}
+      {/* Full Eligibility Notice Banner */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
+        className="max-w-3xl mx-auto mb-10"
+      >
+        <EligibilityBanner />
+      </motion.div>
+
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
         className="text-center max-w-2xl mx-auto mb-10"
       >
         <span className="text-2xs font-bold text-plum-600 uppercase tracking-wide block mb-3">
           With a human
         </span>
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-ink-900 text-balance">
-          Talk to someone who gets it
+          Book a coach when you want to talk.
         </h2>
         <p className="text-base text-ink-600 max-w-2xl text-pretty mt-3 mx-auto">
           When you'd rather talk it through, book a confidential session with a trained student coach.
@@ -140,7 +151,7 @@ function CoachCarousel({
       <div
         ref={scrollRef}
         onScroll={checkScroll}
-        className="flex snap-x snap-mandatory overflow-x-auto gap-5 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar scroll-smooth focus-visible:outline-none"
+        className="flex snap-x snap-mandatory overflow-x-auto gap-5 pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 no-scrollbar scroll-smooth focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
         tabIndex={0}
         role="region"
         aria-label="Counselor directory carousel"
@@ -207,8 +218,9 @@ function CoachCard({
           size="md"
           className="w-full justify-center min-h-11"
           onClick={() => onSelectCoach(coach)}
+          aria-label={`Book a session with ${coach.name}`}
         >
-          See availability
+          Book a session
         </Button>
       </div>
     </Card>

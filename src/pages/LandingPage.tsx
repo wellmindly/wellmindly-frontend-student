@@ -9,6 +9,7 @@ import { ExploreToolsSection } from "../components/landing/sections/ExploreTools
 import { CoachingSection } from "../components/landing/sections/CoachingSection";
 import { CampusSupportSection } from "../components/landing/sections/CampusSupportSection";
 import { CoachBookingModal } from "../components/landing/sections/CoachBookingModal";
+import { EligibilityModal } from "../components/booking/EligibilityModal";
 import { Button, IconButton, Sheet } from "../components/ui";
 import type { CoachItem } from "../components/landing/sections/types";
 import { config } from "../config";
@@ -22,8 +23,9 @@ const BOOKING_SLOTS = ["Mon 4:00pm", "Tue 10:00am", "Wed 6:30pm", "Thu 5:00pm", 
 
 export function LandingPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [comingSoonFeature, setComingSoonFeature] = useState<"writemindly" | null>(null);
+  const [showEligibilityModal, setShowEligibilityModal] = useState(false);
   
   const [showBetaBanner, setShowBetaBanner] = useState(true);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
@@ -125,9 +127,13 @@ export function LandingPage() {
       : "/dashboard?tab=sessionbooking";
 
   const handleSelectCoach = (coach: CoachItem) => {
-    // Signed in, so there is no reason to show example times behind a sign-in
-    // wall - send them to the coach's real availability.
+    // Signed in, so check whether they are a university student.
     if (isAuthenticated) {
+      const isUniStudent = !!user?.universityId || !!user?.universityVerified;
+      if (!isUniStudent) {
+        setShowEligibilityModal(true);
+        return;
+      }
       navigate(bookingPathFor(coach));
       return;
     }
@@ -213,6 +219,20 @@ export function LandingPage() {
         onSelectSlot={setSelectedSlot}
         onClose={() => setSelectedCoach(null)}
         onConfirm={confirmBooking}
+        onOpenEligibility={() => setShowEligibilityModal(true)}
+      />
+
+      {/* Non-University Student Eligibility Modal */}
+      <EligibilityModal
+        open={showEligibilityModal}
+        onClose={() => setShowEligibilityModal(false)}
+        onNavigateTab={(tab) => {
+          if (isAuthenticated) {
+            navigate(`/dashboard?tab=${tab}`);
+          } else {
+            navigate(`/login?redirect=${encodeURIComponent(`/dashboard?tab=${tab}`)}`);
+          }
+        }}
       />
 
       {/* Coming Soon Feature Modal */}

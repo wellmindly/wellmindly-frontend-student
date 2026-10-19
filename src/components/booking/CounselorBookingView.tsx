@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ArrowLeft, CalendarDays, Clock, Globe, ShieldCheck, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Clock, Globe, ShieldCheck, Users, Sparkles } from "lucide-react";
 import type {
   Counselor,
   Slot,
@@ -17,9 +17,11 @@ import { MySessionsList } from "./MySessionsList";
 import { CounselorBioModal } from "./CounselorBioModal";
 import { BookingSuccessModal } from "./BookingSuccessModal";
 import { SessionFeedbackModal } from "./SessionFeedbackModal";
+import { EligibilityModal } from "./EligibilityModal";
 import { Button, ConfirmSheet, SegmentedControl, StepDots, Skeleton } from "../ui";
 import { useScrollTopOnChange } from "../../lib/a11y";
 import { dayKey } from "../../lib/format";
+import { useAuth } from "../../context/AuthContext";
 import api, { apiErrorMessage } from "../../services/api";
 
 /* ============================================================================
@@ -38,6 +40,10 @@ import api, { apiErrorMessage } from "../../services/api";
    ========================================================================= */
 
 export function CounselorBookingView() {
+  const { user } = useAuth();
+  const isUniversityStudent = Boolean(user?.universityId || user?.universityVerified);
+  const [showEligibilityModal, setShowEligibilityModal] = useState(false);
+
   const [searchParams] = useSearchParams();
   /** Set when the student came from a coach card on the landing page. */
   const requestedCounselorId = searchParams.get("counselor");
@@ -309,6 +315,14 @@ export function CounselorBookingView() {
   /* -------------------------------------------------------------- actions */
 
   const handleBookSession = async () => {
+    if (!isUniversityStudent) {
+      setShowEligibilityModal(true);
+      setBookingError(
+        "Human coaching is currently reserved for university students. Sign up for our newsletter to get notified when it opens to all students!",
+      );
+      return;
+    }
+
     if (!chosenCounselor || !selectedSlot) {
       setBookingError("Pick a time and a counselor first.");
       return;
@@ -436,6 +450,34 @@ export function CounselorBookingView() {
 
       {activeTab === "book" ? (
         <div className="space-y-4">
+          {!isUniversityStudent && (
+            <div
+              role="alert"
+              className="flex items-start gap-3 rounded-2xl border border-plum-200 bg-plum-50/90 p-4 text-xs"
+            >
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-plum-600" aria-hidden="true" />
+              <div className="flex-1 space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-plum-900">University students only for now</span>
+                  <span className="rounded-full border border-gold-200 bg-gold-100 px-2 py-0.5 text-2xs font-bold text-gold-900">
+                    Coming to all students soon
+                  </span>
+                </div>
+                <p className="text-2xs sm:text-xs text-plum-700 leading-relaxed">
+                  1-on-1 human coaching is currently reserved for university students. If you aren't enrolled yet, your turn is coming soon!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowEligibilityModal(true)}
+                  className="inline-flex items-center gap-1 font-bold text-plum-900 underline hover:text-plum-800 cursor-pointer pt-0.5 text-2xs sm:text-xs bg-transparent border-none p-0"
+                >
+                  <span>Sign up for the newsletter to get the FIRST scoop</span>
+                  <span aria-hidden="true">&rarr;</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-2xs font-bold uppercase tracking-wide text-plum-600">
@@ -501,6 +543,10 @@ export function CounselorBookingView() {
                   className="w-full"
                   disabled={!selectedSlot}
                   onClick={() => {
+                    if (!isUniversityStudent) {
+                      setShowEligibilityModal(true);
+                      return;
+                    }
                     if (selectedSlot) setStep(2);
                   }}
                 >
@@ -655,6 +701,11 @@ export function CounselorBookingView() {
         confirmLabel="Cancel session"
         destructive
         loading={cancellingSession}
+      />
+
+      <EligibilityModal
+        open={showEligibilityModal}
+        onClose={() => setShowEligibilityModal(false)}
       />
     </div>
   );

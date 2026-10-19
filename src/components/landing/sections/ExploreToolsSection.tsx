@@ -15,6 +15,7 @@ type CareOption = {
   keyword: string;
   answer: string;
   support: string;
+  eligibilityLabel?: string;
   chip: string;
   chipIcon: LucideIcon;
   cta: string;
@@ -31,13 +32,13 @@ const OPTIONS: CareOption[] = [
   {
     id: "writemindly",
     keyword: "WriteMindly",
-    answer: "Self-reflection in your own words",
-    support: "Type what's swirling in your head. AI gently reflects it back without judgment so you can gain clarity in 60 seconds.",
+    answer: "Self Reflection with an AI Bot",
+    support: "Say it without saying it out loud.",
     chip: "AI Journaling",
     chipIcon: Sparkles,
     cta: "Start writing with WriteMindly",
     icon: PenTool,
-    gradientBg: "bg-gradient-to-br from-teal-500/10 via-teal-50/50 to-emerald-500/5",
+    gradientBg: "bg-gradient-to-br from-teal-500/10 via-teal-50/50 to-teal-500/5",
     iconWrap: "bg-teal-100/80 text-teal-700 border-teal-200/80 shadow-xs",
     badgeStyle: "bg-teal-100 text-teal-800 border-teal-200",
     hoverBorder: "hover:border-teal-400/90 hover:ring-2 hover:ring-teal-400/20",
@@ -47,13 +48,13 @@ const OPTIONS: CareOption[] = [
   {
     id: "talkmindly",
     keyword: "TalkMindly",
-    answer: "Talk to people who get it",
-    support: "Drop into safe, anonymous text and voice peer spaces. Connect with fellow students facing the exact same pressures.",
+    answer: "Real talk, Zero judgement",
+    support: "Anonymous, safe & private.",
     chip: "Anonymous Circles",
     chipIcon: Shield,
     cta: "Join a TalkMindly circle",
     icon: MessageSquare,
-    gradientBg: "bg-gradient-to-br from-plum-500/10 via-plum-50/50 to-violet-500/5",
+    gradientBg: "bg-gradient-to-br from-plum-500/10 via-plum-50/50 to-plum-500/5",
     iconWrap: "bg-plum-100/80 text-plum-700 border-plum-200/80 shadow-xs",
     badgeStyle: "bg-plum-100 text-plum-800 border-plum-200",
     hoverBorder: "hover:border-plum-400/90 hover:ring-2 hover:ring-plum-400/20",
@@ -63,13 +64,14 @@ const OPTIONS: CareOption[] = [
   {
     id: "blueprints",
     keyword: "MindlyCoaching",
-    answer: "1-on-1 with a student coach",
+    answer: "Book a session with a trained coach/counselor",
+    eligibilityLabel: "University students only for now",
     support: "Book a confidential 1-on-1 session with a trained student coach from your university who listens and guides you through.",
     chip: "Campus Coaches",
     chipIcon: Clock,
     cta: "Book 1-on-1 Peer Coaching",
     icon: Users,
-    gradientBg: "bg-gradient-to-br from-coral-500/10 via-coral-50/50 to-rose-500/5",
+    gradientBg: "bg-gradient-to-br from-coral-500/10 via-coral-50/50 to-coral-500/5",
     iconWrap: "bg-coral-100/80 text-coral-700 border-coral-200/80 shadow-xs",
     badgeStyle: "bg-coral-100 text-coral-800 border-coral-200",
     hoverBorder: "hover:border-coral-400/90 hover:ring-2 hover:ring-coral-400/20",
@@ -104,7 +106,7 @@ export function ExploreToolsSection({
             How do you want to express yourself today?
           </h2>
           <p className="text-base sm:text-lg text-ink-600 text-pretty mt-3 leading-relaxed">
-            Everyone processes things differently. Pick what feels easiest right now — switch anytime with zero pressure.
+            Everyone processes things differently. Three Ways In - Click on the support that fits YOU
           </p>
         </div>
 
@@ -154,6 +156,12 @@ export function ExploreToolsSection({
                     <h3 className="text-lg sm:text-xl font-bold tracking-tight text-ink-900 mb-2">
                       {o.answer}
                     </h3>
+                    {o.eligibilityLabel && (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-bold bg-coral-100 text-coral-800 border border-coral-200 mb-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-coral-500" aria-hidden="true" />
+                        {o.eligibilityLabel}
+                      </div>
+                    )}
                     <p className="text-sm text-ink-600 leading-relaxed">
                       {o.support}
                     </p>
