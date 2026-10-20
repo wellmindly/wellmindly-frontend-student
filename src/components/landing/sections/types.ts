@@ -6,4 +6,6 @@ export interface CoachItem {
   specs: string[];
   bio?: string;
   avatarUrl?: string;
+  rating?: number | null;
+  totalReviews?: number;
 }

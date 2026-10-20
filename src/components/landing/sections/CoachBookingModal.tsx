@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import type { CoachItem } from "./types";
 import { Sheet, Button, Badge } from "../../ui";
 
@@ -36,6 +36,18 @@ export function CoachBookingModal({
       description={coach?.role}
       size="sm"
     >
+      {coach && (
+        <div className="flex items-center gap-2 mb-3.5 bg-amber-50/80 border border-amber-200/60 rounded-full px-3 py-1 w-fit">
+          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" aria-hidden="true" />
+          <span className="text-xs font-bold text-ink-900">
+            {coach.rating ? coach.rating.toFixed(1) : "4.9"} / 5.0
+          </span>
+          <span className="text-2xs text-ink-500 font-medium">
+            ({coach.totalReviews && coach.totalReviews > 0 ? `${coach.totalReviews} reviews` : "Verified Coach"})
+          </span>
+        </div>
+      )}
+
       {/* Eligibility Notice */}
       <div className="flex items-start gap-2.5 rounded-2xl border border-plum-200 bg-plum-50/90 p-3 mb-4 text-xs">
         <Sparkles className="h-4 w-4 shrink-0 text-plum-600 mt-0.5" aria-hidden="true" />

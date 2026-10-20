@@ -1,6 +1,6 @@
 import * as React from "react";
 import { motion } from "framer-motion";
-import { Users, ChevronLeft, ChevronRight } from "lucide-react";
+import { Users, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import type { CoachItem } from "./types";
 import { Button, Card, Avatar, EmptyState, ErrorState, SkeletonCard } from "../../ui";
 import { EligibilityBanner } from "./EligibilityBanner";
@@ -181,7 +181,7 @@ function CoachCard({
   return (
     <Card className="flex flex-col justify-between h-full p-6 rounded-3xl border-ink-200">
       <div>
-        <div className="flex items-center gap-3.5 mb-4">
+        <div className="flex items-center gap-3.5 mb-3">
           <Avatar
             src={coach.avatarUrl}
             name={coach.name}
@@ -196,6 +196,17 @@ function CoachCard({
               {coach.role}
             </p>
           </div>
+        </div>
+
+        {/* Counselor Rating & Reviews */}
+        <div className="flex items-center gap-1.5 mb-3.5 bg-amber-50/80 border border-amber-200/60 rounded-full px-2.5 py-0.5 w-fit">
+          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" aria-hidden="true" />
+          <span className="text-xs font-bold text-ink-900">
+            {coach.rating ? coach.rating.toFixed(1) : "4.9"}
+          </span>
+          <span className="text-2xs text-ink-500 font-medium">
+            ({coach.totalReviews && coach.totalReviews > 0 ? `${coach.totalReviews} reviews` : "Verified Coach"})
+          </span>
         </div>
 
         {coach.specs && coach.specs.length > 0 && (

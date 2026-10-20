@@ -232,6 +232,23 @@ export function TalkMindlyTab() {
       }, 3000);
     } catch (err: any) {
       console.error("Failed to drop note:", err);
+      const errMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to post note.";
+      setCustomAlert({
+        show: true,
+        type: "error",
+        message: errMsg,
+      });
+      if (err?.response?.data?.isCrisis) {
+        setCrisisAlertMessage(
+          err.response.data.reason ||
+            "We detected content that indicates you might be going through a crisis. Please reach out to our emergency support resources immediately."
+        );
+        setIsCrisisModalOpen(true);
+      }
     } finally {
       setSubmittingNote(false);
     }
@@ -277,6 +294,23 @@ export function TalkMindlyTab() {
       setNotes(freshNotes);
     } catch (err: any) {
       console.error("Failed to post reply:", err);
+      const errMsg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to post reply.";
+      setCustomAlert({
+        show: true,
+        type: "error",
+        message: errMsg,
+      });
+      if (err?.response?.data?.isCrisis) {
+        setCrisisAlertMessage(
+          err.response.data.reason ||
+            "We detected content that indicates you might be going through a crisis. Please reach out to our emergency support resources immediately."
+        );
+        setIsCrisisModalOpen(true);
+      }
     } finally {
       setSubmittingReply(false);
     }
