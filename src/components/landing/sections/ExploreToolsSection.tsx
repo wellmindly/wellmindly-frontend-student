@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { PenTool, ArrowRight, MessageSquare, Users, LifeBuoy, Sparkles, Shield, Clock } from "lucide-react";
+import { PenTool, ArrowRight, MessageSquare, Users, LifeBuoy, Sparkles, Clock } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../../../lib/cn";
 
@@ -16,6 +16,8 @@ type CareOption = {
   answer: string;
   support: string;
   eligibilityLabel?: string;
+  eligibilityStyle?: string;
+  dotColor?: string;
   chip: string;
   chipIcon: LucideIcon;
   cta: string;
@@ -32,9 +34,12 @@ const OPTIONS: CareOption[] = [
   {
     id: "writemindly",
     keyword: "WriteMindly",
-    answer: "Self Reflection with an AI Bot",
-    support: "Say it without saying it out loud.",
-    chip: "AI Journaling",
+    answer: "Self-Reflection with an AI Bot",
+    eligibilityLabel: "Available 24/7 · Private by Default",
+    eligibilityStyle: "bg-teal-100/90 text-teal-800 border-teal-200",
+    dotColor: "bg-teal-500",
+    support: "Say what you're carrying to an AI companion that won't judge you. Type whatever's running in your head, reframe racing thoughts, and find clarity at your own pace.",
+    chip: "AI Reflection",
     chipIcon: Sparkles,
     cta: "Start writing with WriteMindly",
     icon: PenTool,
@@ -48,10 +53,13 @@ const OPTIONS: CareOption[] = [
   {
     id: "talkmindly",
     keyword: "TalkMindly",
-    answer: "Real talk, Zero judgement",
-    support: "Anonymous, safe & private.",
-    chip: "Anonymous Circles",
-    chipIcon: Shield,
+    answer: "Real Talk in Anonymous Peer Rooms",
+    eligibilityLabel: "Safe Moderation · Zero Judgment",
+    eligibilityStyle: "bg-plum-100/90 text-plum-800 border-plum-200",
+    dotColor: "bg-plum-500",
+    support: "Connect with fellow students navigating real campus challenges. Share honest thoughts under an alias, read relatable stories, and support each other in a safe space.",
+    chip: "Peer Community",
+    chipIcon: Users,
     cta: "Join a TalkMindly circle",
     icon: MessageSquare,
     gradientBg: "bg-gradient-to-br from-plum-500/10 via-plum-50/50 to-plum-500/5",
@@ -64,9 +72,11 @@ const OPTIONS: CareOption[] = [
   {
     id: "blueprints",
     keyword: "MindlyCoaching",
-    answer: "Book a session with a trained coach/counselor",
+    answer: "Book a Session with a Trained Coach",
     eligibilityLabel: "University students only for now",
-    support: "Book a confidential 1-on-1 session with a trained student coach from your university who listens and guides you through.",
+    eligibilityStyle: "bg-coral-100/90 text-coral-800 border-coral-200",
+    dotColor: "bg-coral-500",
+    support: "Book a confidential 1-on-1 session with a trained student coach from your university who listens, validates your experiences, and guides you through personal challenges.",
     chip: "Campus Coaches",
     chipIcon: Clock,
     cta: "Book 1-on-1 Peer Coaching",
@@ -111,17 +121,17 @@ export function ExploreToolsSection({
         </div>
 
         {/* 3-column card deck with appealing pastel styling */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
           {OPTIONS.map((o) => {
             const Icon = o.icon;
             const ChipIcon = o.chipIcon;
             return (
-              <div key={o.id} id={`care-${o.id}`} className="scroll-mt-24 flex">
+              <div key={o.id} id={`care-${o.id}`} className="scroll-mt-24 flex h-full">
                 <button
                   type="button"
                   onClick={handlers[o.id]}
                   className={cn(
-                    "group relative w-full text-left flex flex-col justify-between rounded-3xl border border-ink-200/80 p-6 sm:p-7 shadow-xs",
+                    "group relative w-full text-left flex flex-col justify-between rounded-3xl border border-ink-200/80 p-6 sm:p-7 shadow-xs h-full",
                     "transition-all duration-200 motion-reduce:transition-none cursor-pointer",
                     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400",
                     o.gradientBg,
@@ -130,12 +140,12 @@ export function ExploreToolsSection({
                     "hover:-translate-y-1"
                   )}
                 >
-                  <div>
+                  <div className="flex-1 flex flex-col">
                     {/* Top row: Icon + Keyword Badge */}
                     <div className="flex items-center justify-between gap-3 mb-5">
                       <span
                         className={cn(
-                          "flex h-12 w-12 items-center justify-center rounded-2xl border",
+                          "flex h-12 w-12 items-center justify-center rounded-2xl border shrink-0",
                           o.iconWrap
                         )}
                         aria-hidden="true"
@@ -157,12 +167,12 @@ export function ExploreToolsSection({
                       {o.answer}
                     </h3>
                     {o.eligibilityLabel && (
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-bold bg-coral-100 text-coral-800 border border-coral-200 mb-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-coral-500" aria-hidden="true" />
+                      <div className={cn("inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-2xs font-bold border mb-3 w-fit", o.eligibilityStyle || "bg-coral-100 text-coral-800 border-coral-200")}>
+                        <span className={cn("w-1.5 h-1.5 rounded-full", o.dotColor || "bg-coral-500")} aria-hidden="true" />
                         {o.eligibilityLabel}
                       </div>
                     )}
-                    <p className="text-sm text-ink-600 leading-relaxed">
+                    <p className="text-sm text-ink-600 leading-relaxed mt-0.5">
                       {o.support}
                     </p>
                   </div>
