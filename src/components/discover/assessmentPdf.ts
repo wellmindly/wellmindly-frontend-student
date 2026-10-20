@@ -28,7 +28,7 @@ export async function downloadAssessmentPdf(params: {
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(10);
   doc.setTextColor(230, 230, 230);
-  doc.text("Student Wellness Dossier & Personalized Summary", 15, 24);
+  doc.text("Student Wellness Report & Personalized Summary", 15, 24);
   doc.text(`Generated: ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`, 15, 31);
 
   // Metadata Card
