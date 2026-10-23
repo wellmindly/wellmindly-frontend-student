@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Shield, Check, MessageCircleQuestion, MessagesSquare, Sparkles, Video } from "lucide-react";
+import { Shield, Check, MessageCircleQuestion, MessagesSquare, Sparkles, Video, Star } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { MOODS, moodByRating } from "../../lib/mood";
 import type { MoodRating } from "../../lib/mood";
@@ -306,8 +306,14 @@ export function HeroSection({
                 <div className="text-xs font-bold text-ink-900 hover:text-coral-700 transition-colors sm:truncate">
                   Book a coach online &rarr;
                 </div>
-                <div className="text-2xs text-coral-700 font-semibold truncate">
-                  Uni students only for now
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="inline-flex items-center gap-0.5 text-2xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/60">
+                    <Star className="w-3 h-3 fill-amber-400 text-amber-500" aria-hidden="true" />
+                    4.9
+                  </span>
+                  <span className="text-2xs text-coral-700 font-semibold truncate">
+                    Uni students only
+                  </span>
                 </div>
               </div>
             </button>

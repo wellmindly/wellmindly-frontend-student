@@ -174,6 +174,9 @@ export function Avatar({
       .slice(0, 2)
       .join("");
 
+  const apiOrigin = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.wellmindly.com' : 'http://localhost:5000')).replace(/\/api\/?$/, '');
+  const resolvedSrc = src && src.startsWith('/api/') ? `${apiOrigin}${src}` : src;
+
   return (
     <span
       className={cn(
@@ -184,9 +187,9 @@ export function Avatar({
         className,
       )}
     >
-      {src ? (
+      {resolvedSrc ? (
         <img
-          src={src}
+          src={resolvedSrc}
           alt={name}
           loading="lazy"
           decoding="async"

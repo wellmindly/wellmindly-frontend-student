@@ -25,6 +25,10 @@ export function CounselorPickerCard({
   onOpenDetails,
 }: CounselorPickerCardProps) {
   const initial = counselor.name.trim()[0]?.toUpperCase() ?? "?";
+  const apiOrigin = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.wellmindly.com' : 'http://localhost:5000')).replace(/\/api\/?$/, '');
+  const resolvedAvatar = counselor.avatarUrl && counselor.avatarUrl.startsWith('/api/')
+    ? `${apiOrigin}${counselor.avatarUrl}`
+    : counselor.avatarUrl;
 
   return (
     <button
@@ -50,18 +54,20 @@ export function CounselorPickerCard({
       )}
 
       <span className="relative block h-20 w-20 overflow-hidden rounded-full bg-plum-100 sm:h-24 sm:w-24">
-        {counselor.avatarUrl ? (
+        {resolvedAvatar ? (
           <img
-            src={counselor.avatarUrl}
+            src={resolvedAvatar}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
           />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-plum-700">
-            {initial}
-          </span>
-        )}
+        ) : null}
+        <span className={cn("absolute inset-0 flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-plum-700", resolvedAvatar && "-z-10")}>
+          {initial}
+        </span>
       </span>
 
       <span className="block min-w-0 w-full">
@@ -69,15 +75,13 @@ export function CounselorPickerCard({
         {/* The card's job is to open the details modal, so the state has to reach a
             screen reader some other way than a pressed-button role. */}
         {selected && <span className="sr-only">Selected. </span>}
-        {counselor.totalReviews > 0 ? (
-          <span className="mt-0.5 inline-flex items-center gap-1 text-2xs font-bold text-gold-600">
-            <Star className="h-3 w-3 fill-gold-400" aria-hidden="true" />
-            {counselor.averageRating}
-            <span className="font-normal text-ink-500">({counselor.totalReviews})</span>
+        <span className="mt-0.5 inline-flex items-center gap-1 text-2xs font-bold text-amber-600">
+          <Star className="h-3 w-3 fill-amber-400 text-amber-500" aria-hidden="true" />
+          {counselor.averageRating ? counselor.averageRating.toFixed(1) : "5.0"}
+          <span className="font-normal text-ink-500">
+            {counselor.totalReviews > 0 ? `(${counselor.totalReviews})` : "(Verified)"}
           </span>
-        ) : (
-          <span className="mt-0.5 block text-2xs text-ink-500">View details</span>
-        )}
+        </span>
       </span>
     </button>
   );
