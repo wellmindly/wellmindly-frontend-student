@@ -3,11 +3,8 @@ import { Capacitor } from '@capacitor/core';
 
 let baseURL = import.meta.env.VITE_API_URL || 'https://api.wellmindly.com/api';
 
-if (!import.meta.env.VITE_API_URL && Capacitor.isNativePlatform()) {
-  const platform = Capacitor.getPlatform();
-  if (platform === 'android') {
-    baseURL = 'https://api.wellmindly.com/api';
-  } else if (platform === 'ios') {
+if (Capacitor.isNativePlatform()) {
+  if (!baseURL || !baseURL.startsWith('http')) {
     baseURL = 'https://api.wellmindly.com/api';
   }
 }
@@ -35,6 +32,7 @@ export const apiErrorMessage = (err: unknown, fallback: string): string => {
     if (typeof message === 'string' && message.trim()) return message;
   }
   if (typeof payload?.message === 'string' && payload.message.trim()) return payload.message;
+  if (err instanceof Error && err.message) return err.message;
 
   return fallback;
 };

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import type { CredentialResponse } from '@react-oauth/google';
 import { motion } from "framer-motion";
-import api from '../services/api';
+import api, { apiErrorMessage } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Logo, SkipLink } from '../components/ui';
@@ -145,7 +145,7 @@ export function LoginPage() {
       await syncGuestResults(token);
       navigateAfterAuth();
     } catch (err) {
-      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Google Authentication failed.";
+      const errorMsg = apiErrorMessage(err, "Google Authentication failed.");
       setGlobalError(errorMsg);
     }
   };
@@ -215,7 +215,7 @@ export function LoginPage() {
         setGlobalSuccess("A new code is on its way to " + email);
       }
     } catch (err) {
-      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to send verification code. Please try again.";
+      const errorMsg = apiErrorMessage(err, "Failed to send verification code. Please try again.");
       setGlobalError(errorMsg);
     } finally {
       setSubmitting(false);
@@ -263,7 +263,7 @@ export function LoginPage() {
         setGlobalSuccess("A new code is on its way to " + email);
       }
     } catch (err) {
-      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to send reset code. Please try again.";
+      const errorMsg = apiErrorMessage(err, "Failed to send reset code. Please try again.");
       setGlobalError(errorMsg);
     } finally {
       setSubmitting(false);
@@ -298,7 +298,7 @@ export function LoginPage() {
       setOtp("");
       setPassword("");
     } catch (err) {
-      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Failed to reset password. Please try again.";
+      const errorMsg = apiErrorMessage(err, "Failed to reset password. Please try again.");
       setGlobalError(errorMsg);
     } finally {
       setSubmitting(false);
@@ -341,7 +341,7 @@ export function LoginPage() {
       await syncGuestResults(token);
       navigateAfterAuth();
     } catch (err) {
-      const errorMsg = (err as { response?: { data?: { error?: string } } }).response?.data?.error || "Authentication failed. Please verify credentials.";
+      const errorMsg = apiErrorMessage(err, "Authentication failed. Please verify credentials.");
       setGlobalError(errorMsg);
     } finally {
       setSubmitting(false);
