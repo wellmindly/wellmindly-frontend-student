@@ -18,8 +18,8 @@ const config: CapacitorConfig = {
     GoogleAuth: {
       scopes: ['profile', 'email'],
       clientId: '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com',
-      androidClientId: '942167444638-n95e7684g6aufmk0m8bjvnb6vl4iv3bv.apps.googleusercontent.com',
-      forceCodeForRefreshToken: true,
+      serverClientId: '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com',
+      forceCodeForRefreshToken: false,
     },
     // Held up until React paints its first frame (hidden from JS in App.tsx),
     // so the cold start never flashes a blank white webview. Calm brand paper,

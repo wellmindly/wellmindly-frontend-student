@@ -158,12 +158,13 @@ export function LoginPage() {
       await GoogleAuth.initialize({
         clientId: config.googleClientId,
         scopes: ['profile', 'email'],
-        grantOfflineAccess: true,
+        grantOfflineAccess: false,
       });
 
       const googleUser = await GoogleAuth.signIn();
-      if (googleUser && googleUser.authentication.idToken) {
-        const res = await api.post('/auth/google/callback', { idToken: googleUser.authentication.idToken });
+      const idToken = googleUser?.authentication?.idToken || (googleUser as any)?.idToken;
+      if (idToken) {
+        const res = await api.post('/auth/google/callback', { idToken });
         const { token, user } = res.data;
         loginSuccess(token, user);
         await syncGuestResults(token);
@@ -172,14 +173,16 @@ export function LoginPage() {
         throw new Error("No ID Token returned from Google Sign-In.");
       }
     } catch (err: any) {
-      // Keep the technical detail (code + message) in the console for debugging,
-      // but never surface Google's raw developer error codes to a student.
       console.error("Native Google Auth Error:", err);
-      const errStr = `${err.message || ''} ${err.code || ''}`;
+      const backendError = apiErrorMessage(err, "");
+      const errStr = `${err?.message || ''} ${err?.code || ''}`;
       if (errStr.includes('12501') || errStr.toLowerCase().includes('cancel')) {
         // User cancelled, do nothing
+      } else if (backendError && backendError !== "Authentication failed. Please verify credentials.") {
+        setGlobalError(backendError);
       } else {
-        setGlobalError("We couldn't sign you in with Google right now. Please try again, or use your email and password.");
+        const codeSuffix = err?.code ? ` (code: ${err.code})` : (err?.message ? ` (${err.message})` : '');
+        setGlobalError(`We couldn't sign you in with Google right now${codeSuffix}. Please try again, or use your email and password.`);
       }
     } finally {
       setSubmitting(false);
