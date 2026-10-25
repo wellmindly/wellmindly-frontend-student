@@ -4,7 +4,7 @@
 // web (@react-oauth/google) and native (@codetrix-studio/capacitor-google-auth)
 // sign-in paths read config.googleClientId so they can never drift apart.
 const DEMO_GOOGLE_CLIENT_ID =
-  '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com';
+  '297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com';
 
 const envGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 const envGaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;

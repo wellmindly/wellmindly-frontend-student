@@ -17,8 +17,8 @@ const config: CapacitorConfig = {
     },
     GoogleAuth: {
       scopes: ['profile', 'email'],
-      clientId: '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com',
-      serverClientId: '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com',
+      clientId: '297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com',
+      serverClientId: '297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com',
       forceCodeForRefreshToken: false,
     },
     // Held up until React paints its first frame (hidden from JS in App.tsx),

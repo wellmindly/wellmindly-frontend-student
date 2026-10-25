@@ -4,6 +4,6 @@
     <string name="title_activity_main">WellMindly</string>
     <string name="package_name">com.wellmindly.app</string>
     <string name="custom_url_scheme">com.wellmindly.app</string>
-    <string name="shared_client_id">942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com</string>
-    <string name="server_client_id">942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com</string>
+    <string name="shared_client_id">297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com</string>
+    <string name="server_client_id">297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com</string>
 </resources>
