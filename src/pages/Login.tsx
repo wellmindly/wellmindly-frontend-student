@@ -181,7 +181,9 @@ export function LoginPage() {
       } else if (backendError && backendError !== "Authentication failed. Please verify credentials.") {
         setGlobalError(backendError);
       } else {
-        const codeSuffix = err?.code ? ` (code: ${err.code})` : (err?.message ? ` (${err.message})` : '');
+        const codeSuffix = err?.code
+          ? ` (code: ${err.code}${err?.message && !err.message.includes(err.code) ? ` - ${err.message}` : ''})`
+          : (err?.message ? ` (${err.message})` : '');
         setGlobalError(`We couldn't sign you in with Google right now${codeSuffix}. Please try again, or use your email and password.`);
       }
     } finally {

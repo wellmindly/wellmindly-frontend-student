@@ -19,6 +19,7 @@ const config: CapacitorConfig = {
       scopes: ['profile', 'email'],
       clientId: '297995941898-8ad73id91b3agdk1370olurg6iu2vi99.apps.googleusercontent.com',
       serverClientId: '297995941898-8ad73id91b3agdk1370olurg6iu2vi99.apps.googleusercontent.com',
+      androidClientId: '297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com',
       forceCodeForRefreshToken: false,
     },
     // Held up until React paints its first frame (hidden from JS in App.tsx),
