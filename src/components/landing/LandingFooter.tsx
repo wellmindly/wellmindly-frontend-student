@@ -76,6 +76,12 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
               >
                 Terms of Service
               </Link>
+              <Link
+                to="/delete-account"
+                className="text-2xs text-ink-500 hover:text-plum-600 min-h-11 inline-flex items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-md"
+              >
+                Delete Account
+              </Link>
             </nav>
 
             <p className="text-2xs text-ink-500 mt-auto">

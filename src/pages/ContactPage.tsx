@@ -20,6 +20,8 @@ export function ContactPage() {
     message: "",
   });
   const [loading, setLoading] = useState(false);
+  const [honeypot, setHoneypot] = useState("");
+  const [mountedAt] = useState(() => Date.now());
   const statusRef = useRef<HTMLDivElement>(null);
 
   const handleCrisisClick = () => {
@@ -33,11 +35,16 @@ export function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setLoading(true);
     setStatus({ type: null, message: "" });
 
     try {
-      const response = await api.post("/contacts/general", formData);
+      const response = await api.post("/contacts/general", {
+        ...formData,
+        hp_confirm: honeypot,
+        _t: mountedAt,
+      });
       if (response.data?.success) {
         setStatus({
           type: "success",
@@ -210,6 +217,17 @@ export function ContactPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Bot protection honeypot */}
+                <input
+                  type="text"
+                  name="hp_confirm"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: "none" }}
+                />
                 <div className="grid md:grid-cols-2 gap-5">
                   <Input
                     label="Your Name"

@@ -84,12 +84,13 @@ export function LandingPage() {
   }, []);
  
   const handleCrisisClick = () => {
-    trackEvent("crisis_support_clicked", { source: "landing_nav" });
+    // Sensitive crisis interactions must never be transmitted to third-party analytics
     navigate("/crisis");
   };
 
   const handleCheckInClick = () => {
-    trackEvent("checkin_started", { source: "landing_hero" });
+    // Non-sensitive generic hero engagement; check-in mood/answers are never sent
+    trackEvent("primary_cta_clicked", { cta_id: "landing_hero_cta" });
     // Signed in, so use the check-in that actually reaches their account: the
     // public /discover flow only ever writes results to localStorage.
     if (isAuthenticated) {
@@ -101,12 +102,12 @@ export function LandingPage() {
   };
 
   const handleCoachingScroll = () => {
-    trackEvent("coaching_section_scrolled", { source: "landing" });
+    trackEvent("primary_cta_clicked", { cta_id: "coaching_section_scroll" });
     scrollToElement(document.getElementById("coaching-section"));
   };
 
   const handleWriteMindlyClick = () => {
-    trackEvent("writemindly_clicked", { source: "landing_explore" });
+    trackEvent("feature_opened", { feature_id: "writemindly" });
     if (!config.enableWriteMindly) {
       setComingSoonFeature("writemindly");
       return;
@@ -119,7 +120,7 @@ export function LandingPage() {
   };
 
   const handleTalkMindlyClick = () => {
-    trackEvent("talkmindly_clicked", { source: "landing_explore" });
+    trackEvent("feature_opened", { feature_id: "talkmindly" });
     if (isAuthenticated) {
       navigate("/dashboard?tab=talkmindly");
     } else {
@@ -139,16 +140,13 @@ export function LandingPage() {
       : "/dashboard?tab=sessionbooking";
 
   const handleSelectCoach = (coach: CoachItem) => {
-    trackEvent("coach_card_clicked", { coach_name: coach.name, coach_id: coach.id });
-    // Signed in, so check whether they are a university student.
+    // Counseling session booking interactions are not transmitted to third-party analytics
     if (isAuthenticated) {
       const isUniStudent = !!user?.universityId || !!user?.universityVerified;
       if (!isUniStudent) {
-        trackEvent("coach_booking_intercepted", { coach_name: coach.name, reason: "not_uni_student" });
         setShowEligibilityModal(true);
         return;
       }
-      trackEvent("coach_booking_proceeded", { coach_name: coach.name });
       navigate(bookingPathFor(coach));
       return;
     }
@@ -159,7 +157,7 @@ export function LandingPage() {
   // Only reachable while signed out: signed-in students never open the preview.
   const confirmBooking = () => {
     if (!selectedCoach || selectedSlot === null) return;
-    trackEvent("coach_preview_confirmed", { coach_name: selectedCoach.name, slot: BOOKING_SLOTS[selectedSlot] });
+    // Session booking preview interactions are not transmitted to third-party analytics
     navigate(`/login?redirect=${encodeURIComponent(bookingPathFor(selectedCoach))}`);
   };
 

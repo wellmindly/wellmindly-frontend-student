@@ -10,7 +10,6 @@ import { useScrollTopOnChange } from "./lib/a11y";
 import { hideSplash } from "./lib/native";
 import { AnalyticsTracker } from "./components/AnalyticsTracker";
 
-
 /* ----------------------------------------------------------------------------
    Route-level code splitting.
 
@@ -52,12 +51,13 @@ const PrivacyPage = lazy(() =>
 const TermsPage = lazy(() =>
   import("./pages/TermsPage").then((m) => ({ default: m.TermsPage })),
 );
+const DeleteAccountPage = lazy(() =>
+  import("./pages/DeleteAccountPage").then((m) => ({ default: m.DeleteAccountPage })),
+);
+const VerifySubscriptionPage = lazy(() =>
+  import("./pages/VerifySubscriptionPage").then((m) => ({ default: m.VerifySubscriptionPage })),
+);
 
-/**
- * `/discover` is the guest-accessible quiz surface. A signed-in student belongs
- * in the dashboard's Discover tab instead, so we forward them - preserving the
- * `showResult` / `testId` contract that the gated-result flow depends on.
- */
 function DiscoverRoute() {
   const { user } = useAuth();
   const location = useLocation();
@@ -74,13 +74,6 @@ function DiscoverRoute() {
   return <DiscoverPage />;
 }
 
-/**
- * Every route change starts at the top of the new page. Without this, react-router
- * keeps the window's scroll offset across navigations, so following a footer link
- * lands you halfway down the next page. `useScrollTopOnChange` reads the
- * reduced-motion preference, so this is smooth for most people and instant for
- * anyone who asked for less movement.
- */
 function ScrollToTopOnNavigate() {
   const { pathname } = useLocation();
   useScrollTopOnChange(pathname);
@@ -98,8 +91,6 @@ function LoginRoute() {
     const redirectParam = params.get("redirect");
     const testIdParam = params.get("testId") || params.get("showResult");
     if (redirectParam) {
-      // `redirect` may already carry its own query (e.g. /dashboard?tab=talkmindly),
-      // so append with the correct separator instead of assuming there is none.
       const target = testIdParam && !redirectParam.includes("showResult=")
         ? `${redirectParam}${redirectParam.includes("?") ? "&" : "?"}showResult=${encodeURIComponent(testIdParam)}`
         : redirectParam;
@@ -115,19 +106,12 @@ function LoginRoute() {
 }
 
 function App() {
-  // The native launch splash stays up (launchAutoHide:false) until React has
-  // painted the first frame, so a returning student never sees the white webview
-  // flash that gives a wrapped webpage away. No-op on the web build.
   useEffect(() => {
     hideSplash();
   }, []);
 
   return (
     <AuthProvider>
-      {/* Respect the OS-level reduce-motion setting on every platform, native
-          included - a Capacitor webview reports prefers-reduced-motion too.
-          Every animation in the design system is transform/opacity only, so it
-          composites on the GPU and stays smooth in the Android webview. */}
       <MotionConfig reducedMotion="user">
         <ToastProvider>
           <ErrorBoundary>
@@ -147,6 +131,8 @@ function App() {
                   <Route path="/counselors" element={<CounselorsPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/delete-account" element={<DeleteAccountPage />} />
+                  <Route path="/verify-subscription" element={<VerifySubscriptionPage />} />
                   <Route
                     path="/dashboard"
                     element={

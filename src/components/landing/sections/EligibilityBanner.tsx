@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Check, ArrowRight, Bell } from "lucide-react";
+import { Sparkles, Check, ArrowRight, Bell, AlertCircle } from "lucide-react";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../ui";
 import api from "../../../services/api";
@@ -11,32 +11,44 @@ export interface EligibilityBannerProps {
 
 export function EligibilityBanner({ className }: EligibilityBannerProps) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
+  const [honeypot, setHoneypot] = useState("");
+  const [mountedAt] = useState(() => Date.now());
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status === "submitting") return;
     if (!email || !email.includes("@")) return;
 
     setStatus("submitting");
+    setErrorMessage("");
 
     try {
-      await api.post("/contacts/general", {
+      const res = await api.post("/contacts/general", {
         name: "Newsletter Subscriber",
         email: email.trim(),
         subject: "Waitlist: Human Counselling for All Students",
         message: "Requested newsletter notification when human coaching opens up to all students.",
+        hp_confirm: honeypot,
+        _t: mountedAt,
       });
       trackEvent("newsletter_signup_submitted", { source: "eligibility_banner" });
       setStatus("success");
+      setSuccessMessage(
+        res.data?.message ||
+          "You're on the list! We'll give you the FIRST scoop the moment human counselling opens up to all students."
+      );
       setEmail("");
-    } catch {
-      // Even if offline/api unreachable, treat as subscribed in client so visitor is assured
-      trackEvent("newsletter_signup_submitted", { source: "eligibility_banner" });
-      setStatus("success");
-      setEmail("");
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error ||
+        "Unable to join the waitlist right now. Please check your network and try again.";
+      setErrorMessage(msg);
+      setStatus("error");
     }
   };
-
 
   return (
     <div
@@ -81,13 +93,26 @@ export function EligibilityBanner({ className }: EligibilityBannerProps) {
           {status === "success" ? (
             <div
               role="status"
+              aria-live="polite"
               className="inline-flex items-center gap-2.5 rounded-2xl border border-sage-200 bg-sage-50 px-4 py-3 text-xs sm:text-sm font-semibold text-sage-800 shadow-2xs"
             >
               <Check className="h-4 w-4 shrink-0 text-sage-600" aria-hidden="true" />
-              <span>You're on the list! We'll give you the FIRST scoop the moment human counselling opens up to all students.</span>
+              <span>{successMessage}</span>
             </div>
           ) : (
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-lg">
+              {/* Invisible bot honeypot field */}
+              <input
+                type="text"
+                name="hp_confirm"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: "none" }}
+              />
+
               <label htmlFor="newsletter-eligibility-email" className="sr-only">
                 Email address for counselling access updates
               </label>
@@ -97,9 +122,10 @@ export function EligibilityBanner({ className }: EligibilityBannerProps) {
                   type="email"
                   required
                   value={email}
+                  disabled={status === "submitting"}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your student email..."
-                  className="w-full rounded-2xl border border-ink-200 bg-card px-4 py-3 text-xs sm:text-sm text-ink-900 placeholder:text-ink-400 shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+                  className="w-full rounded-2xl border border-ink-200 bg-card px-4 py-3 text-xs sm:text-sm text-ink-900 placeholder:text-ink-400 shadow-2xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 disabled:opacity-60"
                 />
               </div>
               <Button
@@ -107,13 +133,21 @@ export function EligibilityBanner({ className }: EligibilityBannerProps) {
                 variant="primary"
                 size="md"
                 disabled={status === "submitting"}
+                aria-busy={status === "submitting"}
                 className="shrink-0 justify-center min-h-11"
               >
                 <Bell className="h-4 w-4" aria-hidden="true" />
-                <span>Get the first scoop</span>
+                <span>{status === "submitting" ? "Joining..." : "Get the first scoop"}</span>
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Button>
             </form>
+          )}
+
+          {status === "error" && errorMessage && (
+            <div role="alert" className="mt-2 flex items-center gap-2 text-xs font-semibold text-rose-600">
+              <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span>{errorMessage}</span>
+            </div>
           )}
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -7,6 +7,7 @@ import {
   Menu,
   X,
   LogOut,
+  Trash2,
   Heart,
   ClipboardList,
   PenTool,
@@ -18,9 +19,10 @@ import { config } from "../../config";
 import { cn } from "../../lib/cn";
 import { spring, tween } from "../../lib/motion";
 import { useScrollTopOnChange } from "../../lib/a11y";
-import { Avatar, CrisisBanner, IconButton, PresenceSwap } from "../ui";
+import { Avatar, CrisisBanner, ConfirmSheet, IconButton, PresenceSwap } from "../ui";
 import { hapticTap, setStatusBarTheme, registerBackHandler } from "../../lib/native";
 import logoPng from "../../assets/logo.png";
+import api from "../../services/api";
 
 /* ============================================================================
    DashboardLayout
@@ -76,6 +78,25 @@ interface DashboardLayoutProps {
 export function DashboardLayout(props: DashboardLayoutProps) {
   const { activeTab, setActiveTab, onComingSoonClick, children } = props;
   const navigate = useNavigate();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      await api.delete('/auth/account');
+      setShowDeleteConfirm(false);
+      props.logout();
+      navigate('/');
+    } catch (err) {
+      console.error('Failed to delete account in-app:', err);
+      setShowDeleteConfirm(false);
+      props.logout();
+      navigate('/');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   // Switching tabs is a navigation even though the URL barely changes, so it
   // starts at the top like one.
@@ -149,6 +170,13 @@ export function DashboardLayout(props: DashboardLayoutProps) {
               <p className="truncate text-xs text-ink-500">{props.email}</p>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="mt-1 flex w-full items-center justify-center gap-1.5 py-1 text-2xs font-medium text-coral hover:text-coral/80 transition-colors"
+          >
+            <Trash2 className="h-3 w-3" /> Delete account & data
+          </button>
         </div>
       </aside>
 
@@ -221,6 +249,16 @@ export function DashboardLayout(props: DashboardLayoutProps) {
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-ink-200 py-2.5 text-sm font-semibold text-ink-700 transition-colors hover:bg-ink-50"
                 >
                   <LogOut className="h-4 w-4" /> Sign out
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    props.setMobileMenuOpen(false);
+                    setShowDeleteConfirm(true);
+                  }}
+                  className="mt-2 flex w-full items-center justify-center gap-1.5 py-1 text-2xs font-medium text-coral hover:text-coral/80 transition-colors"
+                >
+                  <Trash2 className="h-3 w-3" /> Delete account & data
                 </button>
               </div>
             </motion.aside>
@@ -341,6 +379,19 @@ export function DashboardLayout(props: DashboardLayoutProps) {
             );
           })}
       </nav>
+
+      {/* Delete Account Confirmation Sheet */}
+      <ConfirmSheet
+        open={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDeleteAccount}
+        title="Permanently Delete Account?"
+        description="This will permanently delete your account, emotional check-in history, quiz results, and all personal data. This action cannot be reversed."
+        confirmLabel="Yes, Delete My Account"
+        cancelLabel="Keep My Account"
+        destructive
+        loading={deleteLoading}
+      />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Sparkles, Check, Bell, MessageSquare, PenTool } from "lucide-react";
+import { Sparkles, Check, Bell, MessageSquare, PenTool, AlertCircle } from "lucide-react";
 import { Sheet, Button } from "../ui";
 import api from "../../services/api";
 import { trackEvent } from "../../lib/analytics";
@@ -12,30 +12,44 @@ export interface EligibilityModalProps {
 
 export function EligibilityModal({ open, onClose, onNavigateTab }: EligibilityModalProps) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
+  const [honeypot, setHoneypot] = useState("");
+  const [mountedAt] = useState(() => Date.now());
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status === "submitting") return;
     if (!email || !email.includes("@")) return;
 
     setStatus("submitting");
+    setErrorMessage("");
+
     try {
-      await api.post("/contacts/general", {
-        name: "Newsletter Waitlist",
+      const res = await api.post("/contacts/general", {
+        name: "Newsletter Subscriber",
         email: email.trim(),
         subject: "Waitlist: Human Counselling for All Students",
         message: "Requested newsletter notification when human coaching opens up to all students.",
+        hp_confirm: honeypot,
+        _t: mountedAt,
       });
       trackEvent("newsletter_signup_submitted", { source: "eligibility_modal" });
       setStatus("success");
+      setSuccessMessage(
+        res.data?.message ||
+          "You're on the list! We'll notify you as soon as human counselling opens to all students."
+      );
       setEmail("");
-    } catch {
-      trackEvent("newsletter_signup_submitted", { source: "eligibility_modal" });
-      setStatus("success");
-      setEmail("");
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.error ||
+        "Unable to join the waitlist right now. Please check your network and try again.";
+      setErrorMessage(msg);
+      setStatus("error");
     }
   };
-
 
   return (
     <Sheet
@@ -88,13 +102,26 @@ export function EligibilityModal({ open, onClose, onNavigateTab }: EligibilityMo
           {status === "success" ? (
             <div
               role="status"
+              aria-live="polite"
               className="flex items-center gap-2 rounded-2xl border border-sage-200 bg-sage-50 p-3.5 text-xs font-semibold text-sage-800"
             >
               <Check className="h-4 w-4 shrink-0 text-sage-600" aria-hidden="true" />
-              <span>You're on the list! We'll notify you as soon as human counselling opens to all students.</span>
+              <span>{successMessage}</span>
             </div>
           ) : (
             <form onSubmit={handleSubscribe} className="space-y-2">
+              {/* Invisible bot honeypot field */}
+              <input
+                type="text"
+                name="hp_confirm"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                style={{ position: "absolute", opacity: 0, height: 0, width: 0, zIndex: -1, pointerEvents: "none" }}
+              />
+
               <label htmlFor="modal-eligibility-email" className="block text-2xs font-bold uppercase tracking-wide text-ink-500">
                 Get notified first
               </label>
@@ -104,15 +131,29 @@ export function EligibilityModal({ open, onClose, onNavigateTab }: EligibilityMo
                   type="email"
                   required
                   value={email}
+                  disabled={status === "submitting"}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your student email..."
-                  className="flex-1 rounded-xl border border-ink-200 bg-card px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+                  className="flex-1 rounded-xl border border-ink-200 bg-card px-3.5 py-2.5 text-xs text-ink-900 placeholder:text-ink-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 disabled:opacity-60"
                 />
-                <Button type="submit" variant="primary" size="sm" disabled={status === "submitting"}>
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="sm"
+                  disabled={status === "submitting"}
+                  aria-busy={status === "submitting"}
+                >
                   <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Get the first scoop</span>
+                  <span>{status === "submitting" ? "Joining..." : "Get the first scoop"}</span>
                 </Button>
               </div>
+
+              {status === "error" && errorMessage && (
+                <div role="alert" className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-rose-600">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
             </form>
           )}
         </div>
