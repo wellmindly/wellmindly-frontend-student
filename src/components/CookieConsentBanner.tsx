@@ -13,6 +13,7 @@ export function CookieConsentBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
+  const [marketingEnabled, setMarketingEnabled] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -22,6 +23,7 @@ export function CookieConsentBanner() {
     if (existing) {
       setConsent(existing);
       setAnalyticsEnabled(existing.categories.analytics);
+      setMarketingEnabled(existing.categories.marketing || false);
       setShowBanner(false);
     } else {
       setShowBanner(true);
@@ -31,8 +33,10 @@ export function CookieConsentBanner() {
       const current = getConsent();
       if (current) {
         setAnalyticsEnabled(current.categories.analytics);
+        setMarketingEnabled(current.categories.marketing || false);
       } else {
         setAnalyticsEnabled(false);
+        setMarketingEnabled(false);
       }
       setShowModal(true);
     };
@@ -78,7 +82,7 @@ export function CookieConsentBanner() {
   const handleSavePreferences = () => {
     const rec = saveConsent('customized', {
       analytics: analyticsEnabled,
-      marketing: false,
+      marketing: marketingEnabled,
     });
     setConsent(rec);
     setShowBanner(false);
@@ -101,10 +105,10 @@ export function CookieConsentBanner() {
                 </div>
                 <div className="space-y-1">
                   <h2 className="text-sm font-semibold text-slate-900">
-                    Counselor Portal &bull; Privacy & Telemetry
+                    WellMindly &bull; Privacy &amp; Cookie Choices
                   </h2>
                   <p className="text-xs leading-relaxed text-slate-600 max-w-2xl">
-                    WellMindly uses strictly necessary cookies for secure clinical authentication. With your permission, aggregate telemetry helps us improve portal stability and schedule workflows. We never record student clinical timelines or consultation notes.
+                    WellMindly uses strictly necessary cookies for core session security. With your permission, aggregate analytics help us improve platform navigation and stability. We never track private mood scores, journal reflections, or clinical assessment answers.
                   </p>
                 </div>
               </div>
@@ -144,7 +148,7 @@ export function CookieConsentBanner() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="counselor-cookie-modal-title"
+          aria-labelledby="student-cookie-modal-title"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
         >
           <div
@@ -155,8 +159,8 @@ export function CookieConsentBanner() {
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <Shield className="h-5 w-5 text-indigo-600" />
-                <h3 id="counselor-cookie-modal-title" className="text-base font-bold text-slate-900">
-                  Counselor Portal Privacy Choices
+                <h3 id="student-cookie-modal-title" className="text-base font-bold text-slate-900">
+                  WellMindly Privacy Preferences
                 </h3>
               </div>
               <button
@@ -178,16 +182,16 @@ export function CookieConsentBanner() {
                   </span>
                 </div>
                 <p className="mt-1 text-slate-600">
-                  Required for clinical credentials, authenticated JWT persistence, and route protection.
+                  Required for account authentication, secure session tokens, and essential page navigation.
                 </p>
               </div>
 
               <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="font-semibold text-slate-900">Analytics (GA4 & Clarity)</span>
+                    <span className="font-semibold text-slate-900">Performance &amp; Analytics (GA4)</span>
                     <p className="mt-0.5 text-slate-600">
-                      Anonymous aggregate metrics for dashboard navigation and calendar availability workflows.
+                      Anonymous aggregate metrics for pageviews and feature performance.
                     </p>
                   </div>
                   <label className="relative ml-4 inline-flex cursor-pointer items-center">
@@ -202,7 +206,28 @@ export function CookieConsentBanner() {
                   </label>
                 </div>
                 <div className="mt-2 text-2xs text-slate-500 border-t border-slate-200/60 pt-2">
-                  ✓ Clinical notes masked &bull; ✓ Student history excluded from session recordings
+                  ✓ Mood ratings dropped &bull; ✓ Zero clinical assessment data collected
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-slate-900">Personalization &amp; Campaign Attribution</span>
+                    <p className="mt-0.5 text-slate-600">
+                      Allows measuring acquisition campaigns and ad signals (Consent Mode v2).
+                    </p>
+                  </div>
+                  <label className="relative ml-4 inline-flex cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      checked={marketingEnabled}
+                      onChange={(e) => setMarketingEnabled(e.target.checked)}
+                      className="sr-only peer"
+                      aria-label="Enable marketing cookies"
+                    />
+                    <div className="w-10 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </label>
                 </div>
               </div>
             </div>
