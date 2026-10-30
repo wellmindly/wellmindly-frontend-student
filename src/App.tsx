@@ -9,6 +9,7 @@ import { ToastProvider } from "./components/ui";
 import { useScrollTopOnChange } from "./lib/a11y";
 import { hideSplash } from "./lib/native";
 import { AnalyticsTracker } from "./components/AnalyticsTracker";
+import { CookieConsentBanner } from "./components/CookieConsentBanner";
 
 /* ----------------------------------------------------------------------------
    Route-level code splitting.
@@ -118,6 +119,7 @@ function App() {
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <ScrollToTopOnNavigate />
               <AnalyticsTracker />
+              <CookieConsentBanner />
               <Suspense fallback={<AppSplash />}>
 
                 <Routes>
