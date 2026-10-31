@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Check, Star } from "lucide-react";
 import { cn } from "../../lib/cn";
 import type { Counselor } from "./types";
@@ -26,9 +27,39 @@ export function CounselorPickerCard({
 }: CounselorPickerCardProps) {
   const initial = counselor.name.trim()[0]?.toUpperCase() ?? "?";
   const apiOrigin = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.wellmindly.com' : 'http://localhost:5000')).replace(/\/api\/?$/, '');
-  const resolvedAvatar = counselor.avatarUrl && counselor.avatarUrl.startsWith('/api/')
-    ? `${apiOrigin}${counselor.avatarUrl}`
-    : counselor.avatarUrl;
+
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(() => {
+    if (!counselor.avatarUrl) return null;
+    if (counselor.avatarUrl.startsWith('/api/')) return encodeURI(`${apiOrigin}${counselor.avatarUrl}`);
+    return encodeURI(counselor.avatarUrl);
+  });
+
+  useEffect(() => {
+    if (!counselor.avatarUrl) {
+      setAvatarSrc(null);
+    } else if (counselor.avatarUrl.startsWith('/api/')) {
+      setAvatarSrc(encodeURI(`${apiOrigin}${counselor.avatarUrl}`));
+    } else {
+      setAvatarSrc(encodeURI(counselor.avatarUrl));
+    }
+  }, [counselor.avatarUrl, apiOrigin]);
+
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    if (avatarSrc && avatarSrc.includes('.amazonaws.com/')) {
+      let key = avatarSrc.split('.amazonaws.com/')[1]?.split('?')[0];
+      if (key?.startsWith('wellmindly-assets/')) {
+        key = key.replace(/^wellmindly-assets\//, '');
+      }
+      if (key) {
+        const proxyUrl = encodeURI(`${apiOrigin}/api/v1/counselors/assets/${key}`);
+        if (proxyUrl !== avatarSrc) {
+          setAvatarSrc(proxyUrl);
+          return;
+        }
+      }
+    }
+    e.currentTarget.style.display = 'none';
+  };
 
   return (
     <button
@@ -54,18 +85,16 @@ export function CounselorPickerCard({
       )}
 
       <span className="relative block h-20 w-20 overflow-hidden rounded-full bg-plum-100 sm:h-24 sm:w-24">
-        {resolvedAvatar ? (
+        {avatarSrc ? (
           <img
-            src={resolvedAvatar}
+            src={avatarSrc}
             alt=""
             loading="lazy"
             className="h-full w-full object-cover"
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
+            onError={handleImgError}
           />
         ) : null}
-        <span className={cn("absolute inset-0 flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-plum-700", resolvedAvatar && "-z-10")}>
+        <span className={cn("absolute inset-0 flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-plum-700", avatarSrc && "-z-10")}>
           {initial}
         </span>
       </span>

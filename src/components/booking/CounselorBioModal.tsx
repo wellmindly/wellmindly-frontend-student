@@ -1,5 +1,5 @@
 import { Star } from "lucide-react";
-import { Sheet, Button } from "../ui";
+import { Sheet, Button, Avatar } from "../ui";
 import type { Counselor } from "./types";
 
 /* ============================================================================
@@ -50,15 +50,13 @@ export function CounselorBioModal({
       {counselor && (
         <div className="space-y-6">
           <div className="flex items-center gap-4">
-            <span className="block h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-plum-100">
-              {counselor.avatarUrl ? (
-                <img src={counselor.avatarUrl} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center font-display text-2xl font-semibold text-plum-700">
-                  {counselor.name.trim()[0]?.toUpperCase() ?? "?"}
-                </span>
-              )}
-            </span>
+            <Avatar
+              src={counselor.avatarUrl}
+              name={counselor.name}
+              initials={counselor.name.trim()[0]?.toUpperCase() ?? "?"}
+              size="lg"
+              className="h-16 w-16 rounded-2xl"
+            />
             <div className="min-w-0">
               {counselor.totalReviews > 0 ? (
                 <p className="flex items-center gap-1 text-xs font-bold text-gold-600">

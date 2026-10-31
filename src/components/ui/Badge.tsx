@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../../lib/cn";
 
@@ -175,7 +176,42 @@ export function Avatar({
       .join("");
 
   const apiOrigin = (import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.wellmindly.com' : 'http://localhost:5000')).replace(/\/api\/?$/, '');
-  const resolvedSrc = src && src.startsWith('/api/') ? `${apiOrigin}${src}` : src;
+
+  const [currentSrc, setCurrentSrc] = useState<string | null>(() => {
+    if (!src) return null;
+    if (src.startsWith('/api/')) return encodeURI(`${apiOrigin}${src}`);
+    return encodeURI(src);
+  });
+
+  useEffect(() => {
+    if (!src) {
+      setCurrentSrc(null);
+    } else if (src.startsWith('/api/')) {
+      setCurrentSrc(encodeURI(`${apiOrigin}${src}`));
+    } else {
+      setCurrentSrc(encodeURI(src));
+    }
+  }, [src, apiOrigin]);
+
+  const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    const target = e.currentTarget;
+    // If direct S3 URL fails (e.g. bucket private), seamlessly try backend proxy
+    if (currentSrc && currentSrc.includes('.amazonaws.com/')) {
+      let key = currentSrc.split('.amazonaws.com/')[1]?.split('?')[0];
+      if (key?.startsWith('wellmindly-assets/')) {
+        key = key.replace(/^wellmindly-assets\//, '');
+      }
+      if (key) {
+        const proxyUrl = encodeURI(`${apiOrigin}/api/v1/counselors/assets/${key}`);
+        if (proxyUrl !== currentSrc) {
+          setCurrentSrc(proxyUrl);
+          return;
+        }
+      }
+    }
+    // Reveal the initials underneath rather than showing a broken image.
+    target.style.display = "none";
+  };
 
   return (
     <span
@@ -187,17 +223,14 @@ export function Avatar({
         className,
       )}
     >
-      {resolvedSrc ? (
+      {currentSrc ? (
         <img
-          src={resolvedSrc}
+          src={currentSrc}
           alt={name}
           loading="lazy"
           decoding="async"
           className="h-full w-full object-cover"
-          onError={(e) => {
-            // Reveal the initials underneath rather than showing a broken image.
-            e.currentTarget.style.display = "none";
-          }}
+          onError={handleError}
         />
       ) : null}
       {/* Initials sit behind the image, so an error simply uncovers them. */}
