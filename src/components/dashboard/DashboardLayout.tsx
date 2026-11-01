@@ -10,7 +10,7 @@ import {
   Trash2,
   Heart,
   ClipboardList,
-  PenTool,
+  Sparkles,
   MessageSquare,
   Calendar,
 } from "lucide-react";
@@ -50,7 +50,7 @@ const menuItems: MenuItem[] = [
   { id: "checkin", label: "Check-in", icon: Heart },
   { id: "assessments", label: "My results", icon: ClipboardList },
   { id: "discover", label: "Explore quizzes", shortLabel: "Quizzes", icon: BrainCircuit },
-  { id: "writemindly", label: "WriteMindly", shortLabel: "Write", icon: PenTool },
+  { id: "writemindly", label: "WriteMindly AI", shortLabel: "AI Bot", icon: Sparkles },
   { id: "talkmindly", label: "TalkMindly", shortLabel: "Talk", icon: MessageSquare },
   { id: "sessionbooking", label: "Book a session", shortLabel: "Sessions", icon: Calendar },
 ];

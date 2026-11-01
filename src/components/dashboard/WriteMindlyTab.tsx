@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
   Mic,
   MicOff,
   Trash2,
-  Loader2,
-  Heart,
-  ShieldCheck
+  ShieldCheck,
+  Sparkles
 } from "lucide-react";
 import api from "../../services/api";
 import { Button, ConfirmSheet, IconButton, Input, Sheet } from "../ui";
@@ -19,6 +19,39 @@ interface Message {
   text: string;
   timestamp: Date;
 }
+
+const WELLNESS_STARTERS = [
+  {
+    emoji: "🌿",
+    label: "Overwhelmed with coursework",
+    prompt: "I have so many assignments and deadlines piling up and I'm feeling paralyzed. Can you help me break this down into small, manageable steps?",
+  },
+  {
+    emoji: "💭",
+    label: "Can't stop overthinking",
+    prompt: "My mind won't stop spiraling over something that happened today. How can I slow down and get perspective?",
+  },
+  {
+    emoji: "🌙",
+    label: "Trouble sleeping & racing thoughts",
+    prompt: "It's late and my mind won't quiet down for sleep. Can you guide me through unwinding?",
+  },
+  {
+    emoji: "💬",
+    label: "Just need to vent",
+    prompt: "I just need a safe, judgment-free space to let out what's frustrating me today.",
+  },
+  {
+    emoji: "🫁",
+    label: "2-min breathing exercise",
+    prompt: "I'm feeling anxious and tense. Can you walk me through a calming breathing exercise right now?",
+  },
+  {
+    emoji: "✨",
+    label: "Feeling lonely or disconnected",
+    prompt: "Lately I've been feeling isolated and disconnected on campus. How can I be kinder to myself right now?",
+  },
+];
 
 /**
  * Daily-quota ring. Rendered small in the header (a glanceable, tappable status
@@ -159,8 +192,8 @@ export function WriteMindlyTab() {
     // Copywriting configuration check
     const hasUsed = localStorage.getItem("hasUsedWriteMindly") === "true";
     const initialText = hasUsed
-      ? "What's on your mind today? Even \"I don't know\" is a fine place to start."
-      : "Blank page, no pressure. Start with whatever's loudest in your head right now.";
+      ? "Welcome back to WriteMindly. I'm your confidential mental wellness companion. How are you feeling right now? Even 'I don't know' is a fine place to start."
+      : "Hi, I'm WriteMindly, your personal mental wellness companion. This is a quiet, judgment-free space to decompress, unpack stress, or explore what you're feeling right now.";
 
     setMessages([
       {
@@ -190,12 +223,11 @@ export function WriteMindlyTab() {
     scrollToElement(chatEndRef.current);
   }, [messages, isLoading]);
 
-  // Send Message function
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!inputValue.trim() || isLoading) return;
+  // Submit Message function (invoked by form or quick mental wellness tools)
+  const submitMessage = async (textToSend: string) => {
+    const userMessageText = textToSend.trim();
+    if (!userMessageText || isLoading) return;
 
-    const userMessageText = inputValue.trim();
     setInputValue("");
     setError(null);
 
@@ -240,6 +272,11 @@ export function WriteMindlyTab() {
     }
   };
 
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    await submitMessage(inputValue);
+  };
+
   // Toggle Microphone Speech-to-Text
   const handleToggleRecord = () => {
     if (!recognitionRef.current) return;
@@ -280,7 +317,7 @@ export function WriteMindlyTab() {
     setMessages([
       {
         sender: "model",
-        text: "Blank page, no pressure. What's loudest in your head right now?",
+        text: "Fresh session started. I'm WriteMindly, your mental wellness companion. What's on your mind right now?",
         timestamp: new Date()
       }
     ]);
@@ -294,14 +331,31 @@ export function WriteMindlyTab() {
   return (
     <div className="flex flex-col h-[calc(100dvh-12rem)] min-h-[500px] bg-card rounded-3xl border border-ink-100 shadow-sm overflow-hidden">
       {/* 1. Header Area */}
-      <header className="px-4 py-3 sm:px-6 sm:py-4 border-b border-ink-100 flex items-center justify-between gap-2 shrink-0 bg-paper-2">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-2xl bg-plum-100 text-plum-600 flex items-center justify-center shadow-inner shrink-0">
-            <Heart className="h-4 w-4 sm:h-5 sm:w-5 fill-current" aria-hidden="true" />
+      <header className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-ink-100 flex items-center justify-between gap-2 shrink-0 bg-paper-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative">
+            <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-2xl bg-gradient-to-tr from-plum-600 to-teal-500 text-plum-50 flex items-center justify-center shadow-md shrink-0">
+              <Sparkles className="h-5 w-5" aria-hidden="true" />
+            </div>
+            {/* Active Pulse Status Indicator */}
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5" title="Bot is active and listening">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-teal-500 border-2 border-card" />
+            </span>
           </div>
           <div className="min-w-0">
-            <h2 className="text-base sm:text-xl font-black text-ink-900 font-display leading-none">WriteMindly</h2>
-            <p className="hidden sm:block text-2xs sm:text-xs text-ink-500 font-medium mt-1 truncate">Temporary, fully private AI companion.</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black text-ink-900 font-display leading-none">
+                WriteMindly
+              </h2>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-2xs font-extrabold bg-plum-50 text-plum-700 border border-plum-200/60">
+                Mental Wellness Bot
+              </span>
+            </div>
+            <p className="text-2xs text-ink-500 font-medium mt-1 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+              <span>Always here &bull; 100% Private &bull; Judgment-free</span>
+            </p>
           </div>
         </div>
 
@@ -340,20 +394,25 @@ export function WriteMindlyTab() {
 
       {/* 2. Chat History Viewport */}
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 space-y-4 bg-gradient-to-b from-paper-2/40 to-card relative">
-        {/* Privacy cue - the full explanation lives in the Session & privacy
-            sheet so it never crowds the conversation on a phone. */}
-        <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 px-2 text-center">
-          <span className="inline-flex items-center gap-1.5 text-2xs font-semibold text-ink-500">
+        {/* Privacy & Crisis support strip */}
+        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-paper-2 border border-ink-200/60 text-2xs text-ink-600">
+          <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-sage-600 shrink-0" aria-hidden="true" />
-            Private &mdash; we don&rsquo;t save what you write.
-          </span>
-          <button
-            type="button"
-            onClick={() => setSessionOpen(true)}
-            className="text-2xs font-bold text-plum-600 underline underline-offset-2 hover:text-plum-700 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+            <span>Private &mdash; words are never logged or saved.</span>
+            <button
+              type="button"
+              onClick={() => setSessionOpen(true)}
+              className="font-bold text-plum-600 underline underline-offset-2 hover:text-plum-700 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 ml-1"
+            >
+              How it works
+            </button>
+          </div>
+          <Link
+            to="/crisis"
+            className="font-bold text-plum-700 underline hover:text-plum-900 shrink-0"
           >
-            How it works
-          </button>
+            Free Crisis Hotlines &rarr;
+          </Link>
         </div>
 
         {/* Message Log */}
@@ -374,29 +433,73 @@ export function WriteMindlyTab() {
                   transition={{ duration: 0.3 }}
                   className={`flex ${isUser ? "justify-end" : "justify-start"}`}
                 >
-                  <div
-                    className={`rounded-2xl px-4 py-3.5 max-w-[85%] sm:max-w-[70%] font-medium leading-relaxed shadow-sm ${
-                      isUser
-                        ? "bg-plum-500 text-plum-50 rounded-tr-none"
-                        : "bg-paper-2 text-ink-800 rounded-tl-none border border-ink-200/40"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap">{msg.text}</p>
-                    <span
-                      className={`block text-2xs mt-1.5 text-right font-semibold select-none ${
-                        isUser ? "text-plum-100" : "text-ink-400"
-                      }`}
-                    >
-                      {msg.timestamp.toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                      })}
-                    </span>
-                  </div>
+                  {isUser ? (
+                    <div className="bg-plum-500 text-plum-50 rounded-2xl rounded-tr-sm px-4 py-3 max-w-[85%] sm:max-w-[70%] font-medium leading-relaxed shadow-sm">
+                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                      <span className="block text-2xs mt-1.5 text-right font-semibold select-none text-plum-100">
+                        {msg.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        })}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2.5 max-w-[92%] sm:max-w-[78%]">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-plum-600 to-teal-500 text-plum-50 flex items-center justify-center shrink-0 mt-0.5 shadow-sm select-none">
+                        <Sparkles className="w-4 h-4" aria-hidden="true" />
+                      </div>
+                      <div className="bg-card text-ink-800 rounded-2xl rounded-tl-sm border border-ink-200/80 p-3.5 sm:p-4 shadow-sm">
+                        <div className="flex items-center justify-between gap-3 mb-1.5 border-b border-ink-100/60 pb-1">
+                          <span className="text-2xs font-extrabold text-plum-700 flex items-center gap-1 select-none">
+                            WriteMindly AI <span className="font-semibold text-ink-400">&bull; Mental Wellness Bot</span>
+                          </span>
+                          <span className="text-2xs text-ink-400 font-semibold select-none">
+                            {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        </div>
+                        <p className="whitespace-pre-wrap leading-relaxed text-sm text-ink-800 font-normal">{msg.text}</p>
+                      </div>
+                    </div>
+                  )}
                 </motion.div>
               );
             })}
           </AnimatePresence>
+
+          {/* Quick Mental Wellness Starters (When Chat is Fresh) */}
+          {messages.length <= 1 && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-ink-200/80 bg-paper-2/60 p-4 sm:p-5 text-left my-2"
+            >
+              <div className="flex items-center gap-2 mb-1.5">
+                <Sparkles className="w-4 h-4 text-plum-600" aria-hidden="true" />
+                <span className="text-xs font-bold text-ink-900 uppercase tracking-wide">
+                  What would you like to explore today?
+                </span>
+              </div>
+              <p className="text-xs text-ink-600 mb-3 leading-relaxed">
+                Tap any mental wellness prompt below to begin, or type whatever is on your mind.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {WELLNESS_STARTERS.map((s, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => submitMessage(s.prompt)}
+                    disabled={isLoading}
+                    className="flex items-center gap-2.5 p-2.5 rounded-xl border border-ink-200/70 bg-card hover:border-plum-400 hover:bg-plum-50/40 text-left cursor-pointer transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 disabled:opacity-50"
+                  >
+                    <span className="text-base shrink-0 select-none" aria-hidden="true">{s.emoji}</span>
+                    <span className="text-xs font-semibold text-ink-700 group-hover:text-plum-900 leading-snug">
+                      {s.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
 
           {/* AI Generation Loading Indicator */}
           {isLoading && (
@@ -405,11 +508,20 @@ export function WriteMindlyTab() {
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-start"
             >
-              <div className="bg-paper-2 border border-ink-200/40 rounded-2xl rounded-tl-none px-5 py-4 flex items-center gap-1.5">
-                <Loader2 className="w-4 h-4 text-plum-600 animate-spin" />
-                <span className="text-xs font-bold text-ink-500 select-none">
-                  Companion is typing...
-                </span>
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-plum-600 to-teal-500 text-plum-50 flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                  <Sparkles className="w-4 h-4 text-plum-50" aria-hidden="true" />
+                </div>
+                <div className="bg-card border border-ink-200/80 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2.5 shadow-sm">
+                  <div className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-plum-500 animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-2 h-2 rounded-full bg-plum-500 animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-2 h-2 rounded-full bg-plum-500 animate-bounce" />
+                  </div>
+                  <span className="text-2xs font-bold text-ink-500 select-none">
+                    WriteMindly is reflecting...
+                  </span>
+                </div>
               </div>
             </motion.div>
           )}
@@ -428,10 +540,51 @@ export function WriteMindlyTab() {
       )}
 
       {/* 4. Chat Typing Input Bar */}
-      <footer className="px-4 py-3 sm:px-6 sm:py-4 border-t border-ink-100 shrink-0 bg-paper-2">
+      <footer className="px-4 py-3 sm:px-6 sm:py-3.5 border-t border-ink-100 shrink-0 bg-paper-2">
         <p role="status" aria-live="polite" className="min-h-5 text-center text-xs font-medium text-danger mb-2">
           {error}
         </p>
+
+        {/* Quick Wellness Coping Tools Strip */}
+        <div className="max-w-3xl mx-auto mb-2.5 flex items-center gap-2 overflow-x-auto pb-1 text-2xs">
+          <span className="font-extrabold text-ink-500 uppercase tracking-wider shrink-0 mr-1 select-none flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-plum-600" aria-hidden="true" />
+            Quick Coping:
+          </span>
+          <button
+            type="button"
+            onClick={() => submitMessage("Can you guide me through a 2-minute calming breathing exercise to ease my anxiety?")}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-ink-200/80 bg-card hover:border-teal-400 hover:bg-teal-50 text-ink-700 font-semibold shrink-0 cursor-pointer transition-colors disabled:opacity-50"
+          >
+            <span aria-hidden="true">🫁</span> 2-min breath
+          </button>
+          <button
+            type="button"
+            onClick={() => submitMessage("Can you walk me through the 5-4-3-2-1 grounding technique to help me feel steady right now?")}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-ink-200/80 bg-card hover:border-sage-400 hover:bg-sage-50 text-ink-700 font-semibold shrink-0 cursor-pointer transition-colors disabled:opacity-50"
+          >
+            <span aria-hidden="true">🌿</span> 5-4-3-2-1 grounding
+          </button>
+          <button
+            type="button"
+            onClick={() => submitMessage("I have a stressful, persistent thought I can't shake. Can you help me gently reframe it?")}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-ink-200/80 bg-card hover:border-gold-400 hover:bg-gold-50 text-ink-700 font-semibold shrink-0 cursor-pointer transition-colors disabled:opacity-50"
+          >
+            <span aria-hidden="true">💡</span> Reframe thought
+          </button>
+          <button
+            type="button"
+            onClick={() => submitMessage("Can you give me a gentle reflection prompt for where I'm at today?")}
+            disabled={isLoading}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-ink-200/80 bg-card hover:border-plum-400 hover:bg-plum-50 text-ink-700 font-semibold shrink-0 cursor-pointer transition-colors disabled:opacity-50"
+          >
+            <span aria-hidden="true">✍️</span> Reflection prompt
+          </button>
+        </div>
+
         <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex gap-3 relative items-center">
           <div className="flex-1">
             <Input
@@ -444,7 +597,7 @@ export function WriteMindlyTab() {
               placeholder={
                 isRecording
                   ? "Listening... Speak your mind clearly."
-                  : "Type whatever is loudest in your head..."
+                  : "Tell WriteMindly what you're feeling or dealing with..."
               }
               trailing={
                 isSpeechSupported ? (

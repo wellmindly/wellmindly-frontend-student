@@ -341,10 +341,10 @@ export function HeroSection({
               </span>
               <span className="flex flex-col">
                 <span className="text-2xs font-extrabold text-ink-900 leading-tight">
-                  WriteMindly 💭
+                  WriteMindly AI 💭
                 </span>
-                <span className="text-2xs text-teal-700 font-medium leading-tight">
-                  who even am I rn
+                <span className="text-2xs text-teal-700 font-semibold leading-tight">
+                  wellness bot
                 </span>
               </span>
             </button>

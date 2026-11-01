@@ -41,10 +41,10 @@ const ACTIONS = [
     icon: NotebookPen,
     iconClass: "bg-plum-100 text-plum",
     ctaClass: "text-plum",
-    eyebrow: "Journal",
-    title: "WriteMindly Journal",
-    body: "Guided prompts for writing about your day, one question at a time.",
-    cta: config.enableWriteMindly ? "Start writing" : "Join the waitlist",
+    eyebrow: "AI Companion",
+    title: "WriteMindly Wellness Bot",
+    body: "24/7 private, judgment-free AI companion to decompress, unpack stress, and reflect.",
+    cta: "Chat with bot",
   },
 ];
 
