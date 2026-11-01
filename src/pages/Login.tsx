@@ -24,15 +24,16 @@ function resolveRedirect(params: URLSearchParams, testIdParam: string | null): s
 export function LoginPage() {
   const { loginSuccess, user } = useAuth();
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
   // Redirect to dashboard (or custom redirect path) if user is already authenticated
   useEffect(() => {
-    if (user) {
+    if (user && !submitting) {
       const params = new URLSearchParams(window.location.search);
       const testIdParam = params.get("testId") || params.get("showResult");
       navigate(resolveRedirect(params, testIdParam), { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, submitting, navigate]);
   
   const [mode, setMode] = useState<'login' | 'register' | 'forgot-password'>('login');
   const [resetOtpSent, setResetOtpSent] = useState(false);
@@ -54,72 +55,9 @@ export function LoginPage() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; firstName?: string; lastName?: string; otp?: string }>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [globalSuccess, setGlobalSuccess] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
   const [failedAttempt, setFailedAttempt] = useState(0);
 
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  const syncGuestResults = async (authToken: string) => {
-    try {
-      const STORAGE_KEY = "wm-discover";
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) return;
-      const parsed = JSON.parse(stored);
-      const { TESTS } = await import("../components/discover/types");
-      
-      for (const [quizId, results] of Object.entries(parsed)) {
-        const test = TESTS[quizId];
-        if (!test) continue;
-        const category = test.tag?.split(" · ")[0] || "General";
-        
-        for (const res of (results as any[])) {
-          let overallScore = 100;
-          let maxScore = 100;
-          
-          if (test.kind === 'profile' && !test.archetype && res.scores) {
-            let minPoints = 1;
-            let maxPoints = 5;
-            if (test.scale && test.scale.length > 0) {
-              const vals = test.scale.map((x: any) => x[1]);
-              minPoints = Math.min(...vals);
-              maxPoints = Math.max(...vals);
-            }
-            const range = maxPoints - minPoints || 1;
-            overallScore = Object.values(res.scores as Record<string, unknown>).reduce<number>((sum, p) => {
-              const rating = Math.round(Number(p) / 100 * range) + minPoints;
-              return sum + rating;
-            }, 0);
-            maxScore = test.items ? test.items.length * maxPoints : 30;
-          } else if (res.tone !== undefined) {
-            overallScore = res.tone;
-            maxScore = 100;
-          }
-          
-          const classification = res.summary || res.label || 'Completed';
-          const answers: any = {};
-          if (res.scores) answers.scores = res.scores;
-          if (res.top) answers.top = res.top;
-          if (res.tone !== undefined) answers.tone = res.tone;
-          if (res.label) answers.label = res.label;
-          answers.summary = classification;
-          
-          await api.post("/quizzes/submit", {
-            quizTitle: test.title,
-            quizCategory: category,
-            overallScore,
-            maxScore,
-            classification,
-            answers
-          }, {
-            headers: { Authorization: `Bearer ${authToken}` }
-          });
-        }
-      }
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (err) {
-      console.error("Failed to sync guest results with backend:", err);
-    }
-  };
 
   const navigateAfterAuth = () => {
     const params = new URLSearchParams(window.location.search);
@@ -130,7 +68,7 @@ export function LoginPage() {
       const pendingTest = sessionStorage.getItem("last_test_started");
       if (pendingTest === "checkin") {
         sessionStorage.removeItem("last_test_started");
-        navigate("/dashboard?tab=checkin");
+        navigate("/dashboard?tab=checkin&showResult=checkin");
       } else {
         navigate('/dashboard');
       }
@@ -142,7 +80,6 @@ export function LoginPage() {
       const res = await api.post('/auth/google/callback', { idToken: response.credential });
       const { token, user } = res.data;
       loginSuccess(token, user);
-      await syncGuestResults(token);
       navigateAfterAuth();
     } catch (err) {
       const errorMsg = apiErrorMessage(err, "Google Authentication failed.");
@@ -167,7 +104,6 @@ export function LoginPage() {
         const res = await api.post('/auth/google/callback', { idToken });
         const { token, user } = res.data;
         loginSuccess(token, user);
-        await syncGuestResults(token);
         navigateAfterAuth();
       } else {
         throw new Error("No ID Token returned from Google Sign-In.");
@@ -343,7 +279,6 @@ export function LoginPage() {
       const response = await api.post(endpoint, payload);
       const { token, user } = response.data;
       loginSuccess(token, user);
-      await syncGuestResults(token);
       navigateAfterAuth();
     } catch (err) {
       const errorMsg = apiErrorMessage(err, "Authentication failed. Please verify credentials.");

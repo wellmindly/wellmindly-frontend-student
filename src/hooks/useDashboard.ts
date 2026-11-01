@@ -11,8 +11,10 @@ import {
   scoreProfile,
   rankDims,
   pickArchetype,
+  loadAll,
+  saveAll,
 } from "../components/discover/types";
-import type { PictureOption, TestDef } from "../components/discover/types";
+import type { PictureOption, TestDef, SavedResult } from "../components/discover/types";
 
 export interface DiscoverResultData {
   resultId?: string | null;
@@ -132,18 +134,59 @@ export function useDashboard() {
   const [discoverView, setDiscoverView] = useState<"hub" | "test" | "result" | "results">(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
+    const showResult = params.get("showResult") || (tab === "checkin" ? "checkin" : null);
+    if (showResult && TESTS[showResult]) {
+      const all = loadAll();
+      if (all[showResult]?.length) return "result";
+    }
     if (tab === "checkin" || tab === "phq9") return "test";
     return "hub";
   });
   const [curDiscoverId, setCurDiscoverId] = useState<string | null>(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get("tab");
+    const showResult = params.get("showResult");
+    if (showResult && TESTS[showResult]) return showResult;
     if (tab === "checkin" || tab === "phq9") return tab;
     return null;
   });
   const [discoverQi, setDiscoverQi] = useState(0);
   const [discoverResp, setDiscoverResp] = useState<(number | string)[]>([]);
-  const [discoverResultData, setDiscoverResultData] = useState<DiscoverResultData | null>(null);
+  const [discoverResultData, setDiscoverResultData] = useState<DiscoverResultData | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const showResult = params.get("showResult") || (params.get("tab") === "checkin" ? "checkin" : null);
+    if (showResult && TESTS[showResult]) {
+      const all = loadAll();
+      const guestList = all[showResult];
+      const latest = guestList && guestList.length > 0 ? guestList[guestList.length - 1] : null;
+      if (latest) {
+        return {
+          resultId: null,
+          kind: showResult === "phq9"
+            ? "phq9"
+            : showResult === "checkin"
+              ? "checkin"
+              : showResult === "mood"
+                ? "picture"
+                : showResult === "strengths"
+                  ? "strengths"
+                  : showResult === "bigfive"
+                    ? "bigfive"
+                    : showResult === "values"
+                      ? "values"
+                      : "type",
+          scores: latest.scores,
+          top: latest.top,
+          archetype: showResult === "bigfive" && latest.scores ? pickArchetype(latest.scores) : undefined,
+          pictureOption: showResult === "mood" && (latest.label || latest.summary)
+            ? TESTS.mood.options?.find((o: any) => o.label === (latest.label || latest.summary))
+            : undefined,
+          aiFeedback: latest.aiFeedback || null,
+        };
+      }
+    }
+    return null;
+  });
 
   const cardRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -201,6 +244,67 @@ export function useDashboard() {
     }
   };
 
+  const syncGuestResultToBackend = useCallback(async (_id: string, test: TestDef, res: SavedResult) => {
+    const category = test.tag?.split(" · ")[0] || "General";
+    let overallScore = 100;
+    let maxScore = 100;
+
+    if (test.kind === "profile" && !test.archetype && res.scores) {
+      let minPoints = 1;
+      let maxPoints = 5;
+      if (test.scale && test.scale.length > 0) {
+        const vals = test.scale.map((x: any) => x[1]);
+        minPoints = Math.min(...vals);
+        maxPoints = Math.max(...vals);
+      }
+      const range = maxPoints - minPoints || 1;
+      overallScore = Object.values(res.scores).reduce<number>((sum, p) => {
+        const rating = Math.round((Number(p) / 100) * range) + minPoints;
+        return sum + rating;
+      }, 0);
+      maxScore = test.items ? test.items.length * maxPoints : 30;
+    } else if (res.tone !== undefined) {
+      overallScore = res.tone;
+      maxScore = 100;
+    }
+
+    const classification = res.summary || res.label || "Completed";
+    const answers: any = {};
+    if (res.scores) answers.scores = res.scores;
+    if (res.top) answers.top = res.top;
+    if (res.tone !== undefined) answers.tone = res.tone;
+    if (res.label) answers.label = res.label;
+    answers.summary = classification;
+
+    try {
+      const response = await api.post("/quizzes/submit", {
+        quizTitle: test.title,
+        quizCategory: category,
+        overallScore,
+        maxScore,
+        classification,
+        answers,
+      });
+
+      if (response.data?.aiFeedback) {
+        setDiscoverResultData((prev) =>
+          prev
+            ? {
+                ...prev,
+                resultId: response.data.id || prev.resultId,
+                aiFeedback: response.data.aiFeedback,
+              }
+            : null
+        );
+      }
+      fetchResults();
+      return response.data;
+    } catch (err) {
+      console.error("Failed to sync guest result with backend:", err);
+      return null;
+    }
+  }, []);
+
   // ── Bootstrap ────────────────────────────────────────────
   useEffect(() => {
     const fetchCheckin = async () => {
@@ -229,8 +333,58 @@ export function useDashboard() {
   // Redirect to a specific quiz result page if showResult is set in the URL (e.g. after login/signup)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const showResult = params.get("showResult");
-    if (showResult && resultsData?.timeline) {
+    const showResult = params.get("showResult") || (params.get("tab") === "checkin" ? "checkin" : null);
+    if (!showResult) return;
+
+    const testDef = TESTS[showResult];
+    if (!testDef) return;
+
+    const allDiscover = loadAll();
+    const guestList = allDiscover[showResult];
+    const latestGuest = guestList && guestList.length > 0 ? guestList[guestList.length - 1] : null;
+
+    if (latestGuest) {
+      const data: DiscoverResultData = {
+        resultId: null,
+        kind: showResult === "phq9"
+          ? "phq9"
+          : showResult === "checkin"
+            ? "checkin"
+            : showResult === "mood"
+              ? "picture"
+              : showResult === "strengths"
+                ? "strengths"
+                : showResult === "bigfive"
+                  ? "bigfive"
+                  : showResult === "values"
+                    ? "values"
+                    : "type",
+        scores: latestGuest.scores,
+        top: latestGuest.top,
+        archetype: showResult === "bigfive" && latestGuest.scores
+          ? pickArchetype(latestGuest.scores)
+          : undefined,
+        pictureOption: showResult === "mood" && (latestGuest.label || latestGuest.summary)
+          ? TESTS.mood.options?.find((o: any) => o.label === (latestGuest.label || latestGuest.summary))
+          : undefined,
+        aiFeedback: latestGuest.aiFeedback || null,
+      };
+
+      setCurDiscoverId(showResult);
+      setDiscoverResultData(data);
+      setDiscoverView("result");
+      _setActiveTab(showResult === "checkin" ? "checkin" : "discover");
+
+      navigate(showResult === "checkin" ? "/dashboard?tab=checkin" : "/dashboard?tab=discover", { replace: true });
+
+      delete allDiscover[showResult];
+      saveAll(allDiscover);
+
+      syncGuestResultToBackend(showResult, testDef, latestGuest);
+      return;
+    }
+
+    if (resultsData?.timeline) {
       const testDef = TESTS[showResult];
       if (testDef) {
         // Find latest matching result in timeline
@@ -275,7 +429,34 @@ export function useDashboard() {
         }
       }
     }
-  }, [resultsData, navigate]);
+  }, [resultsData, navigate, syncGuestResultToBackend]);
+
+  // Sync any remaining guest results from other tests in the background
+  useEffect(() => {
+    const allDiscover = loadAll();
+    const entries = Object.entries(allDiscover);
+    if (entries.length === 0) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const showResult = params.get("showResult");
+
+    (async () => {
+      let changed = false;
+      for (const [quizId, list] of entries) {
+        if (quizId === showResult) continue;
+        const test = TESTS[quizId];
+        if (!test) continue;
+        for (const r of list) {
+          await syncGuestResultToBackend(quizId, test, r);
+        }
+        delete allDiscover[quizId];
+        changed = true;
+      }
+      if (changed) {
+        saveAll(allDiscover);
+      }
+    })();
+  }, [syncGuestResultToBackend]);
 
   // ── Discover flow ────────────────────────────────────────
   const startDiscoverTest = (id: string) => {
