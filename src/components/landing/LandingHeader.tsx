@@ -55,7 +55,7 @@ export function LandingHeader({ onCrisisClick }: LandingHeaderProps) {
 
         {/* Header Navigation */}
         <header className="w-full border-b border-ink-200/60 bg-paper/85 backdrop-blur-md">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 py-3">
             <Logo size="md" />
 
           {/* Desktop Navigation Links */}

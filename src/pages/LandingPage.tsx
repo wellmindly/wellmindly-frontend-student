@@ -167,7 +167,7 @@ export function LandingPage() {
         <LandingHeader onCrisisClick={handleCrisisClick} />
 
         {/* Main Content Layout */}
-        <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-6 relative z-10">
+        <main id="main-content" tabIndex={-1} className="mx-auto max-w-6xl px-4 sm:px-6 relative z-10">
           {/* Hero Section */}
           <HeroSection 
             onCheckInClick={handleCheckInClick} 

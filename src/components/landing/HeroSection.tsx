@@ -258,7 +258,7 @@ export function HeroSection({
           <div className="absolute -inset-4 bg-gradient-to-tr from-sage-50/50 to-coral-50/50 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
 
           {/* Student Portrait & Mobile Pop-up Chips Container */}
-          <div className="relative w-full max-w-[270px] sm:max-w-sm flex items-center justify-center">
+          <div className="relative w-full max-w-[325px] sm:max-w-sm flex items-center justify-center">
             {/* Main image container */}
             <div className="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-ink-200 bg-ink-50/40 shadow-xl w-full aspect-[4/5] flex items-center justify-center">
               <img 
@@ -269,22 +269,22 @@ export function HeroSection({
             </div>
 
             {/* Mobile-only Gen-Z Floating Feature Popups Over Image */}
-            {/* 1. WriteMindly - Top Left */}
+            {/* 1. 5-min Check-in - Top Left */}
             <button
               type="button"
-              onClick={() => handleBubble("writemindly")}
-              className="sm:hidden absolute -top-3 -left-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-teal-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
-              aria-label="Open WriteMindly: who even am I rn"
+              onClick={onCheckInClick}
+              className="sm:hidden absolute -top-3 -left-2 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-gold-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              aria-label="Take 5-min emotional check-in"
             >
-              <span className="w-6 h-6 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200/60">
-                <MessageCircleQuestion className="w-3.5 h-3.5" aria-hidden="true" />
+              <span className="w-6 h-6 rounded-xl bg-gold-50 text-gold-700 flex items-center justify-center shrink-0 border border-gold-200/60">
+                <Sparkles className="w-3.5 h-3.5 text-gold-600" aria-hidden="true" />
               </span>
               <span className="flex flex-col">
                 <span className="text-2xs font-extrabold text-ink-900 leading-tight">
-                  WriteMindly 💭
+                  5-min check-in ✨
                 </span>
-                <span className="text-2xs text-ink-500 font-medium leading-tight">
-                  who even am I rn
+                <span className="text-2xs text-gold-700 font-semibold leading-tight">
+                  how am I rn?
                 </span>
               </span>
             </button>
@@ -293,7 +293,7 @@ export function HeroSection({
             <button
               type="button"
               onClick={handleBook}
-              className="sm:hidden absolute top-8 -right-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-coral-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              className="sm:hidden absolute top-8 -right-2 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-coral-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
               aria-label="Book a session: 1-on-1 coach"
             >
               <span className="w-6 h-6 rounded-xl bg-coral-50 text-coral-700 flex items-center justify-center shrink-0 border border-coral-200/60">
@@ -313,7 +313,7 @@ export function HeroSection({
             <button
               type="button"
               onClick={() => handleBubble("talkmindly")}
-              className="sm:hidden absolute bottom-12 -right-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-plum-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              className="sm:hidden absolute bottom-12 -right-2 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-plum-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
               aria-label="Open TalkMindly: is it just me or..."
             >
               <span className="w-6 h-6 rounded-xl bg-plum-50 text-plum-700 flex items-center justify-center shrink-0 border border-plum-200/60">
@@ -329,22 +329,22 @@ export function HeroSection({
               </span>
             </button>
 
-            {/* 4. 5-min Check-in - Bottom Left */}
+            {/* 4. WriteMindly - Bottom Left */}
             <button
               type="button"
-              onClick={onCheckInClick}
-              className="sm:hidden absolute -bottom-3 -left-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-gold-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
-              aria-label="Take 5-min emotional check-in"
+              onClick={() => handleBubble("writemindly")}
+              className="sm:hidden absolute -bottom-3 -left-2 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-teal-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              aria-label="Open WriteMindly: who even am I rn"
             >
-              <span className="w-6 h-6 rounded-xl bg-gold-50 text-gold-700 flex items-center justify-center shrink-0 border border-gold-200/60">
-                <Sparkles className="w-3.5 h-3.5 text-gold-600" aria-hidden="true" />
+              <span className="w-6 h-6 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200/60">
+                <MessageCircleQuestion className="w-3.5 h-3.5" aria-hidden="true" />
               </span>
               <span className="flex flex-col">
                 <span className="text-2xs font-extrabold text-ink-900 leading-tight">
-                  5-min check-in ✨
+                  WriteMindly 💭
                 </span>
-                <span className="text-2xs text-gold-700 font-semibold leading-tight">
-                  how am I rn?
+                <span className="text-2xs text-teal-700 font-medium leading-tight">
+                  who even am I rn
                 </span>
               </span>
             </button>

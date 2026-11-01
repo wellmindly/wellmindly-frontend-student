@@ -24,7 +24,7 @@ const COMPANY_LINKS = [
 export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
   return (
     <footer className="border-t border-ink-200 bg-ink-50/40 pt-12 mt-16 pb-safe text-ink-600">
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
           {/* Column 1: Logo + positioning + credit */}
           <div className="flex flex-col items-start gap-3">
