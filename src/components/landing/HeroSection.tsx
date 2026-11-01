@@ -108,7 +108,7 @@ export function HeroSection({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="flex flex-col items-start"
+          className="flex flex-col items-start order-2 lg:order-1"
         >
           {/* Eyebrow */}
           <span className="text-2xs font-bold uppercase tracking-wide text-plum-600 mb-4">
@@ -253,7 +253,7 @@ export function HeroSection({
         </motion.div>
 
         {/* Right Column: Hero Art with Clearly Labelled Previews */}
-        <div className="relative flex w-full flex-col items-center gap-4 sm:min-h-[440px] sm:flex-row sm:justify-center sm:gap-0">
+        <div className="relative flex w-full flex-col items-center gap-4 sm:min-h-[440px] sm:flex-row sm:justify-center sm:gap-0 order-1 lg:order-2">
           {/* Background Aura Glow */}
           <div className="absolute -inset-4 bg-gradient-to-tr from-sage-50/50 to-coral-50/50 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
 
@@ -307,8 +307,8 @@ export function HeroSection({
                   Book a coach online &rarr;
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="inline-flex items-center gap-0.5 text-2xs font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-md border border-amber-200/60">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-500" aria-hidden="true" />
+                  <span className="inline-flex items-center gap-0.5 text-2xs font-bold text-gold-600 bg-gold-50 px-1.5 py-0.5 rounded-md border border-gold-200/60">
+                    <Star className="w-3 h-3 fill-gold-400 text-gold-500" aria-hidden="true" />
                     4.9
                   </span>
                   <span className="text-2xs text-coral-700 font-semibold truncate">
