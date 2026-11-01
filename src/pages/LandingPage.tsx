@@ -173,6 +173,14 @@ export function LandingPage() {
             onCheckInClick={handleCheckInClick} 
             onBookCoachClick={handleCoachingScroll}
             onBubbleClick={(bubbleId) => {
+              if (bubbleId === "writemindly") {
+                handleWriteMindlyClick();
+                return;
+              }
+              if (bubbleId === "talkmindly") {
+                handleTalkMindlyClick();
+                return;
+              }
               const row = document.getElementById(`care-${bubbleId}`);
               scrollToElement(row ?? document.getElementById("explore-tools"), {
                 block: "center",

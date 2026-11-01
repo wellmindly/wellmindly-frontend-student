@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Mail, Lock, Shield, User } from "lucide-react";
 import { Button, Input, PasswordInput } from "../ui";
 
@@ -173,6 +174,29 @@ export function AuthForm({
               ? (otpSent ? "Verify and Sign Up" : "Send Verification Code")
               : (resetOtpSent ? "Reset Password" : "Send Reset Code")}
         </Button>
+
+        {/* Legal Agreement Disclaimer */}
+        <p className="mt-3 text-center text-2xs text-ink-500 leading-relaxed">
+          By continuing, you agree to our{" "}
+          <Link
+            to="/terms"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-plum-700 underline hover:text-plum-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-sm"
+          >
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link
+            to="/privacy"
+            target="_blank"
+            rel="noreferrer"
+            className="font-semibold text-plum-700 underline hover:text-plum-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-sm"
+          >
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
 
       {/* Mode Switcher Link */}

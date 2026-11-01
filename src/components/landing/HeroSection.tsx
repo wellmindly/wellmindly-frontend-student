@@ -101,8 +101,8 @@ export function HeroSection({
   };
 
   return (
-    <section className="pt-10 pb-16 sm:pt-16 sm:pb-24">
-      <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-center lg:gap-16 gap-12">
+    <section className="pt-6 pb-12 sm:pt-16 sm:pb-24">
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:items-center lg:gap-16 gap-8 sm:gap-12">
         {/* Left Column: Typography, CTAs, Live Mood Tap */}
         <motion.div
           initial={{ opacity: 0, y: 8 }}
@@ -252,27 +252,111 @@ export function HeroSection({
           </div>
         </motion.div>
 
-        {/* Right Column: Hero Art with Clearly Labelled Previews */}
+        {/* Right Column: Hero Art with Clearly Labelled Previews & Mobile Feature Chips */}
         <div className="relative flex w-full flex-col items-center gap-4 sm:min-h-[440px] sm:flex-row sm:justify-center sm:gap-0 order-1 lg:order-2">
           {/* Background Aura Glow */}
           <div className="absolute -inset-4 bg-gradient-to-tr from-sage-50/50 to-coral-50/50 rounded-[2.5rem] blur-2xl opacity-60 pointer-events-none" />
 
-          {/* Main image container */}
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-ink-200 bg-ink-50/40 shadow-xl max-w-xs sm:max-w-sm w-full aspect-[4/5] flex items-center justify-center">
-            <img 
-              src={studentPortraitClean} 
-              alt="University student smiling in a calm campus setting" 
-              className="w-full h-full object-cover"
-            />
+          {/* Student Portrait & Mobile Pop-up Chips Container */}
+          <div className="relative w-full max-w-[270px] sm:max-w-sm flex items-center justify-center">
+            {/* Main image container */}
+            <div className="relative overflow-hidden rounded-[2rem] sm:rounded-[2.5rem] border border-ink-200 bg-ink-50/40 shadow-xl w-full aspect-[4/5] flex items-center justify-center">
+              <img 
+                src={studentPortraitClean} 
+                alt="University student smiling in a calm campus setting" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Mobile-only Gen-Z Floating Feature Popups Over Image */}
+            {/* 1. WriteMindly - Top Left */}
+            <button
+              type="button"
+              onClick={() => handleBubble("writemindly")}
+              className="sm:hidden absolute -top-3 -left-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-teal-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              aria-label="Open WriteMindly: who even am I rn"
+            >
+              <span className="w-6 h-6 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 border border-teal-200/60">
+                <MessageCircleQuestion className="w-3.5 h-3.5" aria-hidden="true" />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-2xs font-extrabold text-ink-900 leading-tight">
+                  WriteMindly 💭
+                </span>
+                <span className="text-2xs text-ink-500 font-medium leading-tight">
+                  who even am I rn
+                </span>
+              </span>
+            </button>
+
+            {/* 2. Book a session - Top Right */}
+            <button
+              type="button"
+              onClick={handleBook}
+              className="sm:hidden absolute top-8 -right-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-coral-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              aria-label="Book a session: 1-on-1 coach"
+            >
+              <span className="w-6 h-6 rounded-xl bg-coral-50 text-coral-700 flex items-center justify-center shrink-0 border border-coral-200/60">
+                <Video className="w-3.5 h-3.5" aria-hidden="true" />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-2xs font-extrabold text-ink-900 leading-tight">
+                  Book a coach 💬
+                </span>
+                <span className="text-2xs text-coral-700 font-semibold leading-tight">
+                  1-on-1 session
+                </span>
+              </span>
+            </button>
+
+            {/* 3. TalkMindly - Mid/Bottom Right */}
+            <button
+              type="button"
+              onClick={() => handleBubble("talkmindly")}
+              className="sm:hidden absolute bottom-12 -right-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-plum-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              aria-label="Open TalkMindly: is it just me or..."
+            >
+              <span className="w-6 h-6 rounded-xl bg-plum-50 text-plum-700 flex items-center justify-center shrink-0 border border-plum-200/60">
+                <MessagesSquare className="w-3.5 h-3.5" aria-hidden="true" />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-2xs font-extrabold text-ink-900 leading-tight">
+                  TalkMindly 🫂
+                </span>
+                <span className="text-2xs text-plum-700 font-semibold leading-tight">
+                  is it just me or...
+                </span>
+              </span>
+            </button>
+
+            {/* 4. 5-min Check-in - Bottom Left */}
+            <button
+              type="button"
+              onClick={onCheckInClick}
+              className="sm:hidden absolute -bottom-3 -left-3 z-20 bg-card/95 backdrop-blur-md border border-ink-200/90 hover:border-gold-400 rounded-2xl px-2.5 py-1.5 shadow-md flex items-center gap-1.5 active:scale-95 transition-all text-left cursor-pointer"
+              aria-label="Take 5-min emotional check-in"
+            >
+              <span className="w-6 h-6 rounded-xl bg-gold-50 text-gold-700 flex items-center justify-center shrink-0 border border-gold-200/60">
+                <Sparkles className="w-3.5 h-3.5 text-gold-600" aria-hidden="true" />
+              </span>
+              <span className="flex flex-col">
+                <span className="text-2xs font-extrabold text-ink-900 leading-tight">
+                  5-min check-in ✨
+                </span>
+                <span className="text-2xs text-gold-700 font-semibold leading-tight">
+                  how am I rn?
+                </span>
+              </span>
+            </button>
           </div>
 
-          {/* Static 2-up grid at mobile, floating at sm and above */}
-          <div className="grid w-full grid-cols-2 gap-3 sm:contents">
+          {/* Desktop Preview Cards (Hidden on Mobile) */}
+          <div className="hidden sm:contents">
             {/* Preview Card 1: Today's Tone */}
             <button
               type="button"
               onClick={onCheckInClick}
-              className="static sm:absolute sm:bottom-6 sm:left-0 lg:-left-6 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-none sm:max-w-[220px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+              className="sm:absolute sm:bottom-6 sm:left-0 lg:-left-6 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-plum-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex flex-col gap-1 max-w-[220px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
               aria-label="Preview: Today's tone check-in card"
             >
               <div className="flex flex-col items-start gap-1 w-full sm:flex-row sm:items-center sm:justify-between sm:gap-0">
@@ -292,7 +376,7 @@ export function HeroSection({
             <button
               type="button"
               onClick={handleBook}
-              className="static sm:absolute sm:top-8 sm:right-0 lg:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-none sm:max-w-[240px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
+              className="sm:absolute sm:top-8 sm:right-0 lg:-right-4 bg-card/95 backdrop-blur-md border border-ink-200 hover:border-coral-400 rounded-2xl p-3.5 sm:p-4 shadow-xl flex items-center gap-3 max-w-[240px] z-20 text-left cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400"
               aria-label="Preview: Book a coach online"
             >
               <div className="hidden sm:flex w-8 h-8 bg-coral-100 text-coral-700 rounded-xl items-center justify-center shrink-0 select-none">

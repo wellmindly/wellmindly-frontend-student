@@ -11,7 +11,7 @@ const envGaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | un
 const envClarityProjectId = import.meta.env.VITE_CLARITY_PROJECT_ID as string | undefined;
 
 export const config = {
-  enableWriteMindly: import.meta.env.VITE_ENABLE_WRITEMINDLY === 'true',
+  enableWriteMindly: import.meta.env.VITE_ENABLE_WRITEMINDLY !== 'false',
   /** Resolved Google OAuth web client ID (env override, else the bundled demo ID). */
   googleClientId: envGoogleClientId || DEMO_GOOGLE_CLIENT_ID,
   /** True when VITE_GOOGLE_CLIENT_ID was supplied for this build (vs. the demo fallback). */
