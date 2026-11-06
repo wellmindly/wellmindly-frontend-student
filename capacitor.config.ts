@@ -4,23 +4,26 @@ const config: CapacitorConfig = {
   appId: 'com.wellmindly.app',
   appName: 'WellMindly',
   webDir: 'dist',
+  // Production talks only to https://api.wellmindly.com, so plain-HTTP and
+  // mixed content stay off in the store build.
   server: {
     androidScheme: 'https',
-    cleartext: true,
-  },
-  android: {
-    allowMixedContent: true,
   },
   plugins: {
     CapacitorHttp: {
       enabled: true,
     },
-    GoogleAuth: {
-      scopes: ['profile', 'email'],
-      clientId: '297995941898-8ad73id91b3agdk1370olurg6iu2vi99.apps.googleusercontent.com',
-      serverClientId: '297995941898-8ad73id91b3agdk1370olurg6iu2vi99.apps.googleusercontent.com',
-      androidClientId: '297995941898-4u79rg42hld9jnhph91vdenhkmaf7r55.apps.googleusercontent.com',
-      forceCodeForRefreshToken: false,
+    // Native Google Sign-In via Android Credential Manager. Only Google is
+    // bundled. The web client ID is passed at runtime (SocialLogin.initialize);
+    // Android OAuth clients (package + SHA-1) live only in Google Cloud Console.
+    SocialLogin: {
+      providers: {
+        google: true,
+        facebook: false,
+        apple: false,
+        twitter: false,
+      },
+      logLevel: 1,
     },
     // Held up until React paints its first frame (hidden from JS in App.tsx),
     // so the cold start never flashes a blank white webview. Calm brand paper,

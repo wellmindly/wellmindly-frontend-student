@@ -1,13 +1,7 @@
 package com.wellmindly.app;
 
-import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;
-import com.codetrixstudio.capacitor.GoogleAuth.GoogleAuth;
 
-public class MainActivity extends BridgeActivity {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        registerPlugin(GoogleAuth.class);
-    }
-}
+// Plugins (including @capgo/capacitor-social-login) are registered
+// automatically by `npx cap sync`; no manual registerPlugin calls needed.
+public class MainActivity extends BridgeActivity {}

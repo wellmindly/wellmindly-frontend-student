@@ -91,15 +91,21 @@ export function LoginPage() {
     try {
       setGlobalError(null);
       setSubmitting(true);
-      const { GoogleAuth } = await import('@codetrix-studio/capacitor-google-auth');
-      await GoogleAuth.initialize({
-        clientId: config.googleClientId,
-        scopes: ['profile', 'email'],
-        grantOfflineAccess: false,
+      const { SocialLogin } = await import('@capgo/capacitor-social-login');
+      // Must be the *web* OAuth client ID: Credential Manager mints the ID
+      // token for it, and the backend verifies that audience.
+      await SocialLogin.initialize({
+        google: { webClientId: config.googleClientId, mode: 'online' },
       });
 
-      const googleUser = await GoogleAuth.signIn();
-      const idToken = googleUser?.authentication?.idToken || (googleUser as any)?.idToken;
+      const login = await SocialLogin.login({
+        provider: 'google',
+        options: { scopes: ['profile', 'email'] },
+      });
+      const idToken =
+        login.provider === 'google' && login.result.responseType === 'online'
+          ? login.result.idToken
+          : null;
       if (idToken) {
         const res = await api.post('/auth/google/callback', { idToken });
         const { token, user } = res.data;
@@ -338,7 +344,7 @@ export function LoginPage() {
             </h1>
             <p className="text-base text-ink-500 font-medium">
               {mode === 'login' 
-                ? "Access your Wellmindly wellness dashboard." 
+                ? "Access your Wellmindly student dashboard." 
                 : mode === 'register'
                   ? "Start tracking your mental well-being."
                   : "We'll help you secure your account."}

@@ -1,10 +1,10 @@
 // The Google OAuth *web* client ID is public by design — it ships to the client
 // in both the web bundle and the Android build either way, so it is not a secret.
 // VITE_GOOGLE_CLIENT_ID overrides the bundled demo ID per environment; both the
-// web (@react-oauth/google) and native (@codetrix-studio/capacitor-google-auth)
+// web (@react-oauth/google) and native (@capgo/capacitor-social-login)
 // sign-in paths read config.googleClientId so they can never drift apart.
 const DEMO_GOOGLE_CLIENT_ID =
-  '297995941898-8ad73id91b3agdk1370olurg6iu2vi99.apps.googleusercontent.com';
+  '942167444638-jcpvjkm9j14lqj29lvn3gbcnju4nf5pt.apps.googleusercontent.com';
 
 const envGoogleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 const envGaMeasurementId = import.meta.env.VITE_GA_MEASUREMENT_ID as string | undefined;

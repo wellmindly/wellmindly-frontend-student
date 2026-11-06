@@ -95,7 +95,10 @@ const ERRORS = [
     custom: (text) => {
       const allowed = new Set([
         "@capacitor/android", "@capacitor/cli", "@capacitor/core",
-        "@codetrix-studio/capacitor-google-auth", "@react-oauth/google",
+        "@capacitor/app", "@capacitor/filesystem", "@capacitor/haptics",
+        "@capacitor/keyboard", "@capacitor/share", "@capacitor/splash-screen",
+        "@capacitor/status-bar",
+        "@capgo/capacitor-social-login", "@react-oauth/google",
         "@tailwindcss/vite", "axios", "clsx", "framer-motion", "jspdf",
         "jwt-decode", "lucide-react", "react", "react-dom",
         "react-router-dom", "tailwind-merge",
