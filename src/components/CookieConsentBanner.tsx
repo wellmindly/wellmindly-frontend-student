@@ -7,6 +7,7 @@ import {
   rejectAllConsent,
   type ConsentRecord,
 } from '../lib/analytics';
+import { isNativeApp } from '../lib/native';
 
 export function CookieConsentBanner() {
   const [, setConsent] = useState<ConsentRecord | null>(null);
@@ -19,6 +20,13 @@ export function CookieConsentBanner() {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
+    if (isNativeApp()) {
+      if (!getConsent()) {
+        acceptAllConsent();
+      }
+      return;
+    }
+
     const existing = getConsent();
     if (existing) {
       setConsent(existing);
@@ -88,6 +96,10 @@ export function CookieConsentBanner() {
     setShowBanner(false);
     setShowModal(false);
   };
+
+  if (isNativeApp()) {
+    return null;
+  }
 
   return (
     <>

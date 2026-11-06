@@ -75,7 +75,7 @@ export function CoachingSection({
       )}
 
       <p className="text-xs text-ink-500 text-center max-w-2xl mx-auto mt-8 leading-relaxed">
-        Our coaches are trained peer mentors focused on wellbeing, stress relief, and academic resilience. Professional counseling guidance is provided whenever specialized support is needed.
+        Our coaches are trained peer mentors focused on emotional balance, stress relief, and academic coping. Professional counseling guidance is provided whenever specialized support is needed.
       </p>
     </section>
   );

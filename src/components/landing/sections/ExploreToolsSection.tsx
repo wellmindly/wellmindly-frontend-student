@@ -39,7 +39,7 @@ const OPTIONS: CareOption[] = [
     eligibilityStyle: "bg-teal-100/90 text-teal-800 border-teal-200",
     dotColor: "bg-teal-500",
     support: "Say what you're carrying to an AI companion that won't judge you. Type whatever's running in your head, reframe racing thoughts, and find clarity at your own pace.",
-    chip: "Mental Wellness Bot",
+    chip: "Self-Reflection Bot",
     chipIcon: Sparkles,
     cta: "Chat with WriteMindly Bot",
     icon: PenTool,

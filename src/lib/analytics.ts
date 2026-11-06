@@ -11,11 +11,12 @@
  */
 
 import { config as appConfig } from "../config";
+import { isNativeApp } from "./native";
 
 /* ----------------------------------------------------------------------------
    Type Definitions
 ----------------------------------------------------------------------------- */
-export type PlatformId = 'student' | 'counselor' | 'admin' | 'university';
+export type PlatformId = 'student' | 'counselor' | 'admin' | 'university' | 'android';
 export type Environment = 'development' | 'staging' | 'production';
 
 export interface ConsentCategories {
@@ -354,6 +355,7 @@ export function getConsent(): ConsentRecord | null {
 }
 
 export function hasAnalyticsConsent(): boolean {
+  if (isNativeApp()) return true;
   const record = getConsent();
   return Boolean(record && record.categories.analytics === true);
 }
@@ -578,12 +580,14 @@ export function loadGa4(measurementId: string, debug = false): void {
 
   window.gtag!('js', new Date());
 
+  const isNative = isNativeApp();
   window.gtag!('config', measurementId, {
     send_page_view: false,
     anonymize_ip: true,
     allow_google_signals: false,
     allow_ad_personalization_signals: false,
-    cookie_flags: 'SameSite=Lax;Secure',
+    cookie_domain: isNative ? 'none' : 'auto',
+    cookie_flags: isNative ? 'SameSite=None;Secure' : 'SameSite=Lax;Secure',
     debug_mode: debug,
   });
 
@@ -624,12 +628,15 @@ export function sendGa4PageView(
 
   const cleanPath = sanitizePagePath(path);
   const cleanTitle = title.slice(0, 100);
+  const isNative = isNativeApp();
 
   window.gtag('event', 'page_view', {
     page_path: cleanPath,
     page_title: cleanTitle,
-    page_location: `${window.location.origin}${cleanPath}`,
-    platform,
+    page_location: isNative
+      ? `https://www.wellmindly.com${cleanPath}`
+      : `${window.location.origin}${cleanPath}`,
+    platform: isNative ? 'android' : platform,
     environment,
   });
 }
@@ -642,7 +649,12 @@ export function sendGa4Event(
 ): void {
   if (typeof window === 'undefined' || !window.gtag || !gaLoaded) return;
 
-  const cleanParams = sanitizeEventParams(params, platform, environment);
+  const isNative = isNativeApp();
+  const cleanParams = sanitizeEventParams(
+    params,
+    isNative ? 'android' : platform,
+    environment
+  );
   window.gtag('event', eventName, cleanParams);
 }
 
@@ -779,6 +791,10 @@ export function initAnalytics(overrideConfig?: Partial<AnalyticsConfig>): void {
       captureAttributionSnapshot();
     }
   });
+
+  if (isNativeApp() && !getConsent()) {
+    acceptAllConsent();
+  }
 
   if (hasAnalyticsConsent()) {
     const record = getConsent();

@@ -344,7 +344,7 @@ export function HeroSection({
                   WriteMindly AI 💭
                 </span>
                 <span className="text-2xs text-teal-700 font-semibold leading-tight">
-                  wellness bot
+                  reflection bot
                 </span>
               </span>
             </button>
