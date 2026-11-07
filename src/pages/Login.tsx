@@ -98,10 +98,11 @@ export function LoginPage() {
         google: { webClientId: config.googleClientId, mode: 'online' },
       });
 
-      const login = await SocialLogin.login({
-        provider: 'google',
-        options: { scopes: ['profile', 'email'] },
-      });
+      // No `scopes` option: on Android the plugin always requests
+      // openid/email/profile itself, and passing *any* scopes array makes it
+      // reject unless MainActivity implements
+      // ModifiedMainActivityForSocialLoginPlugin. Those three are all we need.
+      const login = await SocialLogin.login({ provider: 'google', options: {} });
       const idToken =
         login.provider === 'google' && login.result.responseType === 'online'
           ? login.result.idToken
