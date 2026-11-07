@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
 import { LandingHeader } from "../../components/landing/LandingHeader";
 import { LandingFooter } from "../../components/landing/LandingFooter";
 import type { LegalDoc } from "./legalContent";
@@ -34,18 +33,6 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           </h1>
           <p className="text-sm text-ink-600 mt-2">{doc.tagline}</p>
           <p className="text-xs text-ink-500 mt-3">Last updated: {doc.updated}</p>
-        </div>
-
-        {/* Working-draft notice — remove once every [PLACEHOLDER] below has been
-            filled and the document has passed legal review (see
-            docs/legal/play-data-safety.md). */}
-        <div className="flex items-start gap-3 bg-paper-2 border border-ink-200/70 rounded-xl p-4 mb-10">
-          <AlertTriangle className="w-5 h-5 text-coral shrink-0 mt-0.5" />
-          <p className="text-xs text-ink-600 leading-relaxed">
-            This is a working draft. Sections marked <span className="font-semibold">[PLACEHOLDER]</span>{" "}
-            must be completed and the full document reviewed by a qualified lawyer before it is
-            published or submitted to the Google Play Store. It is not legal advice.
-          </p>
         </div>
 
         {doc.intro.map((text, i) => (

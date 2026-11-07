@@ -41,6 +41,17 @@ jobs:
       - name: Deploy to S3
         run: aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET }} --delete
 
+      # Serve the prerendered legal pages at the exact, extensionless paths
+      # /privacy and /terms so crawlers (Google OAuth verification, Play review)
+      # see the full text instead of the empty SPA shell. Must run after the
+      # sync, whose --delete removes these keys because dist/ has no such files.
+      - name: Upload prerendered legal pages
+        run: |
+          for page in privacy terms; do
+            aws s3 cp "dist/$page.html" "s3://${{ secrets.AWS_S3_BUCKET }}/$page" \
+              --content-type "text/html; charset=utf-8" --cache-control "no-cache"
+          done
+
       - name: Invalidate CloudFront cache
         run: |
           aws cloudfront create-invalidation \
