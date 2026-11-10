@@ -12,6 +12,7 @@ import api, { apiErrorMessage } from "../../services/api";
 import { Button, ConfirmSheet, IconButton, Input, Sheet } from "../ui";
 import { cn } from "../../lib/cn";
 import { scrollToElement } from "../../lib/a11y";
+import { trackEvent } from "../../lib/analytics";
 
 interface Message {
   sender: "user" | "model";
@@ -236,6 +237,7 @@ export function WriteMindlyTab() {
     ];
     setMessages(newMessages);
     setIsLoading(true);
+    trackEvent("writemindly_message_sent");
 
     try {
       // Map state messages to request format (ignoring initial prompt)

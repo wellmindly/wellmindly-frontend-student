@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Logo, SkipLink } from '../components/ui';
 import { AuthBrandPanel, AuthAlerts, GoogleAuthButtons, AuthForm } from '../components/auth';
 import { config } from '../config';
+import { trackEvent } from "../lib/analytics";
 
 /** Resolve the ?redirect= param to a safe in-app path, appending showResult if present. */
 function resolveRedirect(params: URLSearchParams, testIdParam: string | null): string {
@@ -124,6 +125,7 @@ export function LoginPage() {
       const res = await api.post('/auth/google/callback', { idToken: response.credential });
       const { token, user } = res.data;
       loginSuccess(token, user);
+      trackEvent('login_completed', { method: 'google' });
       navigateAfterAuth();
     } catch (err) {
       const errorMsg = apiErrorMessage(err, "Google Authentication failed.");
@@ -155,6 +157,7 @@ export function LoginPage() {
         const res = await api.post('/auth/google/callback', { idToken });
         const { token, user } = res.data;
         loginSuccess(token, user);
+        trackEvent('login_completed', { method: 'google' });
         navigateAfterAuth();
       } else {
         throw new Error("No ID Token returned from Google Sign-In.");
@@ -334,6 +337,7 @@ export function LoginPage() {
       const response = await api.post(endpoint, payload);
       const { token, user } = response.data;
       loginSuccess(token, user);
+      trackEvent(mode === 'login' ? 'login_completed' : 'registration_completed', { method: 'email' });
       navigateAfterAuth();
     } catch (err) {
       if (mode === 'register' && isCodeSpent(err)) setOtp("");

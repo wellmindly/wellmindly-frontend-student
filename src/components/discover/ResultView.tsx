@@ -13,6 +13,7 @@ import {
 import type { TestDef, PictureOption, TestTone } from "./types";
 import { FeedbackForm } from "./FeedbackForm";
 import { Button, Card, ProgressBar } from "../ui";
+import { trackEvent } from "../../lib/analytics";
 
 interface ResultViewProps {
   cur: TestDef;
@@ -552,6 +553,7 @@ export function ResultView({
                 narrative: data.aiFeedback?.narrative,
                 tip: data.aiFeedback?.tip,
               });
+              trackEvent("report_downloaded");
               // downloadAssessmentPdf already produces the file (browser download on
               // web, OS share sheet on native). The old window.print() ran a second,
               // redundant browser print dialog on top of it - and did nothing useful

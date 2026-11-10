@@ -365,7 +365,6 @@ export function CounselorBookingView() {
 
       if (res.data.success) {
         trackEvent("session_booked_successfully", {
-          counselor_name: chosenCounselor.name,
           counselor_id: chosenCounselor.id,
         });
         setBookingSuccess(res.data.data);
@@ -375,7 +374,6 @@ export function CounselorBookingView() {
       }
     } catch (err: any) {
       trackEvent("session_booking_failed", {
-        counselor_name: chosenCounselor.name,
       });
       setBookingError(
         apiErrorMessage(err, "Failed to book session. Please try another slot."),

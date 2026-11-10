@@ -16,6 +16,7 @@ import {
   saveAll,
 } from "../components/discover/types";
 import type { PictureOption, TestDef, SavedResult } from "../components/discover/types";
+import { trackEvent } from "../lib/analytics";
 
 export interface DiscoverResultData {
   resultId?: string | null;
@@ -227,6 +228,7 @@ export function useDashboard() {
     setDiscoverLoading(true);
     try {
       const response = await api.post("/quizzes/submit", {
+        // (quiz_completed is sent below, after the save succeeds)
         quizTitle: title,
         quizCategory: category,
         overallScore,
@@ -234,6 +236,7 @@ export function useDashboard() {
         classification,
         answers,
       });
+      trackEvent("quiz_completed", { quiz_category: category });
       fetchResults();
       return {
         saved: true,

@@ -121,6 +121,16 @@ export const ALLOWED_EVENTS = new Set([
   'university_dashboard_viewed',
   'admin_dashboard_viewed',
   'admin_tab_switched',
+
+  // Product usage funnel. Counts only: never content, scores, moods or names.
+  'quiz_completed',
+  'writemindly_message_sent',
+  'talk_note_posted',
+  'report_downloaded',
+  'hero_mood_selected',
+  'session_booked_successfully',
+  'session_booking_failed',
+  'booking_intercepted_non_uni',
 ]);
 
 const PROHIBITED_KEYS = [

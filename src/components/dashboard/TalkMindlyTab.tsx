@@ -9,6 +9,7 @@ import { TalkNoteBoard } from "../talk/TalkNoteBoard";
 import { DropNoteSheet } from "../talk/DropNoteSheet";
 import { RepliesDrawer } from "../talk/RepliesDrawer";
 import { CrisisModal, TalkAlertDialog } from "../talk/TalkDialogs";
+import { trackEvent } from "../../lib/analytics";
 
 export function TalkMindlyTab() {
   const [profile, setProfile] = useState<TalkProfile | null>(null);
@@ -214,6 +215,7 @@ export function TalkMindlyTab() {
         content: noteContent.trim(),
       });
 
+      trackEvent("talk_note_posted");
       const { isCrisis, message } = response.data || {};
 
       if (isCrisis) {
