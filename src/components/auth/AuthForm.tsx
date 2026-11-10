@@ -3,6 +3,13 @@ import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Mail, Lock, Shield, User } from "lucide-react";
 import { Button, Input, PasswordInput } from "../ui";
+import { isNativeApp } from "../../lib/native";
+
+// On the web the legal pages open in a new tab so a half-filled form survives.
+// The Android WebView has no tabs: `_blank` there forces a full reload of the
+// app at /terms, so in the app they are plain in-app navigations instead
+// (the hardware back button returns to the form).
+const LEGAL_LINK_TARGET = isNativeApp() ? undefined : "_blank";
 
 export interface AuthFormProps {
   mode: "login" | "register" | "forgot-password";
@@ -67,6 +74,14 @@ export function AuthForm({
     if (first) refs[first].current?.focus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [failedAttempt]);
+
+  // Once a code has been emailed, the next thing to do is type it. On a phone
+  // the new field appears below the fold, so move focus (and the view) there.
+  const codeFieldShown = (mode === "register" && otpSent) || (mode === "forgot-password" && resetOtpSent);
+  useEffect(() => {
+    if (codeFieldShown) refs.otp.current?.focus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codeFieldShown]);
 
   return (
     <>
@@ -180,7 +195,7 @@ export function AuthForm({
           By continuing, you agree to our{" "}
           <Link
             to="/terms"
-            target="_blank"
+            target={LEGAL_LINK_TARGET}
             rel="noreferrer"
             className="font-semibold text-plum-700 underline hover:text-plum-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-sm"
           >
@@ -189,7 +204,7 @@ export function AuthForm({
           and{" "}
           <Link
             to="/privacy"
-            target="_blank"
+            target={LEGAL_LINK_TARGET}
             rel="noreferrer"
             className="font-semibold text-plum-700 underline hover:text-plum-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-sm"
           >

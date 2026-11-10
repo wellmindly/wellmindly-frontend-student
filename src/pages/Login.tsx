@@ -21,6 +21,50 @@ function resolveRedirect(params: URLSearchParams, testIdParam: string | null): s
   return `${safe}${safe.includes("?") ? "&" : "?"}showResult=${encodeURIComponent(resultParam)}`;
 }
 
+/**
+ * Student-facing copy for the auth endpoints' failure modes. The server's own
+ * text is used where it is already clear; the cases below get wording that says
+ * what happened and what to do next.
+ *  - 503: the code email could not be sent, so no code exists to wait for.
+ *  - 429: the auth routes are rate-limited.
+ *  - expired / locked / missing code: the student needs a fresh code (5 wrong
+ *    attempts lock the current one), so point them at "Resend Code".
+ */
+function authErrorMessage(err: unknown, fallback: string): string {
+  const status = (err as { response?: { status?: number } })?.response?.status;
+  if (status === 503) {
+    return "We couldn't send the email right now. Please try again in a few minutes.";
+  }
+  if (status === 429) {
+    return "Too many attempts. Please wait a few minutes, then try again.";
+  }
+  const message = apiErrorMessage(err, fallback);
+  const lower = message.toLowerCase();
+  if (lower.includes("too many incorrect attempts")) {
+    return "That code was entered incorrectly too many times, so it no longer works. Tap \"Resend Code\" for a new one.";
+  }
+  if (lower.includes("code has expired")) {
+    return "That code has expired. Tap \"Resend Code\" for a new one.";
+  }
+  if (lower.includes("request a verification code first")) {
+    return "That code is no longer valid. Tap \"Resend Code\" for a new one.";
+  }
+  if (lower.includes("incorrect verification code")) {
+    return "That code isn't right. Check the latest email from us and try again.";
+  }
+  return message;
+}
+
+/** The current code can never succeed (expired, locked or gone): clear the field. */
+function isCodeSpent(err: unknown): boolean {
+  const lower = apiErrorMessage(err, "").toLowerCase();
+  return (
+    lower.includes("too many incorrect attempts") ||
+    lower.includes("code has expired") ||
+    lower.includes("request a verification code first")
+  );
+}
+
 export function LoginPage() {
   const { loginSuccess, user } = useAuth();
   const navigate = useNavigate();
@@ -159,12 +203,13 @@ export function LoginPage() {
     try {
       await api.post("/auth/send-otp", { email });
       setOtpSent(true);
-      if (isResend) {
-        setGlobalSuccess("A new code is on its way to " + email);
-      }
+      setGlobalSuccess(
+        isResend
+          ? "A new code is on its way to " + email
+          : "We've emailed a 6-digit code to " + email + ". It expires in 5 minutes.",
+      );
     } catch (err) {
-      const errorMsg = apiErrorMessage(err, "Failed to send verification code. Please try again.");
-      setGlobalError(errorMsg);
+      setGlobalError(authErrorMessage(err, "Failed to send verification code. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -207,12 +252,15 @@ export function LoginPage() {
     try {
       await api.post("/auth/forgot-password", { email });
       setResetOtpSent(true);
-      if (isResend) {
-        setGlobalSuccess("A new code is on its way to " + email);
-      }
+      // The server answers the same way whether or not the account exists (no
+      // account enumeration), so the copy has to be conditional too.
+      setGlobalSuccess(
+        isResend
+          ? "If an account exists for " + email + ", a new code is on its way."
+          : "If an account exists for " + email + ", we've emailed it a 6-digit code. Enter it below with your new password.",
+      );
     } catch (err) {
-      const errorMsg = apiErrorMessage(err, "Failed to send reset code. Please try again.");
-      setGlobalError(errorMsg);
+      setGlobalError(authErrorMessage(err, "Failed to send reset code. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -246,8 +294,8 @@ export function LoginPage() {
       setOtp("");
       setPassword("");
     } catch (err) {
-      const errorMsg = apiErrorMessage(err, "Failed to reset password. Please try again.");
-      setGlobalError(errorMsg);
+      if (isCodeSpent(err)) setOtp("");
+      setGlobalError(authErrorMessage(err, "Failed to reset password. Please try again."));
     } finally {
       setSubmitting(false);
     }
@@ -288,8 +336,8 @@ export function LoginPage() {
       loginSuccess(token, user);
       navigateAfterAuth();
     } catch (err) {
-      const errorMsg = apiErrorMessage(err, "Authentication failed. Please verify credentials.");
-      setGlobalError(errorMsg);
+      if (mode === 'register' && isCodeSpent(err)) setOtp("");
+      setGlobalError(authErrorMessage(err, "Authentication failed. Please verify credentials."));
     } finally {
       setSubmitting(false);
     }
@@ -319,9 +367,15 @@ export function LoginPage() {
         <AuthBrandPanel />
 
       {/* RIGHT PANEL: Login/Signup Form */}
-      <div className="flex-1 flex flex-col justify-center items-center p-6 sm:p-12 bg-paper-2 lg:bg-card relative">
-        {/* Mobile Header (Only visible on small screens) */}
-        <Logo size="sm" className="lg:hidden absolute top-8 left-8" />
+      <div className="flex-1 flex flex-col justify-center items-center p-6 pt-[calc(var(--safe-area-top)+1.5rem)] sm:p-12 sm:pt-[calc(var(--safe-area-top)+3rem)] bg-paper-2 lg:bg-card relative">
+        {/* Mobile header (small screens only). In normal flow, not absolute: the
+            card is taller than a phone viewport, so an absolutely placed logo
+            ended up hidden behind it - leaving no visible way home on mobile.
+            The safe-area top padding keeps it clear of the edge-to-edge Android
+            status bar. */}
+        <div className="lg:hidden w-full max-w-md mb-4">
+          <Logo size="sm" />
+        </div>
 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -335,7 +389,7 @@ export function LoginPage() {
             onClearSuccess={() => setGlobalSuccess(null)}
           />
 
-          <div className="mb-8 text-center lg:text-left mt-8 lg:mt-0">
+          <div className="mb-8 text-center lg:text-left">
             <h1 className="text-3xl font-black tracking-tight text-ink-900 mb-3">
               {mode === 'login' 
                 ? "Welcome back" 

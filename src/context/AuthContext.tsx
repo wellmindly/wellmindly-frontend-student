@@ -80,8 +80,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
             localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
           }
         })
-        .catch(() => {
-          // Keep stored session if offline
+        .catch((err) => {
+          // 401/403 means the server no longer accepts this token (revoked,
+          // account deleted or secret rotated): drop the dead session so the
+          // app shows sign-in instead of a dashboard full of failing calls.
+          // Any other failure (offline, 5xx) keeps the stored session.
+          const status = err?.response?.status;
+          if (status === 401 || status === 403) {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            setToken(null);
+            setUser(null);
+          }
         });
 
       return () => clearTimeout(handle);

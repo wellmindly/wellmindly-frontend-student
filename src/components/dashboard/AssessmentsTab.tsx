@@ -2,8 +2,6 @@ import { motion } from "framer-motion";
 import {
   ClipboardList,
   Activity,
-  BrainCircuit,
-  Clock,
   ChevronRight,
   Sparkles,
 } from "lucide-react";
@@ -52,28 +50,13 @@ export function AssessmentsTab({
 
   const pct = showLatestScore ? latestScore / latestMaxScore : 0;
 
-  // This card shows whichever quiz was taken last, so the caption under the
-  // score cannot hardcode a question count: it read "your total across the five
-  // questions" over a six-question Emotional check-in, and would have said the
-  // same over a Big Five run scored 100/100. Every likert submission stores the
-  // answers it collected, so count those and stay quiet when there are none.
-  const latestAnswerCount = Array.isArray(latestResult?.answers?.responses)
-    ? latestResult.answers.responses.length
-    : null;
 
   return (
     <div className="space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 bg-plum-100 text-plum-700 rounded-2xl flex items-center justify-center">
-            <ClipboardList className="h-6 w-6" />
-          </div>
-          <div>
-            <h2 className="text-3xl font-black text-ink-900">My Quiz Results</h2>
-            <p className="text-ink-500 font-medium mt-1">
-              Review your recent well-being assessments
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-ink-900 sm:text-3xl">My results</h1>
+          <p className="mt-1 text-sm text-ink-500">Your recent check-ins and quizzes.</p>
         </div>
         <Button
           variant="primary"
@@ -97,125 +80,64 @@ export function AssessmentsTab({
             />
           ) : (
             <>
-              {/* Latest Result Card */}
-              <div className="bg-card rounded-3xl p-8 sm:p-10 shadow-sm border border-ink-200/60 relative overflow-hidden">
-                {/* Decorative background element */}
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <BrainCircuit className="w-64 h-64" />
-                </div>
-
-                <div className="relative z-10">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 pb-6 border-b border-ink-100">
-                    <div>
-                      <h3 className="text-2xl font-black text-ink-900">
-                        {displayQuizTitle(resultsData.latestResult.quizTitle)}
-                      </h3>
-                      <p className="text-ink-500 font-medium mt-2 flex items-center gap-2">
-                        <Clock className="h-4 w-4" /> Completed on{" "}
-                        {new Date(resultsData.latestResult.date).toLocaleDateString(undefined, {
-                          month: "long",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <span className="bg-plum/10 text-plum px-4 py-2 rounded-xl font-bold text-xs border border-plum/10">
-                      Evaluated
-                    </span>
-                  </div>
-
-                  <div
-                    className={`grid grid-cols-1 gap-6 ${
-                      showLatestScore ? "sm:grid-cols-2" : ""
-                    }`}
-                  >
-                    {showLatestScore && (
-                      <div className="bg-paper-2 rounded-2xl p-8 border border-ink-100 flex flex-col justify-center">
-                        <h4 className="text-xs font-black text-ink-400 uppercase tracking-widest mb-3">
-                          Overall Score
-                        </h4>
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-6xl font-black text-ink-900 tracking-tighter">
-                            {latestScore}
-                          </span>
-                          <span className="text-xl font-bold text-ink-400">
-                            / {latestMaxScore}
-                          </span>
-                        </div>
-                        <p className="text-xs text-ink-500 font-medium mt-4 leading-relaxed">
-                          {latestAnswerCount
-                            ? `Your total across the ${latestAnswerCount} questions in this check.`
-                            : "Your overall score for this check."}
-                        </p>
-                      </div>
-                    )}
-
-                    <div className="bg-plum/5 rounded-2xl p-8 border border-plum/10 flex flex-col justify-center">
-                      <h4 className="text-xs font-black text-plum/70 uppercase tracking-widest mb-3">
-                        What this suggests
-                      </h4>
-                      <span className="text-2xl font-black text-plum leading-tight">
-                        {displayClassification(
-                          resultsData.latestResult.quizTitle,
-                          resultsData.latestResult.classification,
-                          latestScore
-                        )}
+              {/* Latest result: one calm card. What it suggests comes first in
+                  words, the number second; no "Evaluated" chip or watermark.
+                  Solid tints (not /opacity colours) so it renders on older
+                  Android WebViews too. */}
+              <div className="rounded-3xl border border-ink-200/70 bg-card p-5 shadow-sm sm:p-7">
+                <p className="text-xs font-medium text-ink-500">
+                  Latest · {displayQuizTitle(resultsData.latestResult.quizTitle)} ·{" "}
+                  {new Date(resultsData.latestResult.date).toLocaleDateString(undefined, {
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </p>
+                <p className="mt-2 font-display text-2xl font-semibold leading-tight text-plum-700 sm:text-3xl">
+                  {displayClassification(
+                    resultsData.latestResult.quizTitle,
+                    resultsData.latestResult.classification,
+                    latestScore
+                  )}
+                </p>
+                {showLatestScore && (
+                  <div className="mt-5">
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className="text-ink-600">Score</span>
+                      <span className="font-semibold text-ink-900">
+                        {latestScore}
+                        <span className="font-normal text-ink-400"> / {latestMaxScore}</span>
                       </span>
-                      {showLatestScore && (
-                        <div className="mt-6 w-full bg-plum-200/50 h-3 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{
-                              width: `${pct * 100}%`,
-                            }}
-                            transition={{ duration: 1, delay: 0.2 }}
-                            className="bg-plum h-full rounded-full"
-                          />
-                        </div>
-                      )}
+                    </div>
+                    <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-plum-100">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct * 100}%` }}
+                        transition={{ duration: 0.8, delay: 0.1 }}
+                        className="h-full rounded-full bg-plum-500"
+                      />
                     </div>
                   </div>
-                </div>
-              </div>
-
-              {/* Breakdown Insights
-                  ----------------------------------------------------------
-                  This used to be three bars - "Sleep Quality", "Social
-                  Connections" and "Study Focus" - presented to the student as
-                  measurements. None of them was measured. Sleep and Study were
-                  thresholds on the single total score (`pct > 0.33`, `> 0.44`)
-                  with hardcoded bar widths, and Social Connections was a flat
-                  "Stable / 78%" with no input at all. The instrument asks five
-                  questions about interest, mood, sleep, energy and appetite; it
-                  does not measure social connection or study focus, and it
-                  cannot separate one dimension from the total.
-                  The real per-question breakdown lives in the report modal,
-                  which renders it only when the stored row actually has one. */}
-              <div className="bg-card rounded-3xl p-8 shadow-sm border border-ink-200/60">
-                <h3 className="text-xl font-black text-ink-900 mb-2">Detailed Insights</h3>
-                <p className="text-sm text-ink-500 font-medium leading-relaxed">
-                  Open any result below to see your answer to each question and what
-                  the total suggests. This check-in reports one overall score - it
-                  doesn't break your weeks down into separate areas.
+                )}
+                <p className="mt-4 text-xs leading-relaxed text-ink-500">
+                  A reflection, not a diagnosis. Tap any result below to see your answers.
                 </p>
               </div>
             </>
           )}
 
           {/* Quiz Results History List */}
-          <div className="bg-card rounded-3xl p-8 shadow-sm border border-ink-200/60">
-            <h3 className="text-xl font-black text-ink-900 mb-6">Assessment History</h3>
+          <div className="rounded-3xl border border-ink-200/70 bg-card p-5 shadow-sm sm:p-7">
+            <h2 className="mb-4 font-display text-lg font-semibold text-ink-900">History</h2>
 
             {!resultsData || !resultsData.timeline || resultsData.timeline.length === 0 ? (
               <EmptyState
                 size="sm"
                 title="Nothing here yet"
-                // This list renders resultsData.timeline, which is the server's
-                // check-in history. The five Discover quizzes are saved in the
-                // browser (discover/types.ts saveResult) and never reach this
-                // endpoint, so promising them here sent students looking in the
-                // wrong tab. Points at where they actually live instead.
-                description="Completed check-ins will show up here. Your Discover quiz results are kept under Explore quizzes → My collection."
+                // This list renders resultsData.timeline, the server's history.
+                // Signed-in Discover quizzes are posted to the same endpoint
+                // (useDashboard submitDiscoverToBackend) and appear here too, so
+                // the old pointer to a browser-only "My collection" was wrong.
+                description="Your completed check-ins and Discover quizzes will show up here."
               />
             ) : (
               (() => {

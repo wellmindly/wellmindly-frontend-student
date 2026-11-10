@@ -52,9 +52,9 @@ export function AboutPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="text-4xl md:text-5xl font-extrabold tracking-tight text-ink-900 font-display mb-6 leading-tight"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-ink-900 font-display mb-5 leading-tight"
             >
-              Fitting Alongside Campus Care to Help You Understand What You Carry
+              Support that fits alongside campus care
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}

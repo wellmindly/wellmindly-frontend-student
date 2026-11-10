@@ -11,7 +11,7 @@ export function CrisisBanner({ onAction, className }: CrisisBannerProps) {
   return (
     <div
       className={cn(
-        "w-full border-b border-coral-200 bg-coral-50 px-3 py-1.5 text-center",
+        "w-full border-b border-coral-200 bg-coral-50 px-3 py-0.5 text-center",
         className,
       )}
     >
@@ -23,7 +23,7 @@ export function CrisisBanner({ onAction, className }: CrisisBannerProps) {
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex min-h-9 shrink-0 items-center whitespace-nowrap px-1 text-2xs font-bold text-coral-700 underline underline-offset-2 hover:text-coral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 sm:text-xs"
+          className="inline-flex min-h-11 shrink-0 items-center whitespace-nowrap px-1 text-2xs font-bold text-coral-700 underline underline-offset-2 hover:text-coral-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-500 sm:text-xs"
         >
           View helplines &rarr;
         </button>

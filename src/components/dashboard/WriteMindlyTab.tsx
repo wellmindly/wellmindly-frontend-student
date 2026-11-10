@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Send,
@@ -9,7 +8,7 @@ import {
   ShieldCheck,
   Sparkles
 } from "lucide-react";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 import { Button, ConfirmSheet, IconButton, Input, Sheet } from "../ui";
 import { cn } from "../../lib/cn";
 import { scrollToElement } from "../../lib/a11y";
@@ -266,7 +265,15 @@ export function WriteMindlyTab() {
       console.error("WriteMindly chat request failed:", err);
       setMessages((prev) => prev.slice(0, -1));
       setInputValue(userMessageText);
-      setError("We couldn't reach the server, so that message didn't send. Your words are still in the box. Please try again in a moment.");
+      // "Couldn't reach the server" is only true when there was no response.
+      // A reply like the daily limit (429) carries its own reason - show that.
+      const serverReplied = Boolean((err as { response?: unknown })?.response);
+      const reason = apiErrorMessage(err, "That message didn't send.").trim().replace(/([^.!?])$/, "$1.");
+      setError(
+        serverReplied
+          ? `${reason} Your words are still in the box.`
+          : "We couldn't reach the server, so that message didn't send. Your words are still in the box. Please try again in a moment.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -348,13 +355,15 @@ export function WriteMindlyTab() {
               <h2 className="text-base sm:text-lg font-black text-ink-900 font-display leading-none">
                 WriteMindly
               </h2>
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-2xs font-extrabold bg-plum-50 text-plum-700 border border-plum-200/60">
+              {/* Badge from sm up: at 375px it wrapped onto three lines and
+                  pushed the header to twice its height. */}
+              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded-md text-2xs font-extrabold bg-plum-50 text-plum-700 border border-plum-200/60 whitespace-nowrap">
                 Mental Wellness Bot
               </span>
             </div>
-            <p className="text-2xs text-ink-500 font-medium mt-1 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-              <span>Always here &bull; 100% Private &bull; Judgment-free</span>
+            <p className="text-2xs text-ink-500 font-medium mt-1 flex items-center gap-1.5 min-w-0">
+              <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-teal-500" />
+              <span className="truncate">Private and judgment-free</span>
             </p>
           </div>
         </div>
@@ -394,27 +403,6 @@ export function WriteMindlyTab() {
 
       {/* 2. Chat History Viewport */}
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 space-y-4 bg-gradient-to-b from-paper-2/40 to-card relative">
-        {/* Privacy & Crisis support strip */}
-        <div className="max-w-3xl mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-xl bg-paper-2 border border-ink-200/60 text-2xs text-ink-600">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-sage-600 shrink-0" aria-hidden="true" />
-            <span>Private &mdash; words are never logged or saved.</span>
-            <button
-              type="button"
-              onClick={() => setSessionOpen(true)}
-              className="font-bold text-plum-600 underline underline-offset-2 hover:text-plum-700 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 ml-1"
-            >
-              How it works
-            </button>
-          </div>
-          <Link
-            to="/crisis"
-            className="font-bold text-plum-700 underline hover:text-plum-900 shrink-0"
-          >
-            Free Crisis Hotlines &rarr;
-          </Link>
-        </div>
-
         {/* Message Log */}
         <div
           role="log"
@@ -449,14 +437,6 @@ export function WriteMindlyTab() {
                         <Sparkles className="w-4 h-4" aria-hidden="true" />
                       </div>
                       <div className="bg-card text-ink-800 rounded-2xl rounded-tl-sm border border-ink-200/80 p-3.5 sm:p-4 shadow-sm">
-                        <div className="flex items-center justify-between gap-3 mb-1.5 border-b border-ink-100/60 pb-1">
-                          <span className="text-2xs font-extrabold text-plum-700 flex items-center gap-1 select-none">
-                            WriteMindly AI <span className="font-semibold text-ink-400">&bull; Mental Wellness Bot</span>
-                          </span>
-                          <span className="text-2xs text-ink-400 font-semibold select-none">
-                            {msg.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                        </div>
                         <p className="whitespace-pre-wrap leading-relaxed text-sm text-ink-800 font-normal">{msg.text}</p>
                       </div>
                     </div>
@@ -466,39 +446,23 @@ export function WriteMindlyTab() {
             })}
           </AnimatePresence>
 
-          {/* Quick Mental Wellness Starters (When Chat is Fresh) */}
+          {/* Starters while the chat is fresh: a few tappable chips, no boxed
+              card or instructions. Typing is always the main path. */}
           {messages.length <= 1 && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-ink-200/80 bg-paper-2/60 p-4 sm:p-5 text-left my-2"
-            >
-              <div className="flex items-center gap-2 mb-1.5">
-                <Sparkles className="w-4 h-4 text-plum-600" aria-hidden="true" />
-                <span className="text-xs font-bold text-ink-900 uppercase tracking-wide">
-                  What would you like to explore today?
-                </span>
-              </div>
-              <p className="text-xs text-ink-600 mb-3 leading-relaxed">
-                Tap any mental wellness prompt below to begin, or type whatever is on your mind.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {WELLNESS_STARTERS.map((s, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => submitMessage(s.prompt)}
-                    disabled={isLoading}
-                    className="flex items-center gap-2.5 p-2.5 rounded-xl border border-ink-200/70 bg-card hover:border-plum-400 hover:bg-plum-50/40 text-left cursor-pointer transition-colors group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 disabled:opacity-50"
-                  >
-                    <span className="text-base shrink-0 select-none" aria-hidden="true">{s.emoji}</span>
-                    <span className="text-xs font-semibold text-ink-700 group-hover:text-plum-900 leading-snug">
-                      {s.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </motion.div>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {WELLNESS_STARTERS.slice(0, 4).map((s, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => submitMessage(s.prompt)}
+                  disabled={isLoading}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-ink-200 bg-card px-3.5 text-xs font-medium text-ink-700 transition-colors hover:border-plum-400 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 disabled:opacity-50"
+                >
+                  <span aria-hidden="true">{s.emoji}</span>
+                  {s.label}
+                </button>
+              ))}
+            </div>
           )}
 
           {/* AI Generation Loading Indicator */}
@@ -545,12 +509,9 @@ export function WriteMindlyTab() {
           {error}
         </p>
 
-        {/* Quick Wellness Coping Tools Strip */}
+        {/* Coping shortcuts: only mid-conversation; the fresh chat already shows starters. */}
+        {messages.length > 1 && (
         <div className="max-w-3xl mx-auto mb-2.5 flex items-center gap-2 overflow-x-auto pb-1 text-2xs">
-          <span className="font-extrabold text-ink-500 uppercase tracking-wider shrink-0 mr-1 select-none flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-plum-600" aria-hidden="true" />
-            Quick Coping:
-          </span>
           <button
             type="button"
             onClick={() => submitMessage("Can you guide me through a 2-minute calming breathing exercise to ease my anxiety?")}
@@ -584,6 +545,7 @@ export function WriteMindlyTab() {
             <span aria-hidden="true">✍️</span> Reflection prompt
           </button>
         </div>
+        )}
 
         <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex gap-3 relative items-center">
           <div className="flex-1">
@@ -597,7 +559,7 @@ export function WriteMindlyTab() {
               placeholder={
                 isRecording
                   ? "Listening... Speak your mind clearly."
-                  : "Tell WriteMindly what you're feeling or dealing with..."
+                  : "What's on your mind?"
               }
               trailing={
                 isSpeechSupported ? (

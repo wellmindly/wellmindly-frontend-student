@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
 import api, { apiErrorMessage } from "../../services/api";
 import type { TalkRoom, TalkNote, TalkProfile } from "../talk/types";
@@ -27,6 +27,12 @@ export function TalkMindlyTab() {
   // Rooms and Note Wall States
   const [rooms, setRooms] = useState<TalkRoom[]>([]);
   const [selectedRoom, setSelectedRoom] = useState<TalkRoom | null>(null);
+  // Late responses (the post-drop re-poll, a slow notes fetch) check this so a
+  // board the student has already left can't overwrite the one they're on.
+  const currentRoomIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    currentRoomIdRef.current = selectedRoom?.id ?? null;
+  }, [selectedRoom]);
   const [loadingRooms, setLoadingRooms] = useState(false);
   const [roomsError, setRoomsError] = useState(false);
   const [notes, setNotes] = useState<TalkNote[]>([]);
@@ -119,9 +125,11 @@ export function TalkMindlyTab() {
   };
 
   const handleSelectRoom = (room: TalkRoom) => {
+    // The effect below loads the notes; calling fetchNotes here as well sent
+    // two identical requests per room open, racing each other into state.
+    setNotes([]);
     setSelectedRoom(room);
     setActiveScreen("room-detail");
-    fetchNotes(room.id);
   };
 
   const fetchNotes = async (roomId: string) => {
@@ -129,7 +137,7 @@ export function TalkMindlyTab() {
       setLoadingNotes(true);
       const response = await api.get(`/talk/rooms/${roomId}/notes?sort=${sortOrder}`);
       const list = Array.isArray(response.data) ? response.data : (response.data?.notes || []);
-      setNotes(list);
+      if (currentRoomIdRef.current === roomId) setNotes(list);
     } catch (err) {
       console.error("Failed to load notes:", err);
     } finally {
@@ -223,7 +231,7 @@ export function TalkMindlyTab() {
         try {
           const polled = await api.get(`/talk/rooms/${room.id}/notes?sort=${sortOrder}`);
           const polledNotes = Array.isArray(polled.data) ? polled.data : (polled.data?.notes || []);
-          if (polledNotes.length > 0) {
+          if (polledNotes.length > 0 && currentRoomIdRef.current === room.id) {
             setNotes(polledNotes);
           }
         } catch (e) {
@@ -232,11 +240,9 @@ export function TalkMindlyTab() {
       }, 3000);
     } catch (err: any) {
       console.error("Failed to drop note:", err);
-      const errMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to post note.";
+      // apiErrorMessage, not data.error directly: the v1 error shape is an
+      // object, and rendering it as the alert text crashed the whole tab.
+      const errMsg = apiErrorMessage(err, "Failed to post note.");
       setCustomAlert({
         show: true,
         type: "error",
@@ -294,11 +300,7 @@ export function TalkMindlyTab() {
       setNotes(freshNotes);
     } catch (err: any) {
       console.error("Failed to post reply:", err);
-      const errMsg =
-        err?.response?.data?.error ||
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to post reply.";
+      const errMsg = apiErrorMessage(err, "Failed to post reply.");
       setCustomAlert({
         show: true,
         type: "error",
@@ -352,7 +354,14 @@ export function TalkMindlyTab() {
     } catch (err) {
       console.error("Failed to send reaction:", err);
       setNotes(snapshot);
+      showActionError(err, "We couldn't save that reaction. Please try again.");
     }
+  };
+
+  // Report, delete and react used to fail with only a console line, so the
+  // student believed a report had been filed when it never reached anyone.
+  const showActionError = (err: unknown, fallback: string) => {
+    setCustomAlert({ show: true, type: "error", message: apiErrorMessage(err, fallback) });
   };
 
   const executeReportNote = async (noteId: string) => {
@@ -365,6 +374,7 @@ export function TalkMindlyTab() {
       );
     } catch (err) {
       console.error("Failed to report note:", err);
+      showActionError(err, "We couldn't send that report. Please try again.");
     }
   };
 
@@ -375,6 +385,7 @@ export function TalkMindlyTab() {
       if (selectedNote?.id === noteId) setSelectedNote(null);
     } catch (err) {
       console.error("Failed to delete note:", err);
+      showActionError(err, "We couldn't delete that note. Please try again.");
     }
   };
 
@@ -396,6 +407,7 @@ export function TalkMindlyTab() {
       );
     } catch (err) {
       console.error("Failed to delete reply:", err);
+      showActionError(err, "We couldn't delete that reply. Please try again.");
     }
   };
 

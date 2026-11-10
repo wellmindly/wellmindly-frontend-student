@@ -103,8 +103,8 @@ export function CrisisPage() {
             <span className="text-2xs font-bold text-coral uppercase tracking-widest block mb-3">
               Immediate Support
             </span>
-            <h1 className="text-4xl sm:text-5xl font-display text-ink-900 tracking-tight font-medium mb-4">
-              Get Help Now
+            <h1 className="text-3xl sm:text-5xl font-display text-ink-900 tracking-tight font-medium mb-4">
+              Get help now
             </h1>
             <p className="text-ink-600 text-sm sm:text-base leading-relaxed">
               If things feel overwhelming right now, you don't have to carry it alone. 
@@ -169,7 +169,7 @@ export function CrisisPage() {
             ) : error ? (
               <ErrorState
                 title="We couldn't load the helplines"
-                description="Your connection may have dropped. Try again, or use the breathing exercise above while you wait."
+                description="Your connection may have dropped. Try again. If you are in immediate danger, call your local emergency number now."
                 onRetry={fetchHotlines}
                 retrying={loading}
               />
@@ -201,6 +201,7 @@ export function CrisisPage() {
               <EmptyState
                 icon={<HelpCircle className="w-6 h-6 text-ink-600" />}
                 title={`No helplines listed for ${selectedCountry} yet`}
+                description="If you are in immediate danger, call your local emergency number now."
               />
             )}
           </div>

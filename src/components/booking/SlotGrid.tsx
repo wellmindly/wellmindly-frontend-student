@@ -1,7 +1,7 @@
 import { Clock, Sunrise, Sun, Sunset } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "../../lib/cn";
-import { Skeleton } from "../ui";
+import { ErrorState, Skeleton } from "../ui";
 import type { SlotOption } from "./types";
 
 /* ============================================================================
@@ -17,6 +17,9 @@ import type { SlotOption } from "./types";
 
 export interface SlotGridProps {
   loading: boolean;
+  /** The day failed to load - distinct from a day with nothing free. */
+  error?: boolean;
+  onRetry?: () => void;
   slots: SlotOption[];
   selectedSlot: SlotOption | null;
   onSelectSlot: (slot: SlotOption) => void;
@@ -36,6 +39,8 @@ const PARTS: Array<{ id: string; label: string; icon: LucideIcon; iconClass: str
 
 export function SlotGrid({
   loading,
+  error = false,
+  onRetry,
   slots,
   selectedSlot,
   onSelectSlot,
@@ -59,7 +64,11 @@ export function SlotGrid({
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <span className="text-xs font-semibold text-ink-700">
-          {loading ? "Checking times…" : `${openCount} ${openCount === 1 ? "time" : "times"} open`}
+          {loading
+            ? "Checking times…"
+            : error
+              ? "Times unavailable"
+              : `${openCount} ${openCount === 1 ? "time" : "times"} open`}
         </span>
         <span className="text-2xs text-ink-500">
           Shown in {timezoneMode === "utc" ? "UTC" : localTzAbbr}
@@ -72,6 +81,13 @@ export function SlotGrid({
             <Skeleton key={i} className="h-12 rounded-xl" />
           ))}
         </div>
+      ) : error ? (
+        <ErrorState
+          className="rounded-2xl border border-ink-200/80 bg-paper py-8"
+          title="We couldn't load times for this date"
+          description="Check your connection and try again."
+          onRetry={onRetry}
+        />
       ) : slots.length === 0 || openCount === 0 ? (
         <div className="space-y-1 rounded-2xl border border-ink-200/80 bg-paper p-6 text-center">
           <Clock className="mx-auto h-6 w-6 text-ink-400" aria-hidden="true" />

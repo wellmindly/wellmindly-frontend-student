@@ -10,6 +10,9 @@ import {
   hasAnalyticsConsent,
   sanitizeEventParams,
   sanitizePagePath,
+  getConsent,
+  acceptAllConsent,
+  ensureNativeDefaultConsent,
 } from '../lib/analytics';
 
 describe('WellMindly Analytics & Consent System', () => {
@@ -25,6 +28,28 @@ describe('WellMindly Analytics & Consent System', () => {
       const eqPos = cookie.indexOf('=');
       const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
       document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    });
+  });
+
+  describe('Native default consent', () => {
+    it('grants analytics only, never marketing', () => {
+      const record = ensureNativeDefaultConsent();
+      expect(record.categories.analytics).toBe(true);
+      expect(record.categories.marketing).toBe(false);
+      expect(getConsent()?.categories.marketing).toBe(false);
+    });
+
+    it('downgrades a silently granted marketing consent', () => {
+      acceptAllConsent();
+      expect(getConsent()?.categories.marketing).toBe(true);
+      const record = ensureNativeDefaultConsent();
+      expect(record.categories.marketing).toBe(false);
+      expect(record.categories.analytics).toBe(true);
+    });
+
+    it('leaves an analytics-only or rejected record alone', () => {
+      const rejected = saveConsent('rejected_all', { analytics: false, marketing: false });
+      expect(ensureNativeDefaultConsent()).toEqual(rejected);
     });
   });
 

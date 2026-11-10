@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import { Logo, CrisisBanner, SocialLinks } from "../ui";
 import type { SocialLinksProps } from "../ui";
+import { openConsentPreferences } from "../../lib/analytics";
+import { isNativeApp } from "../../lib/native";
 
 interface LandingFooterProps {
   onCrisisClick: () => void;
@@ -82,6 +84,18 @@ export function LandingFooter({ onCrisisClick }: LandingFooterProps) {
               >
                 Delete Account
               </Link>
+              {/* Withdrawing consent has to be as easy as giving it. The web
+                  banner shows once, so this is the way back to it. The app has
+                  no cookie banner, so there is nothing to reopen there. */}
+              {!isNativeApp() && (
+                <button
+                  type="button"
+                  onClick={openConsentPreferences}
+                  className="text-2xs text-ink-500 hover:text-plum-600 min-h-11 inline-flex items-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-plum-400 rounded-md cursor-pointer"
+                >
+                  Cookie settings
+                </button>
+              )}
             </nav>
 
             <p className="text-2xs text-ink-500 mt-auto">

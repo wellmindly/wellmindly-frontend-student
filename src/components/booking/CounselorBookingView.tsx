@@ -61,6 +61,15 @@ export function CounselorBookingView() {
   const [selectedDate, setSelectedDate] = useState<string>(dayKey(new Date()));
   const [rawSlots, setRawSlots] = useState<Slot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  /**
+   * Bumped whenever a booking or cancellation changes who is free. The slot
+   * list is otherwise fetched once per date, so a student who booked 08:00 and
+   * came back to the Book tab still saw 08:00 offered with the same counselor
+   * count - and could try to book the slot they had just taken.
+   */
+  const [slotsVersion, setSlotsVersion] = useState(0);
+  const refreshSlots = () => setSlotsVersion((v) => v + 1);
+  const [slotsError, setSlotsError] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<SlotOption | null>(null);
 
   const [chosenCounselor, setChosenCounselor] = useState<Counselor | null>(null);
@@ -76,6 +85,7 @@ export function CounselorBookingView() {
 
   const [mySessions, setMySessions] = useState<BookedSession[]>([]);
   const [loadingMySessions, setLoadingMySessions] = useState(false);
+  const [mySessionsError, setMySessionsError] = useState(false);
 
   const [activeFeedbackSession, setActiveFeedbackSession] = useState<BookedSession | null>(null);
   const [rating, setRating] = useState<number | null>(null);
@@ -134,6 +144,7 @@ export function CounselorBookingView() {
   useEffect(() => {
     let cancelled = false;
     setLoadingSlots(true);
+    setSlotsError(false);
 
     api
       .get(`/v1/students/counselors/slots?date=${selectedDate}`)
@@ -150,7 +161,10 @@ export function CounselorBookingView() {
       })
       .catch((err) => {
         console.error("Failed to fetch slots:", err);
-        if (!cancelled) setRawSlots([]);
+        if (!cancelled) {
+          setRawSlots([]);
+          setSlotsError(true);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoadingSlots(false);
@@ -159,15 +173,20 @@ export function CounselorBookingView() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [selectedDate, slotsVersion]);
 
   const fetchMySessions = () => {
     setLoadingMySessions(true);
+    setMySessionsError(false);
     api
       .get("/v1/students/sessions/me")
       .then((res) => {
         if (res.data.success) setMySessions(res.data.data);
+        else setMySessionsError(true);
       })
+      // A failed load used to fall through to "No session bookings found",
+      // telling a student with a session tomorrow that they had none.
+      .catch(() => setMySessionsError(true))
       .finally(() => setLoadingMySessions(false));
   };
 
@@ -350,6 +369,7 @@ export function CounselorBookingView() {
           counselor_id: chosenCounselor.id,
         });
         setBookingSuccess(res.data.data);
+        refreshSlots();
       } else {
         setBookingError("We could not confirm that booking. Please try another time.");
       }
@@ -360,6 +380,9 @@ export function CounselorBookingView() {
       setBookingError(
         apiErrorMessage(err, "Failed to book session. Please try another slot."),
       );
+      // The usual failure is that someone else took the time first, so show
+      // the day as it is now rather than as it was when the page loaded.
+      refreshSlots();
     } finally {
       setSubmitting(false);
     }
@@ -400,6 +423,7 @@ export function CounselorBookingView() {
       setCancelTarget(null);
       setCancelStatusMessage("That session is cancelled. The slot is free again.");
       fetchMySessions();
+      refreshSlots();
     } catch (err: any) {
       if (err.response?.data?.error?.code === "CANCELLATION_RESTRICTED") {
         setCancelStatusMessage(
@@ -536,15 +560,21 @@ export function CounselorBookingView() {
                   onSelectDate={(d) => {
                     setSelectedDate(d);
                     setSelectedSlot(null);
+                    setBookingError(null);
                     setChosenCounselor(null);
                   }}
                 />
 
                 <SlotGrid
                   loading={loadingSlots}
+                  error={slotsError}
+                  onRetry={refreshSlots}
                   slots={slotOptions}
                   selectedSlot={selectedSlot}
-                  onSelectSlot={setSelectedSlot}
+                  onSelectSlot={(slot) => {
+                    setSelectedSlot(slot);
+                    setBookingError(null);
+                  }}
                   formatSlotTimeRange={formatSlotTimeRange}
                   timezoneMode={timezoneMode}
                   localTzAbbr={localTzAbbr}
@@ -553,6 +583,16 @@ export function CounselorBookingView() {
               </div>
 
               <div className="space-y-2">
+                {/* A failed booking whose time has since gone sends the student
+                    back here; without this the reason vanished with step two. */}
+                {bookingError && !selectedSlot && (
+                  <p
+                    role="alert"
+                    className="rounded-2xl border border-coral-200 bg-coral-50 p-3 text-xs text-coral-800"
+                  >
+                    {bookingError}
+                  </p>
+                )}
                 <Button
                   className="w-full"
                   disabled={!selectedSlot}
@@ -653,6 +693,8 @@ export function CounselorBookingView() {
       ) : (
         <MySessionsList
           loadingMySessions={loadingMySessions}
+          loadError={mySessionsError}
+          onRetry={fetchMySessions}
           mySessions={mySessions}
           onOpenFeedback={(session) => {
             setActiveFeedbackSession(session);
@@ -713,6 +755,7 @@ export function CounselorBookingView() {
         title="Cancel this session?"
         description="Your counselor will be told the slot is free again. You can book another time whenever you're ready, and nothing about this goes on your record."
         confirmLabel="Cancel session"
+        cancelLabel="Keep session"
         destructive
         loading={cancellingSession}
       />

@@ -1,9 +1,12 @@
 import { Calendar as CalendarIcon, Video, Star } from 'lucide-react';
 import { Button } from '../ui/Button';
+import { ErrorState } from '../ui/EmptyState';
 import type { BookedSession } from './types';
 
 export interface MySessionsListProps {
   loadingMySessions: boolean;
+  loadError?: boolean;
+  onRetry?: () => void;
   mySessions: BookedSession[];
   onOpenFeedback: (session: BookedSession) => void;
   onOpenCancel: (session: BookedSession) => void;
@@ -13,6 +16,8 @@ export interface MySessionsListProps {
 
 export function MySessionsList({
   loadingMySessions,
+  loadError = false,
+  onRetry,
   mySessions,
   onOpenFeedback,
   onOpenCancel,
@@ -20,7 +25,7 @@ export function MySessionsList({
   formatSessionDateTime,
 }: MySessionsListProps) {
   return (
-    <div className="bg-card rounded-3xl border border-ink-200/90 p-8 shadow-sm space-y-6">
+    <div className="bg-card rounded-3xl border border-ink-200/90 p-5 sm:p-8 shadow-sm space-y-6">
       <div className="border-b border-ink-100 pb-4 space-y-1">
         <h2 className="text-2xl font-bold text-ink-900 font-display">My Booked Sessions</h2>
         <p className="text-ink-500 text-xs">Join your upcoming video consultations or leave feedback for completed sessions.</p>
@@ -34,12 +39,18 @@ export function MySessionsList({
           <div className="w-8 h-8 border-3 border-plum-600 border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-ink-500 text-sm">Loading your booked sessions...</p>
         </div>
+      ) : loadError ? (
+        <ErrorState
+          title="We couldn't load your sessions"
+          description="Your bookings are safe. Check your connection and try again."
+          onRetry={onRetry}
+        />
       ) : mySessions.length === 0 ? (
         <div className="py-16 text-center space-y-3">
           <CalendarIcon className="w-12 h-12 text-ink-300 mx-auto" />
           <h3 className="text-base font-bold text-ink-800">No session bookings found</h3>
           <p className="text-ink-500 text-xs max-w-sm mx-auto">
-            You haven't scheduled any counselor sessions yet. Use the "Book a Counselor" tab to select a date and slot.
+            You haven't scheduled any counselor sessions yet. Use the "Book" tab to pick a date and time.
           </p>
         </div>
       ) : (
@@ -75,7 +86,7 @@ export function MySessionsList({
             return (
               <div
                 key={session.id}
-                className="p-6 rounded-2xl border border-ink-200/90 bg-paper/50 hover:bg-card transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm"
+                className="p-4 sm:p-6 rounded-2xl border border-ink-200/90 bg-paper/50 hover:bg-card transition-all flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm"
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-plum-500 to-plum-600 text-plum-50 font-bold flex items-center justify-center text-lg shadow-md shrink-0">

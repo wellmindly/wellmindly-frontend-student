@@ -1,6 +1,8 @@
+import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AlertCircle, CheckCircle2, X } from "lucide-react";
 import { IconButton } from "../ui";
+import { scrollToElement } from "../../lib/a11y";
 
 export interface AuthAlertsProps {
   error: string | null;
@@ -10,11 +12,22 @@ export interface AuthAlertsProps {
 }
 
 export function AuthAlerts({ error, success, onClearError, onClearSuccess }: AuthAlertsProps) {
+  const regionRef = useRef<HTMLDivElement>(null);
+
+  // The alerts sit at the top of the card, but on a phone the submit button is
+  // a full screen below it (further still with the keyboard open), so a failed
+  // sign-in would otherwise change nothing the student can see. Errors only:
+  // a success ("code sent") arrives while the form moves focus to the code
+  // field, and scrolling away from it would fight that.
+  useEffect(() => {
+    if (error) scrollToElement(regionRef.current, { block: "center" });
+  }, [error]);
+
   return (
     <>
       {/* Always mounted: a live region must exist before its content arrives,
           otherwise the insertion is not announced. */}
-      <div aria-live="assertive" aria-atomic="true">
+      <div ref={regionRef} aria-live="assertive" aria-atomic="true">
         <AnimatePresence>
           {error && (
             <motion.div

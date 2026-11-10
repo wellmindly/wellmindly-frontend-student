@@ -85,8 +85,8 @@ export function DeleteAccountPage() {
             <Trash2 className="w-3.5 h-3.5" />
             Data Protection & Privacy
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-ink-900 font-display tracking-tight">
-            Delete Account & Associated Data
+          <h1 className="text-3xl sm:text-4xl font-bold text-ink-900 font-display tracking-tight">
+            Delete your account and data
           </h1>
           <p className="text-sm sm:text-base text-ink-600 mt-2 max-w-2xl leading-relaxed">
             Manage your personal data for the <strong>WellMindly</strong> application (Package:{" "}

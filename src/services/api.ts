@@ -32,6 +32,10 @@ export const apiErrorMessage = (err: unknown, fallback: string): string => {
     if (typeof message === 'string' && message.trim()) return message;
   }
   if (typeof payload?.message === 'string' && payload.message.trim()) return payload.message;
+  // An axios error with no server payload is a transport failure, and its
+  // message ("Network Error", "timeout of 0ms exceeded") means nothing to a
+  // student - the caller's fallback says what actually went wrong for them.
+  if (axios.isAxiosError(err)) return fallback;
   if (err instanceof Error && err.message) return err.message;
 
   return fallback;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Sparkles, Check, ArrowRight, Bell, AlertCircle } from "lucide-react";
 import { cn } from "../../../lib/cn";
 import { Button } from "../../ui";
-import api from "../../../services/api";
+import api, { apiErrorMessage } from "../../../services/api";
 import { trackEvent } from "../../../lib/analytics";
 
 export interface EligibilityBannerProps {
@@ -41,11 +41,12 @@ export function EligibilityBanner({ className }: EligibilityBannerProps) {
           "You're on the list! We'll give you the FIRST scoop the moment human counselling opens up to all students."
       );
       setEmail("");
-    } catch (err: any) {
-      const msg =
-        err?.response?.data?.error ||
-        "Unable to join the waitlist right now. Please check your network and try again.";
-      setErrorMessage(msg);
+    } catch (err) {
+      // `error` can be an object ({ code, message }) on v1 routes; rendering it
+      // directly would crash the page, so always reduce it to a string.
+      setErrorMessage(
+        apiErrorMessage(err, "Unable to join the waitlist right now. Please check your network and try again.")
+      );
       setStatus("error");
     }
   };

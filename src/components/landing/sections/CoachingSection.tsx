@@ -130,7 +130,7 @@ function CoachCarousel({
             type="button"
             onClick={() => handleScroll("left")}
             disabled={!canScrollLeft}
-            className="w-8 h-8 rounded-full border border-ink-200 bg-card/90 backdrop-blur-sm text-ink-700 flex items-center justify-center hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-plum-500 cursor-pointer"
+            className="w-11 h-11 rounded-full border border-ink-200 bg-card/90 backdrop-blur-sm text-ink-700 flex items-center justify-center hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-plum-500 cursor-pointer"
             aria-label="Previous coaches"
           >
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
@@ -139,7 +139,7 @@ function CoachCarousel({
             type="button"
             onClick={() => handleScroll("right")}
             disabled={!canScrollRight}
-            className="w-8 h-8 rounded-full border border-ink-200 bg-card/90 backdrop-blur-sm text-ink-700 flex items-center justify-center hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-plum-500 cursor-pointer"
+            className="w-11 h-11 rounded-full border border-ink-200 bg-card/90 backdrop-blur-sm text-ink-700 flex items-center justify-center hover:bg-ink-100 hover:text-ink-900 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-plum-500 cursor-pointer"
             aria-label="Next coaches"
           >
             <ChevronRight className="w-4 h-4" aria-hidden="true" />

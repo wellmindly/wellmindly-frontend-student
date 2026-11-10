@@ -32,9 +32,9 @@ export function UniversityPage() {
             <motion.h1
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-4xl md:text-5xl font-extrabold font-display leading-tight mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl font-bold font-display leading-tight mb-5"
             >
-              Equipping Institutions with Preventive Mental Health Tools
+              Wellbeing support your students will actually use
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 15 }}

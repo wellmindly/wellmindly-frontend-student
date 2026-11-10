@@ -14,9 +14,15 @@ interface HubViewProps {
    * <h2> above this component (DiscoverTab.tsx:85).
    */
   as?: "h1" | "h2";
+  /**
+   * Tests already completed, when the caller knows better than this browser.
+   * Signed in, results live on the server, so the dashboard passes them here;
+   * the public /discover page leaves it out and reads the guest store.
+   */
+  doneIds?: ReadonlySet<string>;
 }
 
-export function HubView({ startTest, goTo, as = "h1" }: HubViewProps) {
+export function HubView({ startTest, goTo, as = "h1", doneIds }: HubViewProps) {
   const all = loadAll();
   return (
     <div className="pt-12 sm:pt-14">
@@ -51,7 +57,7 @@ export function HubView({ startTest, goTo, as = "h1" }: HubViewProps) {
         {DISCOVER_TEST_ORDER.map((id) => {
           const t = TESTS[id];
           if (!t) return null;
-          const done = all[id]?.length;
+          const done = doneIds?.has(id) || all[id]?.length;
           return (
             <ActionCard
               key={id}

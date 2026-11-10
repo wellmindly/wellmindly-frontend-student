@@ -88,11 +88,11 @@ export function ContactPage() {
           >
             Get In Touch
           </motion.span>
-          <h1 className="text-4xl font-extrabold text-ink-900 font-display tracking-tight">
-            Contact Our Team
+          <h1 className="text-3xl sm:text-4xl font-bold text-ink-900 font-display tracking-tight">
+            Get in touch
           </h1>
           <p className="text-sm text-ink-600 max-w-md mx-auto mt-2">
-            Have questions about our blueprints, support systems, or features? Send us a message and
+            Questions about WellMindly, your account or partnering with us? Send us a message and
             we'll reply as soon as possible.
           </p>
         </div>

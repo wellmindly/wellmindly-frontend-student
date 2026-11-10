@@ -16,81 +16,108 @@ export async function downloadAssessmentPdf(params: {
     format: "a4",
   });
 
-  // Header Banner
-  doc.setFillColor(77, 41, 91); // Plum
-  doc.rect(0, 0, 210, 42, "F");
+  // One calm, honest page: what the student took, what it suggests, one thing
+  // to try. No clinical framing ("severity tier", HIPAA), no invented text when
+  // the AI summary is missing, and no score for quizzes that aren't scored.
+  const { hasRealScore } = await import("../../lib/wellbeing");
+  const PLUM: [number, number, number] = [91, 58, 110];
+  const INK: [number, number, number] = [31, 41, 55];
+  const MUTED: [number, number, number] = [107, 114, 128];
+  const W = 210, M = 20, CW = W - M * 2;
+  const dateStr = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-  doc.setTextColor(255, 255, 255);
+  // Top line: wordmark + date
   doc.setFont("Helvetica", "bold");
-  doc.setFontSize(18);
-  doc.text("WellMindly Wellness Assessment Report", 15, 16);
-
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(230, 230, 230);
-  doc.text("Student Wellness Report & Personalized Summary", 15, 24);
-  doc.text(`Generated: ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`, 15, 31);
-
-  // Metadata Card
-  doc.setFillColor(248, 250, 252);
-  doc.rect(15, 50, 180, 28, "F");
-  doc.setDrawColor(226, 232, 240);
-  doc.rect(15, 50, 180, 28, "S");
-
-  doc.setTextColor(71, 85, 105);
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(9);
-  doc.text("ASSESSMENT DETAILS", 20, 56);
-
+  doc.setFontSize(13);
+  doc.setTextColor(...PLUM);
+  doc.text("WellMindly", M, 22);
   doc.setFont("Helvetica", "normal");
   doc.setFontSize(9);
-  doc.text(`Instrument: ${params.title}`, 20, 63);
-  doc.text(`Category: ${params.category || "General Wellbeing"}`, 20, 70);
+  doc.setTextColor(...MUTED);
+  doc.text(dateStr, W - M, 22, { align: "right" });
+  doc.setDrawColor(229, 231, 235);
+  doc.line(M, 27, W - M, 27);
 
-  if (params.score !== undefined) {
-    doc.text(`Score: ${params.score} / ${params.maxScore || 100}`, 110, 63);
-    doc.text(`Severity Tier: ${params.classification || "Optimal"}`, 110, 70);
+  // Title
+  let y = 44;
+  if (params.category) {
+    doc.setFontSize(9);
+    doc.setTextColor(...MUTED);
+    doc.text(params.category.toUpperCase(), M, y);
+    y += 7;
+  }
+  doc.setFont("Helvetica", "bold");
+  doc.setFontSize(22);
+  doc.setTextColor(...INK);
+  const titleLines = doc.splitTextToSize(params.title, CW);
+  doc.text(titleLines, M, y);
+  y += titleLines.length * 9 + 4;
+
+  // Highlight card: the headline / result in words, then the score if real.
+  const headline = params.headline || params.classification;
+  const showScore =
+    params.score !== undefined && hasRealScore(params.title, params.score, params.maxScore);
+  if (headline || showScore) {
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(15);
+    const hl = headline ? doc.splitTextToSize(headline, CW - 16) : [];
+    const cardH = 14 + hl.length * 7 + (showScore ? 16 : 0);
+    doc.setFillColor(246, 241, 248);
+    doc.roundedRect(M, y, CW, cardH, 4, 4, "F");
+    let cy = y + 12;
+    if (hl.length) {
+      doc.setTextColor(...PLUM);
+      doc.text(hl, M + 8, cy);
+      cy += hl.length * 7 + 2;
+    }
+    if (showScore && params.maxScore) {
+      doc.setFont("Helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(...MUTED);
+      doc.text(`Score ${params.score} of ${params.maxScore}`, M + 8, cy + 2);
+      const barX = M + 50, barW = CW - 58, pct = Math.max(0, Math.min(1, (params.score ?? 0) / params.maxScore));
+      doc.setFillColor(226, 214, 233);
+      doc.roundedRect(barX, cy - 1, barW, 3.5, 1.75, 1.75, "F");
+      doc.setFillColor(...PLUM);
+      if (pct > 0) doc.roundedRect(barX, cy - 1, Math.max(3.5, barW * pct), 3.5, 1.75, 1.75, "F");
+    }
+    y += cardH + 12;
   }
 
-  // Section: Wellbeing Insights
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(77, 41, 91);
-  doc.text("1. Wellbeing Summary & Narrative", 15, 90);
+  const section = (heading: string, text: string) => {
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...INK);
+    doc.text(heading, M, y);
+    y += 7;
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10.5);
+    doc.setTextColor(55, 65, 81);
+    const lines = doc.splitTextToSize(text, CW);
+    doc.text(lines, M, y, { lineHeightFactor: 1.5 });
+    y += lines.length * 5.6 + 10;
+  };
+  if (params.narrative) section("What this means", params.narrative);
+  if (params.tip) section("Something to try", params.tip);
+  if (!params.narrative && !params.tip) {
+    section("Your result", "Open WellMindly to see your full result and explore what it means for you.");
+  }
 
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(51, 65, 85);
-  const narrative = params.narrative || "Student completed the emotional wellness check-in, assessing affective state, sleep continuity, and academic pressure. Scores indicate positive coping with mild situational stress.";
-  const narrativeLines = doc.splitTextToSize(narrative, 180);
-  doc.text(narrativeLines, 15, 98);
-
-  let currentY = 98 + narrativeLines.length * 6 + 10;
-
-  // Section: Recommendations
-  doc.setFont("Helvetica", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(77, 41, 91);
-  doc.text("2. Tailored Recommendations & Next Steps", 15, currentY);
-  currentY += 8;
-
-  doc.setFont("Helvetica", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(51, 65, 85);
-  const tip = params.tip || "Maintain consistent circadian routines. Explore guided journaling in WriteMindly or schedule a brief check-in with your university wellness coach.";
-  const tipLines = doc.splitTextToSize(tip, 180);
-  doc.text(tipLines, 15, currentY);
-
-  // Footer Disclaimer
-  doc.setFontSize(8);
-  doc.setTextColor(148, 163, 184);
+  // Footer
+  doc.setDrawColor(229, 231, 235);
+  doc.line(M, 270, W - M, 270);
+  doc.setFontSize(8.5);
+  doc.setTextColor(...MUTED);
   doc.text(
-    "Confidential Document. Intended for student personal records and licensed university counseling review under HIPAA guidelines.",
-    15,
-    280
+    doc.splitTextToSize(
+      "This is a reflection tool, not a diagnosis. If things feel heavy, you don't have to handle it alone: find free helplines at wellmindly.com/crisis.",
+      CW,
+    ),
+    M,
+    276,
   );
 
-  const fileName = "WellMindly_Assessment_Report.pdf";
+  const fileName = `WellMindly_${params.title.replace(/[^a-z0-9]+/gi, "_").replace(/^_|_$/g, "")}_${new Date().toISOString().slice(0, 10)}.pdf`;
 
   // Web: jsPDF's blob download works. Native (Capacitor Android/iOS): the WebView
   // has no download bridge, so doc.save() silently does nothing - the "Save PDF"
@@ -110,7 +137,7 @@ export async function downloadAssessmentPdf(params: {
       });
       await Share.share({
         title: "WellMindly Assessment Report",
-        text: "Your WellMindly wellness assessment report.",
+        text: "Your WellMindly result.",
         url: uri,
         dialogTitle: "Save or share your report",
       });

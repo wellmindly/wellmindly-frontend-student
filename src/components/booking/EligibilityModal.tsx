@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Sparkles, Check, Bell, MessageSquare, PenTool, AlertCircle } from "lucide-react";
 import { Sheet, Button } from "../ui";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 import { trackEvent } from "../../lib/analytics";
 
 export interface EligibilityModalProps {
@@ -43,9 +43,12 @@ export function EligibilityModal({ open, onClose, onNavigateTab }: EligibilityMo
       );
       setEmail("");
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.error ||
-        "Unable to join the waitlist right now. Please check your network and try again.";
+      // apiErrorMessage handles both error shapes; an { error: { code, message } }
+      // object rendered as text here would crash the modal.
+      const msg = apiErrorMessage(
+        err,
+        "Unable to join the waitlist right now. Please check your network and try again.",
+      );
       setErrorMessage(msg);
       setStatus("error");
     }

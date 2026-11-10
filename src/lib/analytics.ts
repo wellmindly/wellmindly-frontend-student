@@ -405,6 +405,22 @@ export function acceptAllConsent(): ConsentRecord {
   return saveConsent('accepted_all', { analytics: true, marketing: true });
 }
 
+/**
+ * The Android app shows no cookie banner, so whatever it records is a default
+ * the student never chose. That default used to be acceptAllConsent(), which
+ * also granted marketing (GA4 ad_storage / ad_user_data) - advertising signals
+ * from a student wellbeing app, with no choice offered. The native default is
+ * product analytics only.
+ *
+ * Every native record so far was written by that silent default, so one that
+ * still grants marketing is downgraded here rather than honoured.
+ */
+export function ensureNativeDefaultConsent(): ConsentRecord {
+  const existing = getConsent();
+  if (existing && !existing.categories.marketing) return existing;
+  return saveConsent('customized', { analytics: true, marketing: false });
+}
+
 export function rejectAllConsent(): ConsentRecord {
   return saveConsent('rejected_all', { analytics: false, marketing: false });
 }
@@ -792,8 +808,8 @@ export function initAnalytics(overrideConfig?: Partial<AnalyticsConfig>): void {
     }
   });
 
-  if (isNativeApp() && !getConsent()) {
-    acceptAllConsent();
+  if (isNativeApp()) {
+    ensureNativeDefaultConsent();
   }
 
   if (hasAnalyticsConsent()) {

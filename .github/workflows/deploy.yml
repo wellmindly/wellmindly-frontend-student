@@ -39,7 +39,13 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Deploy to S3
-        run: aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET }} --delete
+        # Hashed assets are immutable and never deleted, so a browser still holding
+        # the previous index.html can load its old chunks after a deploy. HTML is
+        # no-cache so every load picks up the newest asset names.
+        run: |
+          aws s3 sync dist/assets s3://${{ secrets.AWS_S3_BUCKET }}/assets --cache-control "public, max-age=31536000, immutable"
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET }} --delete --exclude "assets/*" --exclude "*.html"
+          aws s3 sync dist/ s3://${{ secrets.AWS_S3_BUCKET }} --exclude "*" --include "*.html" --cache-control "no-cache"
 
       # Serve the prerendered legal pages at the exact, extensionless paths
       # /privacy and /terms so crawlers (Google OAuth verification, Play review)

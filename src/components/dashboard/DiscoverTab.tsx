@@ -64,6 +64,13 @@ export function DiscoverTab({
     }
   };
 
+  // Completed tests come from the server's history, matched on title the same
+  // way useDashboard reopens a result from it.
+  const doneTitles = new Set<string>(
+    (resultsData?.timeline ?? []).map((r: { quizTitle?: string }) => r.quizTitle),
+  );
+  const doneIds = new Set(Object.keys(TESTS).filter((id) => doneTitles.has(TESTS[id].title)));
+
   if (discoverLoading) {
     const curTitle = curDiscoverId && TESTS[curDiscoverId] ? TESTS[curDiscoverId].title : "your assessment";
     return (
@@ -94,7 +101,9 @@ export function DiscoverTab({
       )}
 
       <div className="max-w-4xl mx-auto">
-        {discoverView === "hub" && <HubView startTest={startDiscoverTest} goTo={goTo} as="h2" />}
+        {discoverView === "hub" && (
+          <HubView startTest={startDiscoverTest} goTo={goTo} as="h2" doneIds={doneIds} />
+        )}
 
         {discoverView === "test" && curDiscoverId && TESTS[curDiscoverId] && (() => {
           const cur = TESTS[curDiscoverId];

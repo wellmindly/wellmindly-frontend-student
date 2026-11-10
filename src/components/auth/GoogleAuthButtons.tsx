@@ -75,7 +75,7 @@ export function GoogleAuthButtons({
       <div className="my-6 flex items-center gap-3">
         <span className="h-px flex-1 bg-line" />
         <span className="text-2xs font-bold uppercase tracking-widest text-ink-400">
-          Or connect with
+          or
         </span>
         <span className="h-px flex-1 bg-line" />
       </div>

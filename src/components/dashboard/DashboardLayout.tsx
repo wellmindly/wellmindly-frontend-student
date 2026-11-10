@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
@@ -19,10 +19,10 @@ import { config } from "../../config";
 import { cn } from "../../lib/cn";
 import { spring, tween } from "../../lib/motion";
 import { useScrollTopOnChange } from "../../lib/a11y";
-import { Avatar, CrisisBanner, ConfirmSheet, IconButton, PresenceSwap } from "../ui";
+import { Avatar, CrisisBanner, ConfirmSheet, IconButton, PresenceSwap, useToast } from "../ui";
 import { hapticTap, setStatusBarTheme, registerBackHandler } from "../../lib/native";
 import logoPng from "../../assets/logo.png";
-import api from "../../services/api";
+import api, { apiErrorMessage } from "../../services/api";
 
 /* ============================================================================
    DashboardLayout
@@ -80,19 +80,43 @@ export function DashboardLayout(props: DashboardLayoutProps) {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const { toast } = useToast();
+
+  // The route change and the sign-out must land in the same render. React
+  // Router navigates inside a transition, so a plain logout() (an urgent
+  // update) committed first and ProtectedRoute bounced the student to
+  // /login?redirect=/dashboard... - asking them to sign back in to the account
+  // they had just deleted. One transition commits both together.
+  const finishDeletedSession = () => {
+    setShowDeleteConfirm(false);
+    startTransition(() => {
+      navigate('/', { replace: true });
+      props.logout();
+    });
+  };
 
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
     try {
       await api.delete('/auth/account');
-      setShowDeleteConfirm(false);
-      props.logout();
-      navigate('/');
+      finishDeletedSession();
+      toast('Your account and data have been deleted.', { tone: 'success' });
     } catch (err) {
       console.error('Failed to delete account in-app:', err);
+      // 404: the account is already gone, so finishing the sign-out is right.
+      if ((err as { response?: { status?: number } })?.response?.status === 404) {
+        finishDeletedSession();
+        return;
+      }
+      // Anything else means nothing was deleted. This used to sign the student
+      // out and send them home exactly as on success, so they left believing
+      // their data was erased while every record was still there. The sheet
+      // closes so the error isn't hidden behind it; the student stays in.
       setShowDeleteConfirm(false);
-      props.logout();
-      navigate('/');
+      toast(
+        apiErrorMessage(err, "We couldn't delete your account. Nothing was removed - please try again."),
+        { tone: 'error', duration: 8000 },
+      );
     } finally {
       setDeleteLoading(false);
     }

@@ -81,10 +81,13 @@ export function initNativeShell(): void {
   document.documentElement.classList.add("native");
 
   run(async () => {
-    // Edge-to-edge: the webview draws behind a transparent status bar and the
-    // app's own `pt-safe` padding (env(safe-area-inset-top)) clears it. This is
-    // the modern native look, not a coloured bar bolted on top.
-    await StatusBar.setOverlaysWebView({ overlay: true });
+    // Keep the webview BELOW the status bar. Drawing behind it relied on
+    // env(safe-area-inset-top), which Android WebViews older than ~Chrome 136
+    // report as 0px, so the crisis strip and header sat under the clock and
+    // status icons (seen on an Android 13 emulator, WebView 109). `pt-safe`
+    // stays harmless: with no overlay the inset is 0.
+    await StatusBar.setOverlaysWebView({ overlay: false });
+    await StatusBar.setBackgroundColor({ color: "#FFFFFF" });
     await StatusBar.setStyle({ style: Style.Light });
   });
 
@@ -93,12 +96,15 @@ export function initNativeShell(): void {
   run(() => Keyboard.setResizeMode({ mode: KeyboardResize.Native }));
   run(() => Keyboard.setAccessoryBarVisible({ isVisible: false })); // iOS-only, no-ops elsewhere
 
+  // `canGoBack` comes from the WebView itself. `window.history.length` cannot
+  // stand in for it: it counts forward entries too and never shrinks on back,
+  // so after a single navigation the app could never be exited with back.
   run(() =>
-    CapApp.addListener("backButton", () => {
+    CapApp.addListener("backButton", ({ canGoBack }) => {
       for (let i = backHandlers.length - 1; i >= 0; i--) {
         if (backHandlers[i]()) return;
       }
-      if (window.history.length > 1) {
+      if (canGoBack) {
         window.history.back();
       } else {
         run(() => CapApp.exitApp());

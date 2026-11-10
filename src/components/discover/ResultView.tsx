@@ -434,7 +434,7 @@ export function ResultView({
       {historyAttempts.length > 0 && (
         <Card elevation="sunken" padding="md" className="no-print space-y-4">
           <div className="flex items-center justify-between border-b border-line pb-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-plum-600">Your Check-in History</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-plum-600">{isWellbeing ? 'Your Check-in History' : 'Your History'}</h4>
             <span className="rounded-full bg-paper-2 px-2.5 py-0.5 text-2xs font-bold text-ink-600">
               {historyAttempts.length} {historyAttempts.length === 1 ? 'Attempt' : 'Attempts'}
             </span>

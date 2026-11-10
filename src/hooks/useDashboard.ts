@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { moodByRating } from "../lib/mood";
 import { bandFor } from "../lib/wellbeing";
+import { useToast } from "../components/ui";
 
 import {
   TESTS,
@@ -56,6 +57,7 @@ export function normalizeTab(tab: string | null | undefined): string {
 
 export function useDashboard() {
   const { user, logout } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -191,6 +193,7 @@ export function useDashboard() {
   const cardRef = useRef<HTMLDivElement>(null);
   const reportRef = useRef<HTMLDivElement>(null);
   const [discoverLoading, setDiscoverLoading] = useState(false);
+  const submittingRef = useRef(false);
 
   // ── API helpers ──────────────────────────────────────────
   const fetchResults = async () => {
@@ -233,12 +236,13 @@ export function useDashboard() {
       });
       fetchResults();
       return {
+        saved: true,
         resultId: response.data?.id || null,
         aiFeedback: response.data?.aiFeedback || null,
       };
     } catch (err) {
       console.error("Failed to submit Discover result to backend:", err);
-      return { resultId: null, aiFeedback: null };
+      return { saved: false, resultId: null, aiFeedback: null };
     } finally {
       setDiscoverLoading(false);
     }
@@ -440,20 +444,24 @@ export function useDashboard() {
     const params = new URLSearchParams(window.location.search);
     const showResult = params.get("showResult");
 
+    // Claim the entries *before* the first await. The old loop removed them
+    // only after posting, so a second run of this effect (React StrictMode,
+    // or the dashboard remounting) read the same list and posted every result
+    // again - one finished quiz became two or three rows in the history.
+    const claimed = entries.filter(([quizId]) => quizId !== showResult && TESTS[quizId]);
+    if (claimed.length === 0) return;
+    claimed.forEach(([quizId]) => delete allDiscover[quizId]);
+    saveAll(allDiscover);
+
     (async () => {
-      let changed = false;
-      for (const [quizId, list] of entries) {
-        if (quizId === showResult) continue;
+      for (const [quizId, list] of claimed) {
         const test = TESTS[quizId];
-        if (!test) continue;
         for (const r of list) {
-          await syncGuestResultToBackend(quizId, test, r);
+          const synced = await syncGuestResultToBackend(quizId, test, r);
+          // Offline or a server error: put it back for the next visit rather
+          // than dropping a result the student never saw saved.
+          if (!synced) saveResult(quizId, r);
         }
-        delete allDiscover[quizId];
-        changed = true;
-      }
-      if (changed) {
-        saveAll(allDiscover);
       }
     })();
   }, [syncGuestResultToBackend]);
@@ -467,7 +475,34 @@ export function useDashboard() {
     setDiscoverView("test");
   };
 
+  /**
+   * The browser copy (discover/types.ts saveResult) is the *guest* store: the
+   * dashboard posts everything in it to the server on its next load. Writing a
+   * signed-in student's result there after it had already been saved is what
+   * doubled their history, so it is only kept when the save failed - then the
+   * next visit retries it, and the student is told.
+   */
+  const keepLocallyIfUnsaved = (saved: boolean, id: string, res: SavedResult) => {
+    if (saved) return;
+    saveResult(id, res);
+    toast("We couldn't save this result to your account yet. We'll try again next time you open WellMindly.", {
+      tone: "warning",
+    });
+  };
+
   const finishDiscoverTest = async (id: string, test: TestDef, responses: (number | string)[]) => {
+    // One submission per attempt. A double tap on the last answer (Likert
+    // advances on a 200ms timer) used to post the same result twice.
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      await scoreAndSubmit(id, test, responses);
+    } finally {
+      submittingRef.current = false;
+    }
+  };
+
+  const scoreAndSubmit = async (id: string, test: TestDef, responses: (number | string)[]) => {
     const category = test.tag?.split(" · ")[0] || "General";
 
     if (test.kind === "pairs") {
@@ -479,9 +514,9 @@ export function useDashboard() {
       const top = ranked.slice(0, 2).map((x) => x[0]);
       const summary = top.join(" + ");
 
-      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { top, summary, responses });
+      const { saved, resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { top, summary, responses });
 
-      saveResult(id, { t: Date.now(), summary, top, aiFeedback });
+      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary, top, aiFeedback });
       setDiscoverResultData({ resultId, kind: "values", top, aiFeedback });
       setDiscoverView("result");
       return;
@@ -494,9 +529,9 @@ export function useDashboard() {
       const top = ranked.slice(0, test.topN).map((x) => x[0]);
       const summary = top.join(", ");
 
-      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { scores, top, summary, responses });
+      const { saved, resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, summary, { scores, top, summary, responses });
 
-      saveResult(id, { t: Date.now(), summary, scores, top, aiFeedback });
+      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary, scores, top, aiFeedback });
       setDiscoverResultData({ resultId, kind: "strengths", scores, top, aiFeedback });
       setDiscoverView("result");
       return;
@@ -505,9 +540,9 @@ export function useDashboard() {
     if (test.kind === "type") {
       const top = ranked[0][0];
 
-      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, top, { scores, top: [top], summary: top, responses });
+      const { saved, resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, top, { scores, top: [top], summary: top, responses });
 
-      saveResult(id, { t: Date.now(), summary: top, scores, top: [top], aiFeedback });
+      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary: top, scores, top: [top], aiFeedback });
       setDiscoverResultData({ resultId, kind: "type", scores, top: [top], aiFeedback });
       setDiscoverView("result");
       return;
@@ -518,9 +553,9 @@ export function useDashboard() {
     if (test.archetype) {
       const arch = pickArchetype(scores);
 
-      const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, arch.name, { scores, archetype: arch, responses });
+      const { saved, resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, 100, 100, arch.name, { scores, archetype: arch, responses });
 
-      saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
+      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary, scores, aiFeedback });
       setDiscoverResultData({ resultId, kind: "bigfive", scores, archetype: arch, aiFeedback });
       setDiscoverView("result");
     } else {
@@ -538,7 +573,7 @@ export function useDashboard() {
         classText = bandFor(sum).label;
       }
 
-      const { resultId, aiFeedback } = await submitDiscoverToBackend(
+      const { saved, resultId, aiFeedback } = await submitDiscoverToBackend(
         test.title,
         category,
         sum,
@@ -547,7 +582,7 @@ export function useDashboard() {
         { scores, summary, responses }
       );
 
-      saveResult(id, { t: Date.now(), summary, scores, aiFeedback });
+      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary, scores, aiFeedback });
       setDiscoverResultData({ resultId, kind: id === "phq9" ? "phq9" : "checkin", scores, aiFeedback });
       setDiscoverView("result");
     }
@@ -582,13 +617,22 @@ export function useDashboard() {
   };
 
   const answerDiscoverPicture = async (opt: PictureOption) => {
-    if (!curDiscoverId) return;
+    if (!curDiscoverId || submittingRef.current) return;
+    submittingRef.current = true;
+    try {
+      await submitPicture(curDiscoverId, opt);
+    } finally {
+      submittingRef.current = false;
+    }
+  };
+
+  const submitPicture = async (curDiscoverId: string, opt: PictureOption) => {
     const test = TESTS[curDiscoverId];
     const category = test.tag?.split(" · ")[0] || "General";
 
-    const { resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
+    const { saved, resultId, aiFeedback } = await submitDiscoverToBackend(test.title, category, opt.tone, 100, opt.label);
 
-    saveResult(curDiscoverId, { t: Date.now(), summary: opt.label, tone: opt.tone, label: opt.label, aiFeedback });
+    keepLocallyIfUnsaved(saved, curDiscoverId, { t: Date.now(), summary: opt.label, tone: opt.tone, label: opt.label, aiFeedback });
     setDiscoverResultData({ resultId, kind: "picture", pictureOption: opt, aiFeedback });
     setDiscoverView("result");
   };
@@ -597,6 +641,7 @@ export function useDashboard() {
 
   // ── Daily check-in handler ───────────────────────────────
   const handleDailyCheckin = async (rating: number) => {
+    const previousMood = dailyMood;
     try {
       setDailyMood(rating);
       await api.post("/students/me/daily-checkin", { rating });
@@ -608,6 +653,12 @@ export function useDashboard() {
       setShowCheckinModal(true);
     } catch (err) {
       console.error("Failed to save daily check-in:", err);
+      // The mood was shown optimistically. Leaving it there after the save
+      // failed told the student "checked in" for a day the server never saw.
+      setDailyMood(previousMood);
+      toast("We couldn't save your check-in. Check your connection and try again.", {
+        tone: "error",
+      });
     }
   };
 

@@ -176,7 +176,8 @@ export function DiscoverPage() {
 
         {/* Nav */}
         <SkipLink />
-        <nav className="sticky top-0 z-50 backdrop-blur-xl bg-paper/80 border-b border-line/70">
+        {/* Safe-area inset: the Android app draws edge-to-edge under the status bar. */}
+        <nav className="sticky top-0 z-50 backdrop-blur-xl bg-paper/80 border-b border-line/70 pt-[var(--safe-area-top)]">
           <div className="max-w-[920px] mx-auto flex items-center justify-between px-5 py-4">
             <div className="flex items-center gap-2">
               <Logo size="md" />

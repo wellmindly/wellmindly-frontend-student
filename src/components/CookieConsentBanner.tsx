@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Cookie, X, SlidersHorizontal, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Shield, Cookie, X, SlidersHorizontal } from 'lucide-react';
 import {
   getConsent,
   saveConsent,
   acceptAllConsent,
+  ensureNativeDefaultConsent,
   rejectAllConsent,
   type ConsentRecord,
 } from '../lib/analytics';
@@ -21,9 +23,8 @@ export function CookieConsentBanner() {
 
   useEffect(() => {
     if (isNativeApp()) {
-      if (!getConsent()) {
-        acceptAllConsent();
-      }
+      // Analytics only - see ensureNativeDefaultConsent in lib/analytics.ts.
+      ensureNativeDefaultConsent();
       return;
     }
 
@@ -107,48 +108,46 @@ export function CookieConsentBanner() {
         <aside
           role="region"
           aria-label="Cookie and Privacy Consent"
-          className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-4xl"
+          className="fixed bottom-[calc(0.75rem+env(safe-area-inset-bottom))] left-3 right-3 z-50 mx-auto max-w-4xl sm:bottom-4 sm:left-4 sm:right-4"
         >
-          <div className="rounded-2xl border border-slate-200 bg-white/95 p-5 shadow-2xl backdrop-blur-md sm:p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-3.5">
-                <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                  <Cookie className="h-5 w-5" aria-hidden="true" />
-                </div>
+          {/* Compact on phones: it used to cover about half the screen and the
+              dashboard's bottom nav. Full wording lives in "Customize". */}
+          <div className="rounded-2xl border border-ink-200/70 bg-card/95 p-4 shadow-xl backdrop-blur-md sm:p-5">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:gap-6">
+              <div className="flex items-start gap-3">
+                <Cookie className="mt-0.5 hidden h-5 w-5 shrink-0 text-plum sm:block" aria-hidden="true" />
                 <div className="space-y-1">
-                  <h2 className="text-sm font-semibold text-slate-900">
-                    WellMindly &bull; Privacy &amp; Cookie Choices
-                  </h2>
-                  <p className="text-xs leading-relaxed text-slate-600 max-w-2xl">
-                    WellMindly uses strictly necessary cookies for core session security. With your permission, aggregate analytics help us improve platform navigation and stability. We never track private mood scores, journal reflections, or clinical assessment answers.
+                  <h2 className="text-sm font-semibold text-ink-900">Cookies</h2>
+                  <p className="text-xs leading-relaxed text-ink-600 max-w-2xl">
+                    Essential cookies keep you signed in. Optional analytics are anonymous and never include your moods, journal or answers.
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 sm:shrink-0">
+              <div className="grid grid-cols-3 gap-2 md:flex md:shrink-0 md:items-center">
                 <button
                   type="button"
                   onClick={() => setShowModal(true)}
-                  className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 cursor-pointer"
+                  className="min-h-11 rounded-xl px-3 py-2 text-xs font-semibold text-ink-700 transition hover:bg-paper-2 cursor-pointer"
                 >
-                  <span className="flex items-center gap-1.5">
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                    Customize
+                  <span className="flex items-center justify-center gap-1.5">
+                    <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+                    Options
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={handleRejectAll}
-                  className="rounded-xl border border-slate-200 bg-slate-100 px-4 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 cursor-pointer"
+                  className="min-h-11 rounded-xl border border-ink-200 bg-card px-3 py-2 text-xs font-semibold text-ink-700 transition hover:bg-paper-2 cursor-pointer"
                 >
-                  Reject Optional
+                  Essentials
                 </button>
                 <button
                   type="button"
                   onClick={handleAcceptAll}
-                  className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 cursor-pointer"
+                  className="min-h-11 rounded-xl bg-plum px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:opacity-90 cursor-pointer"
                 >
-                  Accept All
+                  Accept all
                 </button>
               </div>
             </div>
@@ -166,7 +165,7 @@ export function CookieConsentBanner() {
           <div
             ref={modalRef}
             tabIndex={-1}
-            className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl focus:outline-none"
+            className="max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto overscroll-contain rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl focus:outline-none"
           >
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div className="flex items-center gap-2.5">
@@ -179,7 +178,7 @@ export function CookieConsentBanner() {
                 type="button"
                 onClick={() => setShowModal(false)}
                 aria-label="Close preferences"
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+                className="-mr-2 inline-flex h-11 w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -245,27 +244,28 @@ export function CookieConsentBanner() {
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-              <a
-                href="https://wellmindly.com/privacy"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-2xs font-medium text-indigo-600 hover:underline"
+              {/* In-app route, not an absolute wellmindly.com URL: the policy is
+                  part of this app, and an external link leaves the page. */}
+              <Link
+                to="/privacy"
+                onClick={() => setShowModal(false)}
+                className="inline-flex min-h-11 items-center text-xs font-medium text-indigo-600 hover:underline"
               >
-                Privacy Notice <ExternalLink className="h-3 w-3" />
-              </a>
+                Privacy Notice
+              </Link>
 
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleRejectAll}
-                  className="rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 cursor-pointer"
+                  className="min-h-11 rounded-xl border border-slate-200 px-3.5 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 cursor-pointer"
                 >
                   Reject Optional
                 </button>
                 <button
                   type="button"
                   onClick={handleSavePreferences}
-                  className="rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 cursor-pointer"
+                  className="min-h-11 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-indigo-700 cursor-pointer"
                 >
                   Save Choices
                 </button>
