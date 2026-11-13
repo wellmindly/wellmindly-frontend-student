@@ -199,8 +199,8 @@ function CoachCard({
         </div>
 
         {/* Counselor Rating & Reviews */}
-        <div className="flex items-center gap-1.5 mb-3.5 bg-amber-50/80 border border-amber-200/60 rounded-full px-2.5 py-0.5 w-fit">
-          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" aria-hidden="true" />
+        <div className="flex items-center gap-1.5 mb-3.5 bg-gold-50/80 border border-gold-200/60 rounded-full px-2.5 py-0.5 w-fit">
+          <Star className="w-3.5 h-3.5 fill-gold-400 text-gold-500" aria-hidden="true" />
           <span className="text-xs font-bold text-ink-900">
             {coach.rating ? coach.rating.toFixed(1) : "4.9"}
           </span>

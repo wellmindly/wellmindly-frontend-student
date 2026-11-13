@@ -131,7 +131,7 @@ export function InteractiveQuizLoader({
       {/* Header Area */}
       <div className="text-center relative z-10 mb-4 sm:mb-6">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-plum-100/80 text-plum-800 border border-plum-200/70 text-xs font-bold shadow-2xs mb-3">
-          <BrainCircuit className="w-4 h-4 animate-pulse text-plum-600" />
+          <BrainCircuit className="w-4 h-4 text-plum-600" />
           <span>Generating AI Insights</span>
         </div>
 
