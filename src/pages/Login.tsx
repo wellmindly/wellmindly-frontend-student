@@ -189,7 +189,7 @@ export function LoginPage() {
       setGlobalError(null);
       setSubmitting(true);
       const { SocialLogin } = await import('@capgo/capacitor-social-login');
-      await SocialLogin.initialize({ apple: {} });
+      await SocialLogin.initialize({ apple: { useProperTokenExchange: true } });
 
       const nonce = crypto.randomUUID();
       const login = await SocialLogin.login({
@@ -203,6 +203,9 @@ export function LoginPage() {
       const res = await api.post('/auth/apple/callback', {
         idToken: result.idToken,
         nonce,
+        // Raw code (needs useProperTokenExchange); the backend exchanges it for
+        // a refresh token so Apple can revoke it on account deletion.
+        authorizationCode: result.authorizationCode ?? undefined,
         firstName: result.profile?.givenName ?? undefined,
         lastName: result.profile?.familyName ?? undefined,
       });
