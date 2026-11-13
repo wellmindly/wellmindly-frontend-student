@@ -181,6 +181,53 @@ export function LoginPage() {
     }
   };
 
+  // iOS only (the button is hidden elsewhere). Sends Apple's identity token to
+  // the backend, which verifies it against Apple's keys. Apple returns the
+  // user's name only on the first authorization, so it is forwarded now.
+  const handleAppleLogin = async () => {
+    try {
+      setGlobalError(null);
+      setSubmitting(true);
+      const { SocialLogin } = await import('@capgo/capacitor-social-login');
+      await SocialLogin.initialize({ apple: {} });
+
+      const nonce = crypto.randomUUID();
+      const login = await SocialLogin.login({
+        provider: 'apple',
+        options: { scopes: ['email', 'name'], nonce },
+      });
+      const result = login.provider === 'apple' ? login.result : null;
+      if (!result?.idToken) {
+        throw new Error("No identity token returned from Sign in with Apple.");
+      }
+      const res = await api.post('/auth/apple/callback', {
+        idToken: result.idToken,
+        nonce,
+        firstName: result.profile?.givenName ?? undefined,
+        lastName: result.profile?.familyName ?? undefined,
+      });
+      const { token, user } = res.data;
+      loginSuccess(token, user);
+      trackEvent('login_completed', { method: 'apple' });
+      navigateAfterAuth();
+    } catch (err: any) {
+      console.error("Native Apple Auth Error:", err);
+      const errStr = `${err?.message || ''} ${err?.code || ''}`.toLowerCase();
+      if (errStr.includes('cancel') || errStr.includes('1001')) {
+        // User cancelled, do nothing
+        return;
+      }
+      const backendError = apiErrorMessage(err, "");
+      setGlobalError(
+        backendError && backendError !== "Authentication failed. Please verify credentials."
+          ? backendError
+          : "We couldn't sign you in with Apple right now. Please try again, or use your email and password.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSendOtp = async () => {
     setGlobalError(null);
     setGlobalSuccess(null);
@@ -416,6 +463,7 @@ export function LoginPage() {
               onWebSuccess={handleGoogleSuccess}
               onWebError={() => setGlobalError("Google login widget failed to load.")}
               onNativeClick={handleMobileGoogleLogin}
+              onAppleClick={handleAppleLogin}
               submitting={submitting}
               mode={mode}
             />
