@@ -7,6 +7,8 @@ export interface GoogleAuthButtonsProps {
   onWebSuccess: (response: CredentialResponse) => void;
   onWebError: () => void;
   onNativeClick: () => void;
+  /** iOS only. Omit to hide the Apple button. */
+  onAppleClick?: () => void;
   submitting: boolean;
   mode?: "login" | "register" | "forgot-password";
 }
@@ -15,6 +17,7 @@ export function GoogleAuthButtons({
   onWebSuccess,
   onWebError,
   onNativeClick,
+  onAppleClick,
   submitting,
   mode = "login",
 }: GoogleAuthButtonsProps) {
@@ -69,6 +72,22 @@ export function GoogleAuthButtons({
         >
           Sign in with Google
         </Button>
+      )}
+
+      {/* Sign in with Apple: iOS app only (App Store guideline 4.8). Apple's
+          button style is fixed by their HIG: black fill, white logo and text. */}
+      {Capacitor.getPlatform() === "ios" && onAppleClick && (
+        <button
+          type="button"
+          onClick={onAppleClick}
+          disabled={submitting}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-sm font-semibold text-white disabled:opacity-60" // guard-ignore
+        >
+          <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="currentColor">
+            <path d="M16.37 1.43c0 1.14-.46 2.22-1.2 3-.8.85-2.1 1.5-3.15 1.42-.13-1.1.42-2.25 1.15-3 .82-.85 2.2-1.5 3.2-1.42zM20.5 17.1c-.55 1.27-.82 1.84-1.52 2.96-.98 1.57-2.37 3.52-4.09 3.54-1.53.02-1.92-1-4-.99-2.08.01-2.51 1.01-4.04.99-1.72-.02-3.03-1.79-4.01-3.36C-.06 16.2-.35 10.9 1.9 8.1c1.6-1.97 3.67-3.12 5.7-3.12 2.07 0 3.37 1.13 5.08 1.13 1.66 0 2.67-1.14 5.06-1.14 1.81 0 3.73.99 5.1 2.7-4.48 2.46-3.75 8.86.66 9.43z" />
+          </svg>
+          Sign in with Apple
+        </button>
       )}
 
       {/* Divider */}
