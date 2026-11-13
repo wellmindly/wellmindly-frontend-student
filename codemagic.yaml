@@ -10,7 +10,7 @@ workflows:
       app_store_connect: wellmindly_asc
     environment:
       node: 22
-      xcode: latest
+      xcode: 26.0
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.wellmindly.app
@@ -25,8 +25,10 @@ workflows:
       - name: Capacitor sync
         script: npx cap sync ios
       - name: Apply signing
-        script: xcode-project use-profiles
+        script: xcode-project use-profiles --project "$XCODE_PROJECT"
       - name: Set build number
+        # Codemagic's per-workflow counter (monotonic). VERSIONING_SYSTEM=apple-generic
+        # is set in the pbxproj so agvtool works.
         script: |
           cd ios/App
           agvtool new-version -all "$BUILD_NUMBER"
