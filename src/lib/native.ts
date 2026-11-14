@@ -1,6 +1,5 @@
-import { Capacitor } from "@capacitor/core";
+import { Capacitor, SystemBars, SystemBarsStyle } from "@capacitor/core";
 import { App as CapApp } from "@capacitor/app";
-import { StatusBar, Style } from "@capacitor/status-bar";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { Keyboard, KeyboardResize } from "@capacitor/keyboard";
 import { Haptics, ImpactStyle, NotificationType } from "@capacitor/haptics";
@@ -45,10 +44,12 @@ export const hapticSuccess = (): void =>
   run(() => Haptics.notification({ type: NotificationType.Success }));
 
 /* --------------------------------------------------------------- status bar */
-/* "light" = a light app surface, so the OS needs dark icons (Style.Light).
-   "dark"  = the immersive dark surface (TalkMindly), so it needs light icons. */
+/* "light" = a light app surface, so the OS needs dark icons (SystemBarsStyle.Light).
+   "dark"  = the immersive dark surface (TalkMindly), so it needs light icons.
+   Uses Capacitor core's SystemBars, not @capacitor/status-bar: that plugin
+   calls window colour/overlay APIs deprecated in Android 15 (Play flags them). */
 export function setStatusBarTheme(theme: "light" | "dark"): void {
-  run(() => StatusBar.setStyle({ style: theme === "dark" ? Style.Dark : Style.Light }));
+  run(() => SystemBars.setStyle({ style: theme === "dark" ? SystemBarsStyle.Dark : SystemBarsStyle.Light }));
 }
 
 /* ------------------------------------------------------------------- splash */
@@ -80,16 +81,12 @@ export function initNativeShell(): void {
   // chrome) without those leaking into the web build from the same bundle.
   document.documentElement.classList.add("native");
 
-  run(async () => {
-    // Keep the webview BELOW the status bar. Drawing behind it relied on
-    // env(safe-area-inset-top), which Android WebViews older than ~Chrome 136
-    // report as 0px, so the crisis strip and header sat under the clock and
-    // status icons (seen on an Android 13 emulator, WebView 109). `pt-safe`
-    // stays harmless: with no overlay the inset is 0.
-    await StatusBar.setOverlaysWebView({ overlay: false });
-    await StatusBar.setBackgroundColor({ color: "#FFFFFF" });
-    await StatusBar.setStyle({ style: Style.Light });
-  });
+  // Status bar and insets are handled by Capacitor core's SystemBars
+  // (insetsHandling "css"): on Android 15+ with a current WebView the page draws
+  // edge-to-edge and env(safe-area-inset-*) / --safe-area-inset-* carry the real
+  // insets; on older WebViews Capacitor pads the WebView itself instead. Below
+  // Android 15 the app is not edge-to-edge, so nothing sits under the bars.
+  run(() => SystemBars.setStyle({ style: SystemBarsStyle.Light }));
 
   // Resize the whole webview when the keyboard opens so the fixed bottom nav
   // and inputs ride above it instead of being covered.
