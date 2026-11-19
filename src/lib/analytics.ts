@@ -125,6 +125,7 @@ export const ALLOWED_EVENTS = new Set([
   // Product usage funnel. Counts only: never content, scores, moods or names.
   'quiz_completed',
   'writemindly_message_sent',
+  'writemindly_ai_consent_granted',
   'talk_note_posted',
   'report_downloaded',
   'hero_mood_selected',

@@ -40,10 +40,10 @@ const ul = (items: string[]): LegalBlock => ({ kind: "ul", items });
 export const PRIVACY_POLICY: LegalDoc = {
   title: "Privacy Policy",
   tagline: "What we collect, why, and the control you have over it.",
-  updated: "November 8, 2026",
+  updated: "November 20, 2026",
   intro: [
     "WellMindly is a warm, private space for students to check in with how they feel, reflect, connect with peers, and book support. This policy explains what personal information we collect, how we use and protect it, and the choices and rights you have. We've tried to write it in plain language.",
-    "This policy applies to the WellMindly student web app and Android app (together, the \"Service\"), operated by WellMindly, founded by Runita Marwah (\"WellMindly\", \"we\", \"us\"). If you do not agree with this policy, please do not use the Service.",
+    "This policy applies to the WellMindly student web app, Android app and iOS app (together, the \"Service\"), operated by WellMindly, founded by Runita Marwah (\"WellMindly\", \"we\", \"us\"). If you do not agree with this policy, please do not use the Service.",
     "WellMindly is not a medical, diagnostic, or emergency service. If you are in crisis or may be in danger, use the in-app Crisis support screen or contact your local emergency services immediately.",
   ],
   sections: [
@@ -53,7 +53,7 @@ export const PRIVACY_POLICY: LegalDoc = {
       blocks: [
         p("We collect only what we need to run the Service and support your wellbeing. This includes:"),
         ul([
-          "Account information: if you register with email, your email address and a password (which our backend stores only in hashed form). If you use Google Sign-In, we receive your name, email address, profile picture, and Google account identifier through the permissions you grant (profile, email).",
+          "Account information: if you register with email, your email address and a password (which our backend stores only in hashed form). If you use Google Sign-In, we receive your name, email address, profile picture, and Google account identifier through the permissions you grant (profile, email). If you use Sign in with Apple, we receive an Apple account identifier, the email address you choose to share (which may be an Apple private relay address) and, the first time only, your name if you choose to share it. We also keep the token Apple gives us so we can revoke your Apple sign-in when you delete your account.",
           "Wellbeing content you create: emotional check-ins (a 1–5 mood rating and any optional notes), self-discovery and assessment responses and results (which can include questions about mood and psychological wellbeing), WriteMindly journal entries, and the posts and replies you share in TalkMindly peer spaces.",
           "Coaching and booking details: the coach you select, session date and time, and any information you choose to add when booking.",
           "Messages you send us: for example, through the contact form (your name, email, and message).",
@@ -110,7 +110,7 @@ export const PRIVACY_POLICY: LegalDoc = {
       blocks: [
         p("We share personal information only in these limited situations:"),
         ul([
-          "Service providers (sub-processors) who help us run the Service under contract — for example, our hosting and backend infrastructure provider Amazon Web Services (AWS), the AI provider named in Section 4, Google (for Google Sign-In), our analytics providers named in Section 6, and our email delivery provider. They may only use the data to provide services to us.",
+          "Service providers (sub-processors) who help us run the Service under contract — for example, our hosting and backend infrastructure provider Amazon Web Services (AWS), the AI provider named in Section 4, Google (for Google Sign-In), Apple (for Sign in with Apple), our analytics providers named in Section 6, and our email delivery provider. They may only use the data to provide services to us.",
           "Peer spaces: anything you post in TalkMindly is visible to other users of that space. Please do not share information there you would not want others to see.",
           "Legal and safety reasons: if required by law, or where we believe in good faith it is necessary to protect the safety of you or others.",
           "Business transfers: if WellMindly is involved in a merger, acquisition, or asset sale, your information may be transferred, subject to this policy.",
@@ -120,9 +120,10 @@ export const PRIVACY_POLICY: LegalDoc = {
     },
     {
       id: "google-services",
-      heading: "6. Google Sign-In and Google Fonts",
+      heading: "6. Google Sign-In, Sign in with Apple and Google Fonts",
       blocks: [
         p("If you choose Google Sign-In, Google authenticates you and shares the profile details described in Section 1 with us. Your use of Google Sign-In is also governed by Google's own privacy policy."),
+        p("If you choose Sign in with Apple, Apple authenticates you and shares only the details described in Section 1. Apple's own privacy policy also applies."),
         p("The web app loads fonts from Google Fonts, which may receive your IP address when the page loads them. We use Google Analytics with IP anonymization and Microsoft Clarity to understand aggregate usage trends and improve usability. We do not use Google advertising or remarketing services."),
       ],
     },
@@ -197,9 +198,9 @@ export const PRIVACY_POLICY: LegalDoc = {
 export const TERMS_OF_SERVICE: LegalDoc = {
   title: "Terms of Service",
   tagline: "The agreement between you and WellMindly when you use the app.",
-  updated: "November 8, 2026",
+  updated: "November 20, 2026",
   intro: [
-    "These Terms of Service (\"Terms\") govern your use of the WellMindly student web app and Android app (the \"Service\"), operated by WellMindly, founded by Runita Marwah (\"WellMindly\", \"we\", \"us\"). By creating an account or using the Service, you agree to these Terms and to our Privacy Policy.",
+    "These Terms of Service (\"Terms\") govern your use of the WellMindly student web app, Android app and iOS app (the \"Service\"), operated by WellMindly, founded by Runita Marwah (\"WellMindly\", \"we\", \"us\"). By creating an account or using the Service, you agree to these Terms and to our Privacy Policy.",
     "WellMindly is a wellbeing and peer-support tool, not a medical, diagnostic, therapeutic, or emergency service. It does not provide professional advice and is not a substitute for care from a qualified professional. If you are in crisis or may be in danger, use the in-app Crisis support screen or contact your local emergency services immediately.",
   ],
   sections: [
