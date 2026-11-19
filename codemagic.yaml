@@ -1,0 +1,43 @@
+# Codemagic iOS build -> TestFlight. No secrets in this file.
+# Needs (set up in Codemagic UI + Apple): Apple Developer account, App Store Connect API key
+# integration named "wellmindly_asc", and an app record for bundle id com.wellmindly.app.
+workflows:
+  ios-testflight:
+    name: Wellmindly iOS -> TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: wellmindly_asc
+    environment:
+      node: 22
+      xcode: 26.0
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.wellmindly.app
+      vars:
+        XCODE_SCHEME: App
+        XCODE_PROJECT: ios/App/App.xcodeproj
+    scripts:
+      - name: Install and build web
+        script: |
+          npm ci
+          npm run build
+      - name: Capacitor sync
+        script: npx cap sync ios
+      - name: Apply signing
+        script: xcode-project use-profiles --project "$XCODE_PROJECT"
+      - name: Set build number
+        # Codemagic's per-workflow counter (monotonic). VERSIONING_SYSTEM=apple-generic
+        # is set in the pbxproj so agvtool works.
+        script: |
+          cd ios/App
+          agvtool new-version -all "$BUILD_NUMBER"
+      - name: Build ipa
+        script: |
+          xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
