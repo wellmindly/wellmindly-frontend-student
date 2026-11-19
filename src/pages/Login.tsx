@@ -141,7 +141,15 @@ export function LoginPage() {
       // Must be the *web* OAuth client ID: Credential Manager mints the ID
       // token for it, and the backend verifies that audience.
       await SocialLogin.initialize({
-        google: { webClientId: config.googleClientId, mode: 'online' },
+        google: {
+          webClientId: config.googleClientId,
+          // iOS only: the plugin ignores Google on iOS without iOSClientId.
+          // iOSServerClientId keeps the ID token audience = web client ID.
+          ...(config.googleIosClientId
+            ? { iOSClientId: config.googleIosClientId, iOSServerClientId: config.googleClientId }
+            : {}),
+          mode: 'online',
+        },
       });
 
       // No `scopes` option: on Android the plugin always requests

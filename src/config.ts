@@ -14,6 +14,8 @@ export const config = {
   enableWriteMindly: import.meta.env.VITE_ENABLE_WRITEMINDLY !== 'false',
   /** Resolved Google OAuth web client ID (env override, else the bundled demo ID). */
   googleClientId: envGoogleClientId || DEMO_GOOGLE_CLIENT_ID,
+  /** Google OAuth iOS client ID (VITE_GOOGLE_IOS_CLIENT_ID); required for native Google sign-in on iOS. */
+  googleIosClientId: ((import.meta.env.VITE_GOOGLE_IOS_CLIENT_ID as string | undefined) || '').trim(),
   /** True when VITE_GOOGLE_CLIENT_ID was supplied for this build (vs. the demo fallback). */
   googleClientIdFromEnv: Boolean(envGoogleClientId),
   /** Google Analytics 4 Measurement ID (e.g. G-XXXXXXXXXX) */
