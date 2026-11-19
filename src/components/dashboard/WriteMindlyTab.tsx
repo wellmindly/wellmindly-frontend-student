@@ -88,7 +88,24 @@ function QuotaRing({ percent, className }: { percent: number; className?: string
   );
 }
 
+// App Store Guideline 5.1.2(i): name the third-party AI that receives the
+// student's words and get explicit permission before the first message.
+// Bump the version if the provider or what is sent ever changes.
+const AI_CONSENT_KEY = "writemindlyAiConsent.v1";
+
+function hasAiConsent(): boolean {
+  try {
+    return localStorage.getItem(AI_CONSENT_KEY) === "granted";
+  } catch {
+    return false;
+  }
+}
+
 export function WriteMindlyTab() {
+  const [aiConsent, setAiConsent] = useState<boolean>(hasAiConsent);
+  const [consentDeclined, setConsentDeclined] = useState(false);
+  // A starter tapped before consent: sent automatically once they allow.
+  const [pendingText, setPendingText] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string>("");
   const [inputValue, setInputValue] = useState("");
@@ -227,6 +244,12 @@ export function WriteMindlyTab() {
   const submitMessage = async (textToSend: string) => {
     const userMessageText = textToSend.trim();
     if (!userMessageText || isLoading) return;
+    if (!aiConsent) {
+      // Nothing leaves the device until the student says yes.
+      setPendingText(userMessageText);
+      setConsentDeclined(false);
+      return;
+    }
 
     setInputValue("");
     setError(null);
@@ -280,6 +303,27 @@ export function WriteMindlyTab() {
       setIsLoading(false);
     }
   };
+
+  const allowAi = () => {
+    try {
+      localStorage.setItem(AI_CONSENT_KEY, "granted");
+    } catch {
+      // Storage blocked: consent still holds for this visit.
+    }
+    setAiConsent(true);
+    setConsentDeclined(false);
+    trackEvent("writemindly_ai_consent_granted");
+  };
+
+  // Send the starter they tapped before allowing, now that they have.
+  useEffect(() => {
+    if (aiConsent && pendingText) {
+      const text = pendingText;
+      setPendingText(null);
+      void submitMessage(text);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aiConsent]);
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -511,6 +555,52 @@ export function WriteMindlyTab() {
           {error}
         </p>
 
+        {!aiConsent ? (
+          <div className="max-w-3xl mx-auto rounded-2xl border border-ink-200/70 bg-card p-4 sm:p-5 shadow-sm">
+            {consentDeclined ? (
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-ink-600">
+                  No problem. WriteMindly stays off until you allow it. Check-ins, TalkMindly and helplines work without it.
+                </p>
+                <Button variant="secondary" size="sm" onClick={() => setConsentDeclined(false)}>
+                  Review
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-start gap-2.5">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-sage-600" aria-hidden="true" />
+                  <div>
+                    <h3 className="text-sm font-bold text-ink-900">Before you start</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-600">
+                      WriteMindly replies using <strong className="font-semibold text-ink-800">Google Gemini</strong>, an AI service from Google.
+                      To get a reply, what you type is sent to Google, which uses it to write the answer. We don&rsquo;t save your words.
+                    </p>
+                    {pendingText && (
+                      <p className="mt-2 text-xs text-ink-500">Allow it and we&rsquo;ll send the message you picked.</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                  <Button
+                    variant="secondary"
+                    size="md"
+                    onClick={() => {
+                      setPendingText(null);
+                      setConsentDeclined(true);
+                    }}
+                  >
+                    Not now
+                  </Button>
+                  <Button variant="primary" size="md" onClick={allowAi}>
+                    Allow and continue
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+        <>
         {/* Coping shortcuts: only mid-conversation; the fresh chat already shows starters. */}
         {messages.length > 1 && (
         <div className="max-w-3xl mx-auto mb-2.5 flex items-center gap-2 overflow-x-auto pb-1 text-2xs">
@@ -589,6 +679,8 @@ export function WriteMindlyTab() {
             icon={<Send />}
           />
         </form>
+        </>
+        )}
       </footer>
 
       <ConfirmSheet
@@ -621,7 +713,7 @@ export function WriteMindlyTab() {
           <div className="flex gap-2.5">
             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-sage-600" aria-hidden="true" />
             <p className="text-xs font-medium leading-relaxed text-ink-600">
-              What you type is sent to our AI provider so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
+              What you type is sent to our AI provider, Google Gemini, so it can reply, and we do not save the words themselves (neither in logs nor in the database). We do save one row per message, with the date, the time and your account, so we can apply a daily limit. Staff can see that record and it never contains anything you wrote. Ending the session clears this screen; it does not delete those rows.
             </p>
           </div>
         </div>
