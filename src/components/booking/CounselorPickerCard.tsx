@@ -104,8 +104,8 @@ export function CounselorPickerCard({
         {/* The card's job is to open the details modal, so the state has to reach a
             screen reader some other way than a pressed-button role. */}
         {selected && <span className="sr-only">Selected. </span>}
-        <span className="mt-0.5 inline-flex items-center gap-1 text-2xs font-bold text-amber-600">
-          <Star className="h-3 w-3 fill-amber-400 text-amber-500" aria-hidden="true" />
+        <span className="mt-0.5 inline-flex items-center gap-1 text-2xs font-bold text-gold-800">
+          <Star className="h-3 w-3 fill-gold-400 text-gold-500" aria-hidden="true" />
           {counselor.averageRating ? counselor.averageRating.toFixed(1) : "5.0"}
           <span className="font-normal text-ink-500">
             {counselor.totalReviews > 0 ? `(${counselor.totalReviews})` : "(Verified)"}

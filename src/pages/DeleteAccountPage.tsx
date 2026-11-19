@@ -156,10 +156,10 @@ export function DeleteAccountPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full mt-2 py-3 px-4 rounded-xl bg-coral text-white font-semibold text-sm hover:bg-coral/90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 cursor-pointer"
+                  className="w-full mt-2 py-3 px-4 rounded-xl bg-coral-600 text-coral-50 font-semibold text-sm hover:bg-coral-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-60 cursor-pointer"
                 >
                   {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-coral-50/30 border-t-coral-50 rounded-full animate-spin" />
                   ) : (
                     <>
                       Send Deletion Code <ArrowRight className="w-4 h-4" />
@@ -212,10 +212,10 @@ export function DeleteAccountPage() {
                 <button
                   type="submit"
                   disabled={loading || otp.length < 6}
-                  className="w-full py-3 px-4 rounded-xl bg-coral text-white font-semibold text-sm hover:bg-coral/90 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
+                  className="w-full py-3 px-4 rounded-xl bg-coral-600 text-coral-50 font-semibold text-sm hover:bg-coral-700 active:scale-[0.99] transition-all flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? (
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-coral-50/30 border-t-coral-50 rounded-full animate-spin" />
                   ) : (
                     <>
                       <Trash2 className="w-4 h-4" /> Permanently Delete My Account & Data
@@ -241,7 +241,7 @@ export function DeleteAccountPage() {
                 <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
                   <Link
                     to="/"
-                    className="py-2.5 px-5 rounded-xl bg-plum text-white text-xs font-semibold hover:bg-plum/90 transition-colors inline-flex items-center justify-center gap-1.5"
+                    className="py-2.5 px-5 rounded-xl bg-plum text-plum-50 text-xs font-semibold hover:bg-plum/90 transition-colors inline-flex items-center justify-center gap-1.5"
                   >
                     Return to Homepage
                   </Link>

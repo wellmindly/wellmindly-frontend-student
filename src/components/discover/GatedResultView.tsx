@@ -74,7 +74,7 @@ export function GatedResultView({ curId, cur: _cur, data: _data, onBackClick }: 
         {/* Fake / Teaser Score Card Header */}
         <div className="flex items-center justify-between border-b border-ink-200 pb-5 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-plum-500 text-white flex items-center justify-center font-black">
+            <div className="w-12 h-12 rounded-2xl bg-plum-500 text-plum-50 flex items-center justify-center font-black">
               WM
             </div>
             <div>
@@ -134,7 +134,7 @@ export function GatedResultView({ curId, cur: _cur, data: _data, onBackClick }: 
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-plum-600 to-plum-500 text-white shadow-lg shadow-plum-500/25"
+          className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-plum-600 to-plum-500 text-plum-50 shadow-lg shadow-plum-500/25"
         >
           <Lock className="h-7 w-7" aria-hidden="true" />
           <span className="absolute -top-1 -right-1 flex h-4 w-4">
