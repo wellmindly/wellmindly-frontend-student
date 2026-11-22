@@ -1,17 +1,16 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, CalendarDays, LifeBuoy, MessageCircle, Printer, Sparkle } from "lucide-react";
+import { ArrowRight, ChevronDown, LifeBuoy, Printer, Sparkle } from "lucide-react";
 import { rankDims, toneWord, VALUE_DESC } from "./types";
 import {
-  bandForResult,
   isWellbeingCheckin,
   displayClassification,
   frequencyLabel,
-  WELLBEING_MAX_SCORE,
-  WELLBEING_TITLE,
 } from "../../lib/wellbeing";
 import type { TestDef, PictureOption, TestTone } from "./types";
 import { FeedbackForm } from "./FeedbackForm";
+import { checkinCopy, checkinDimWord, isEmotionalCheckin } from "../../lib/checkinCopy";
+import { NextSteps } from "./NextSteps";
 import { Button, Card, ProgressBar } from "../ui";
 import { trackEvent } from "../../lib/analytics";
 
@@ -25,7 +24,9 @@ interface ResultViewProps {
     top?: string[];
     archetype?: { name: string; desc: string };
     pictureOption?: PictureOption;
-    aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } | null;
+    aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[]; bandSafe?: boolean } | null;
+    /** Raw total for the two check-ins, straight from the answers just given. */
+    total?: number;
   };
   accent: string;
   accentTo?: string;
@@ -51,6 +52,7 @@ export function ResultView({
 }: ResultViewProps) {
   const [showFeedback, setShowFeedback] = useState(true);
   const [showAllAttempts, setShowAllAttempts] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const ranked = data.scores ? rankDims(data.scores) : [];
 
   const isWellbeing = isWellbeingCheckin(cur.title);
@@ -87,22 +89,47 @@ export function ResultView({
 
   // Compute trend information
   const trendInfo = useMemo(() => {
-    if (!isWellbeing || historyAttempts.length < 2) return null;
+    const isEmotional = isEmotionalCheckin(cur.title);
+    if ((!isWellbeing && !isEmotional) || historyAttempts.length < 2) return null;
     const currentAttempt = historyAttempts[historyAttempts.length - 1];
     const prevAttempt = historyAttempts[historyAttempts.length - 2];
-    
+
     if (currentAttempt.score !== undefined && prevAttempt.score !== undefined) {
       const diff = currentAttempt.score - prevAttempt.score;
-      if (diff < 0) {
-        return `Down ${Math.abs(diff)} points since your last check-in, with fewer difficult days than last time.`;
-      } else if (diff > 0) {
-        return `Up ${diff} points since your last check-in. More of these days than last time; that is worth noticing, not fixing today.`;
-      } else {
-        return `Same score as your last check-in.`;
-      }
+      if (diff === 0) return `Same score as your last check-in.`;
+      // Wellbeing check-in: higher means more hard days. Emotional check-in:
+      // higher means a better couple of weeks.
+      const better = isWellbeing ? diff < 0 : diff > 0;
+      const pts = `${Math.abs(diff)} ${Math.abs(diff) === 1 ? "point" : "points"}`;
+      return better
+        ? `${diff > 0 ? "Up" : "Down"} ${pts} since your last check-in. A little lighter than last time.`
+        : `${diff > 0 ? "Up" : "Down"} ${pts} since your last check-in. A bit heavier than last time, worth noticing, not panicking about.`;
     }
     return null;
-  }, [historyAttempts, isWellbeing]);
+  }, [historyAttempts, isWellbeing, cur.title]);
+
+  // Fixed, band-based copy for the two check-ins. The score decides the tone;
+  // the AI never writes the headline here (see lib/checkinCopy.ts).
+  const copy = useMemo(() => {
+    if (!data.scores || !cur.overall) return null;
+    const total =
+      data.total ?? historyAttempts[historyAttempts.length - 1]?.score ?? 0;
+    return checkinCopy(cur.title, total, data.scores);
+  }, [cur.title, cur.overall, data.scores, data.total, historyAttempts]);
+  const checkinTotal = data.total ?? historyAttempts[historyAttempts.length - 1]?.score;
+  const checkinMax = cur.items
+    ? cur.items.length * (cur.scale ? Math.max(...cur.scale.map((x) => x[1])) : 5)
+    : undefined;
+  // At most one AI line, and only when the server says it was written knowing
+  // the band (older rows and other tests never qualify).
+  const extraInsight =
+    copy && data.aiFeedback?.bandSafe ? data.aiFeedback.insights?.[0] : undefined;
+  const insights = copy
+    ? [...copy.insights, ...(extraInsight ? [extraInsight] : [])]
+    : data.aiFeedback?.insights ?? [];
+  const tipText = copy
+    ? copy.tip
+    : data.aiFeedback?.tip || cur.types?.[data.top?.[0] || ""]?.tip;
 
   // 1. Picture results layout
   const renderContent = () => {
@@ -303,75 +330,56 @@ export function ResultView({
       );
     }
 
-    // 6. Wellbeing check-in report layout.
-    // `kind` stays "phq9" because it is a persisted discriminant (see the note
-    // on TESTS.phq9 in types.ts); nothing here says PHQ-9 to the student.
-    if (data.kind === 'phq9' && data.scores) {
-      const currentAttempt = historyAttempts[historyAttempts.length - 1];
-      const totalScore = currentAttempt?.score ?? 0;
-      const band = bandForResult(totalScore, currentAttempt?.classification);
-
+    // 6/7. The two check-ins (kind "phq9" = Wellbeing check-in, kept as a
+    // persisted discriminant; kind "checkin" = Emotional check-in). One layout:
+    // band chip + score, then fixed copy for that band (lib/checkinCopy.ts).
+    if ((data.kind === 'phq9' || data.kind === 'checkin') && data.scores && copy) {
+      const chipTone =
+        copy.band === 'steady' ? 'text-sage-700 bg-sage-50 border-sage-200'
+        : copy.band === 'okay' ? 'text-gold-700 bg-gold-50 border-gold-200'
+        : copy.band === 'low' ? 'text-coral-700 bg-coral-50 border-coral-200'
+        : 'text-rose-700 bg-rose-50 border-rose-200';
       return (
         <div className="space-y-5">
-          <div className="flex justify-between items-end bg-ink-50 border border-ink-200/70 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-end justify-between gap-4 rounded-2xl border border-ink-200/70 bg-ink-50 p-5">
             <div>
-              <span className="text-2xs font-black text-ink-400 uppercase tracking-widest block mb-1.5">
+              <span className="mb-1.5 block text-2xs font-bold uppercase tracking-widest text-ink-400">
                 Where this sits
               </span>
-              <span className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-xl border text-plum bg-plum-50 border-plum-200/70">
-                {band.label}
+              <span className={`inline-flex items-center rounded-xl border px-3 py-1.5 text-xs font-bold ${chipTone}`}>
+                {copy.label}
               </span>
             </div>
-            <div className="text-right">
-              <div className="flex items-baseline gap-1">
-                <span className="text-4xl font-black text-ink-900 tracking-tighter">{totalScore}</span>
-                <span className="text-sm font-bold text-ink-400">/ {WELLBEING_MAX_SCORE}</span>
+            {typeof checkinTotal === 'number' && checkinMax ? (
+              <div className="text-right">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black tracking-tighter text-ink-900">{checkinTotal}</span>
+                  <span className="text-sm font-bold text-ink-400">/ {checkinMax}</span>
+                </div>
+                <span className="text-2xs font-semibold text-ink-400">
+                  {isWellbeing ? 'lower is lighter' : 'higher is better'}
+                </span>
               </div>
-            </div>
+            ) : null}
           </div>
 
-          <ResultHeadline
-            headline={data.aiFeedback ? data.aiFeedback.headline : WELLBEING_TITLE}
-            narrative={data.aiFeedback ? data.aiFeedback.narrative : band.support}
-          />
+          <ResultHeadline headline={copy.headline} narrative={copy.narrative} />
 
-          {/* Top band only. Before this there was no crisis path wired to a
-              score anywhere in the app - a student could be handed the highest
-              result the instrument produces and offered nothing. */}
-          {band.showCrisisLink && (
-            <div className="flex gap-3 rounded-2xl border border-rose-200/70 bg-rose-50 p-4 text-rose-800">
-              <LifeBuoy className="h-5 w-5 shrink-0 mt-0.5" aria-hidden="true" />
-              <p className="text-xs font-semibold leading-relaxed">
-                If you want to talk to someone right now,{" "}
-                <Link to="/crisis" className="underline font-bold hover:text-rose-900">
-                  crisis support and hotlines are here
+          {copy.supportFirst && (
+            <div className="flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+              <LifeBuoy className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+              <p className="text-sm leading-relaxed">
+                You don't have to wait until it gets worse to talk to someone. A counselor or
+                a peer on TalkMindly is a tap away below, and if you need someone right now,{" "}
+                <Link to="/crisis" className="font-semibold underline hover:text-rose-900">
+                  free helplines are here
                 </Link>
-                . You can also book a session with a counselor from your dashboard.
+                .
               </p>
             </div>
           )}
 
-          <RankingPanel title="Your dimensions" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
-        </div>
-      );
-    }
-
-    // 7. Wellness Check-in report layout
-    if (data.kind === 'checkin' && data.scores) {
-      const avg = Object.values(data.scores).reduce((a, b) => a + b, 0) / Object.values(data.scores).length;
-      const tone = avg >= 70 ? "You're doing well." : avg >= 45 ? "Finding your footing." : "A heavier stretch.";
-      return (
-        <div className="space-y-5">
-          <ResultHeadline
-            headline={data.aiFeedback ? data.aiFeedback.headline : tone}
-            narrative={
-              data.aiFeedback
-                ? data.aiFeedback.narrative
-                : "This is a snapshot, not a score. Use it to notice how your weeks shift. The patterns over time tell a richer story than any single check-in."
-            }
-          />
-
-          <RankingPanel title="Your dimensions" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} />
+          <RankingPanel title="Your dimensions" ranked={ranked} tone={cur.tone} isWellbeing={isWellbeing} emotional={data.kind === 'checkin'} />
         </div>
       );
     }
@@ -407,12 +415,12 @@ export function ResultView({
       {/* Main Layout Content */}
       {renderContent()}
 
-      {/* Dynamic Observations list */}
-      {data.aiFeedback?.insights && data.aiFeedback.insights.length > 0 && (
+      {/* What stood out */}
+      {insights.length > 0 && (
         <Card elevation="sunken" padding="md">
-          <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-plum-600">Key Observations</h4>
+          <h4 className="mb-3 text-xs font-bold uppercase tracking-wider text-plum-600">What stood out</h4>
           <ul className="space-y-3 text-sm font-medium text-ink-600">
-            {data.aiFeedback.insights.map((ins, idx) => (
+            {insights.map((ins, idx) => (
               <li key={idx} className="flex items-start gap-3 leading-relaxed">
                 <Sparkle className="mt-0.5 h-4 w-4 shrink-0 text-plum-500" aria-hidden="true" />
                 <span>{ins}</span>
@@ -423,23 +431,38 @@ export function ResultView({
       )}
 
       {/* Action Tip */}
-      {data.aiFeedback?.tip ? (
-        <InsightBlock borderColor={accent} label="Try this next" text={data.aiFeedback.tip} />
-      ) : (
-        (cur.types?.[data.top?.[0] || '']?.tip) && (
-          <InsightBlock borderColor={accent} label="Try this next" text={cur.types[data.top![0]].tip!} />
-        )
+      {tipText && <InsightBlock borderColor={accent} label="Try this next" text={tipText} />}
+
+      {/* Post-Assessment Feedback Questionnaire */}
+      {data.resultId && showFeedback && (
+        <div className="no-print">
+          <FeedbackForm resultId={data.resultId} onComplete={() => setShowFeedback(false)} />
+        </div>
+      )}
+
+      {/* What you can do next: the three services */}
+      {onComingSoonClick && (
+        <NextSteps supportFirst={!!copy?.supportFirst} onOpen={onComingSoonClick} />
       )}
 
       {/* Trajectory History Timeline */}
       {historyAttempts.length > 0 && (
         <Card elevation="sunken" padding="md" className="no-print space-y-4">
-          <div className="flex items-center justify-between border-b border-line pb-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-plum-600">{isWellbeing ? 'Your Check-in History' : 'Your History'}</h4>
-            <span className="rounded-full bg-paper-2 px-2.5 py-0.5 text-2xs font-bold text-ink-600">
-              {historyAttempts.length} {historyAttempts.length === 1 ? 'Attempt' : 'Attempts'}
+          <button
+            type="button"
+            onClick={() => setShowHistory((v) => !v)}
+            aria-expanded={showHistory}
+            className="flex w-full items-center justify-between gap-3 text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-plum-500/12 rounded-lg"
+          >
+            <span className="text-sm font-semibold text-ink-800">
+              Your past results
+              <span className="ml-2 text-xs font-medium text-ink-400">
+                {historyAttempts.length} {historyAttempts.length === 1 ? 'time' : 'times'}
+              </span>
             </span>
-          </div>
+            <ChevronDown className={`h-4 w-4 text-ink-400 transition-transform ${showHistory ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
+          {showHistory && (<>
 
           {trendInfo && (
             <p className="rounded-xl border border-plum-100 bg-plum-50 p-3.5 text-sm font-semibold italic leading-relaxed text-ink-600">
@@ -507,31 +530,7 @@ export function ResultView({
               </Button>
             </div>
           )}
-        </Card>
-      )}
-
-      {/* Post-Assessment Feedback Questionnaire */}
-      {data.resultId && showFeedback && (
-        <div className="no-print mb-6">
-          <FeedbackForm resultId={data.resultId} onComplete={() => setShowFeedback(false)} />
-        </div>
-      )}
-
-      {/* Connected services CTAs */}
-      {onComingSoonClick && (
-        <Card elevation="sunken" padding="md" className="no-print space-y-4">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-plum-600">Connected Services</h4>
-          <p className="text-xs font-medium leading-relaxed text-ink-600">
-            Need to talk through these insights or find support?
-          </p>
-          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
-            <Button variant="outline" fullWidth onClick={() => onComingSoonClick('talkmindly')} leadingIcon={<MessageCircle />}>
-              TalkMindly
-            </Button>
-            <Button variant="outline" fullWidth onClick={() => onComingSoonClick('sessionbooking')} leadingIcon={<CalendarDays />}>
-              Book a session
-            </Button>
-          </div>
+          </>)}
         </Card>
       )}
 
@@ -546,12 +545,19 @@ export function ResultView({
               await downloadAssessmentPdf({
                 title: cur.title,
                 category: cur.tag?.split(" · ")[0],
-                score: (data as any)?.overallScore || (data as any)?.score,
-                maxScore: cur.items ? cur.items.length * 5 : 100,
-                classification: (data as any)?.classification,
-                headline: data.aiFeedback?.headline,
-                narrative: data.aiFeedback?.narrative,
-                tip: data.aiFeedback?.tip,
+                // Only the two check-ins have a real total; the rest post a
+                // placeholder 100, so no score is printed for them.
+                score: copy && typeof checkinTotal === "number" ? checkinTotal : undefined,
+                maxScore: copy ? checkinMax : undefined,
+                lowerIsBetter: isWellbeing,
+                classification: copy?.label,
+                headline: copy?.headline ?? data.aiFeedback?.headline,
+                narrative: copy?.narrative ?? data.aiFeedback?.narrative,
+                tip: tipText,
+                insights,
+                dimensions: ranked.length ? ranked : undefined,
+                dimensionWord: (v: number) =>
+                  isWellbeing ? frequencyLabel(v) : data.kind === "checkin" ? checkinDimWord(v) : toneWord(v),
               });
               trackEvent("report_downloaded");
               // downloadAssessmentPdf already produces the file (browser download on
@@ -602,11 +608,13 @@ function RankingPanel({
   ranked,
   tone,
   isWellbeing,
+  emotional,
 }: {
   title: string;
   ranked: [string, number][];
   tone: TestTone;
   isWellbeing?: boolean;
+  emotional?: boolean;
 }) {
   return (
     <Card elevation="sunken" padding="md">
@@ -621,7 +629,7 @@ function RankingPanel({
             value={value}
             tone={dimTone(value, isWellbeing, tone)}
             label={label}
-            valueText={isWellbeing ? frequencyLabel(value) : toneWord(value)}
+            valueText={isWellbeing ? frequencyLabel(value) : emotional ? checkinDimWord(value) : toneWord(value)}
           />
         ))}
       </div>

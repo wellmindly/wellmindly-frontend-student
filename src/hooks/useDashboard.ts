@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import api from "../services/api";
 import { moodByRating } from "../lib/mood";
 import { bandFor } from "../lib/wellbeing";
+import { emotionalLabelFor } from "../lib/checkinCopy";
 import { useToast } from "../components/ui";
 
 import {
@@ -25,7 +26,9 @@ export interface DiscoverResultData {
   top?: string[];
   archetype?: { name: string; desc: string };
   pictureOption?: PictureOption;
-  aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[] } | null;
+  aiFeedback?: { headline: string; narrative: string; tip: string; insights?: string[]; bandSafe?: boolean } | null;
+  /** Raw total for the two check-ins. */
+  total?: number;
 }
 
 /**
@@ -416,6 +419,7 @@ export function useDashboard() {
                         ? "values"
                         : "type",
             scores: latest.answers?.scores || latest.scores,
+            total: typeof latest.score === "number" ? latest.score : undefined,
             top: latest.answers?.top || latest.top,
             archetype: showResult === "bigfive" && (latest.answers?.scores || latest.scores)
               ? pickArchetype(latest.answers?.scores || latest.scores)
@@ -566,7 +570,13 @@ export function useDashboard() {
       const maxPoints = test.scale ? Math.max(...test.scale.map((x: any) => x[1])) : 5;
       const maxScore = test.items!.length * maxPoints;
 
+      // Both check-ins store their band, never "Strongest: X": the top
+      // dimension is only the least-low one when every answer is low, and
+      // that string used to steer the AI into upbeat copy (lib/checkinCopy.ts).
       let classText = "Strongest: " + ranked[0][0];
+      if (id === "checkin") {
+        classText = emotionalLabelFor(sum);
+      }
       if (id === "phq9") {
         // One band table, shared with ReportDetailModal and mirrored in
         // backend/src/routes/quizzes.ts. This used to read
@@ -582,11 +592,11 @@ export function useDashboard() {
         sum,
         maxScore,
         classText,
-        { scores, summary, responses }
+        { scores, summary: classText, responses }
       );
 
-      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary, scores, aiFeedback });
-      setDiscoverResultData({ resultId, kind: id === "phq9" ? "phq9" : "checkin", scores, aiFeedback });
+      keepLocallyIfUnsaved(saved, id, { t: Date.now(), summary: classText, scores, aiFeedback });
+      setDiscoverResultData({ resultId, kind: id === "phq9" ? "phq9" : "checkin", scores, aiFeedback, total: sum });
       setDiscoverView("result");
     }
   };
