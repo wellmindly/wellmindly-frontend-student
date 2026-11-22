@@ -1,3 +1,4 @@
+import { emotionalLabelFor } from "./checkinCopy";
 /* ============================================================================
    The wellbeing check-in scale - single source of truth.
    ----------------------------------------------------------------------------
@@ -178,6 +179,11 @@ export function displayClassification(
   classification: string | null | undefined,
   score: number,
 ): string {
+  // Emotional check-in rows written before lib/checkinCopy.ts say
+  // "Strongest: Good spirits" even at 12 / 30. Show the band instead.
+  if ((quizTitle ?? "").trim().toLowerCase() === "emotional check-in") {
+    return emotionalLabelFor(score);
+  }
   if (!isWellbeingCheckin(quizTitle)) return classification ?? "";
   return bandForResult(score, classification).label;
 }

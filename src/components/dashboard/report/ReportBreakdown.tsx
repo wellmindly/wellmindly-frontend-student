@@ -1,5 +1,6 @@
 import { Info } from "lucide-react";
 import { frequencyLabel, isWellbeingCheckin } from "../../../lib/wellbeing";
+import { checkinDimWord } from "../../../lib/checkinCopy";
 import type { TimelinePoint } from "../../../types/student";
 import { DimensionBar } from "./DimensionBar";
 
@@ -23,7 +24,7 @@ export function ReportBreakdown({ report }: { report: TimelinePoint }) {
           const status = isPhq9
             ? frequencyLabel(value)
             : isCheckin
-              ? (value >= 70 ? 'Stable' : value >= 45 ? 'Moderate' : 'Needs Focus')
+              ? checkinDimWord(value)
               : (value >= 75 ? 'Dominant Strength' : value >= 55 ? 'Strong' : value >= 35 ? 'Developing' : 'Room to grow');
 
           const statusColor = isPhq9

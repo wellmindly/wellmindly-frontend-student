@@ -2,15 +2,39 @@ import { Info, Lightbulb, Sparkles } from "lucide-react";
 import type { TimelinePoint } from "../../../types/student";
 import { ReportBreakdown } from "./ReportBreakdown";
 import { ReportNarrative } from "./ReportNarrative";
+import { checkinCopy } from "../../../lib/checkinCopy";
 
 export function ReportInsights({ report }: { report: TimelinePoint }) {
+  // Check-ins use the same fixed, band-based copy as the result screen, so an
+  // old row whose AI text contradicted its score now reads correctly too.
+  const scores = report.answers?.scores as Record<string, number> | undefined;
+  const copy = scores ? checkinCopy(report.quizTitle, report.score, scores) : null;
+  const fb = copy
+    ? {
+        headline: copy.headline,
+        narrative: copy.narrative,
+        tip: copy.tip,
+        insights: copy.insights,
+      }
+    : report.aiFeedback;
   return (
     <div className="space-y-6">
       <div>
         <h4 className="text-xs font-black text-ink-800 uppercase tracking-wider mb-4 border-b border-ink-100 pb-2 flex items-center gap-1.5">
-          <Sparkles className="w-4 h-4 text-plum" /> Detailed Dimension Analysis
+          <Sparkles className="w-4 h-4 text-plum" /> Your dimensions
         </h4>
-        {report.aiFeedback?.insights && report.aiFeedback.insights.length > 0 ? (
+        {copy ? (
+          <div className="space-y-4">
+            <ReportBreakdown report={report} />
+            {copy.insights.length > 0 && (
+              <ul className="space-y-2">
+                {copy.insights.map((insight, idx) => (
+                  <li key={idx} className="text-sm font-medium text-ink-700">{insight}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : report.aiFeedback?.insights && report.aiFeedback.insights.length > 0 ? (
           <ul className="space-y-2.5">
             {report.aiFeedback.insights.map((insight: string, idx: number) => (
               <li
@@ -31,21 +55,21 @@ export function ReportInsights({ report }: { report: TimelinePoint }) {
 
       <div className="bg-paper-2 border border-ink-200 rounded-2xl p-5 mt-6">
         <h4 className="text-xs font-black text-ink-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-          <Info className="h-4 w-4 text-plum" /> Recommended Action Narrative
+          <Info className="h-4 w-4 text-plum" /> What this means
         </h4>
-        {report.aiFeedback?.narrative ? (
+        {fb?.narrative ? (
           <div className="space-y-2.5">
             <p className="text-xs sm:text-sm font-bold text-ink-800">
-              {report.aiFeedback.headline}
+              {fb.headline}
             </p>
             <p className="text-xs sm:text-sm text-ink-600 leading-relaxed font-medium">
-              {report.aiFeedback.narrative}
+              {fb.narrative}
             </p>
-            {report.aiFeedback.tip && (
+            {fb.tip && (
               <p className="text-xs text-plum font-semibold mt-2 bg-plum/5 p-3 rounded-lg border border-plum/10 leading-relaxed flex items-center gap-1.5">
                 <Lightbulb className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>
-                  <b>Tip</b>: {report.aiFeedback.tip}
+                  <b>Tip</b>: {fb.tip}
                 </span>
               </p>
             )}

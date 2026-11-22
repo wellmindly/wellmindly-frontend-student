@@ -127,6 +127,7 @@ export const ALLOWED_EVENTS = new Set([
   'writemindly_message_sent',
   'talk_note_posted',
   'report_downloaded',
+  'result_next_step',
   'hero_mood_selected',
   'session_booked_successfully',
   'session_booking_failed',
